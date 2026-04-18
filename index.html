@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mordheim Warband Builder</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light-mode">
+    <header class="app-header no-print">
+        <div class="header-content">
+            <h1 class="logo">Mordheim Builder</h1>
+            <div class="warband-meta">
+                <input type="text" id="warband-name" placeholder="Warband Name..." value="My New Warband">
+                <span class="total-cost">Total Cost: <span id="total-cost-value">0</span> gc</span>
+            </div>
+            <div class="actions">
+                <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
+                <button id="save-cache-btn" class="btn">Save to Cache</button>
+                <button id="export-json-btn" class="btn">Export JSON</button>
+                <label for="import-json-input" class="btn">Import JSON</label>
+                <input type="file" id="import-json-input" hidden accept=".json">
+                <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
+                <button id="clear-all-btn" class="btn danger">Clear All</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="card-grid" id="card-grid">
+        <!-- Fighter cards will be injected here -->
+         <div id="add-card-placeholder" class="add-card-placeholder no-print">
+            <div class="plus-icon">+</div>
+         </div>
+    </main>
+
+    <div id="save-manager" class="no-print">
+        <h3>Saved Warbands</h3>
+        <ul id="saved-warbands-list"></ul>
+    </div>
+
+    <!-- Templates -->
+    <template id="fighter-card-template">
+        <div class="card-wrapper">
+            <button class="remove-btn no-print" title="Remove Fighter">&times;</button>
+            <article class="fighter-card">
+                <div class="card-header">
+                    <input type="text" class="fighter-name" placeholder="Name of the Warrior">
+                    <div class="type-selection no-print">
+                        <select class="fighter-type-select">
+                            <option value="">Quick Select Template...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fighter-type-cost">
+                    <input type="text" class="fighter-type-input" placeholder="Fighter Type">
+                    <div class="cost-info">
+                        <div class="cost-input-container">
+                            <input type="number" class="fighter-base-cost" value="0">
+                            <span>base</span>
+                        </div>
+                        <div class="total-card-cost">
+                            Total: <span class="fighter-total-cost">0</span> gc
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-table">
+                    <div class="stat-col"><label>M</label><input type="number" class="stat-m" value="0"></div>
+                    <div class="stat-col"><label>WS</label><input type="number" class="stat-ws" value="0"></div>
+                    <div class="stat-col"><label>BS</label><input type="number" class="stat-bs" value="0"></div>
+                    <div class="stat-col"><label>S</label><input type="number" class="stat-s" value="0"></div>
+                    <div class="stat-col"><label>T</label><input type="number" class="stat-t" value="0"></div>
+                    <div class="stat-col"><label>W</label><input type="number" class="stat-w" value="0"></div>
+                    <div class="stat-col"><label>I</label><input type="number" class="stat-i" value="0"></div>
+                    <div class="stat-col"><label>A</label><input type="number" class="stat-a" value="0"></div>
+                    <div class="stat-col"><label>Ld</label><input type="number" class="stat-ld" value="0"></div>
+                </div>
+
+                <div class="card-section">
+                    <h4>Equipment</h4>
+                    <div class="equipment-list"></div>
+                    <div class="combobox-container no-print">
+                        <input type="text" class="equipment-input" list="equipment-options" placeholder="Add gear...">
+                        <datalist id="equipment-options"></datalist>
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <h4>Skills / Special</h4>
+                    <div class="skills-list"></div>
+                    <div class="combobox-container no-print">
+                        <input type="text" class="skills-input" list="skill-options" placeholder="Add skill...">
+                        <datalist id="skill-options"></datalist>
+                    </div>
+                </div>
+
+                <div class="validation-warnings"></div>
+            </article>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>
