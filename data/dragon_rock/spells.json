@@ -1,58 +1,58 @@
 {
   "Lesser Magic": [
-    { "name": "1. Fires of U’Zhul", "difficulty": 7, "description": "A ball of fire with a range of 18 inches, hits the first target in its path, Strength 4, normal armor saves." },
-    { "name": "2. Zimmeran's Flight", "difficulty": 7, "description": "Immediate movement of up to 12 inches, including into contact with an enemy (counts as a charge)." },
-    { "name": "3. Aramar's Terror", "difficulty": 7, "description": "A single model within 12 inches of the caster must pass a Ld test or be treated as Knocked Down from fear. Does not affect Undead or Fearless models." },
-    { "name": "4. Silver Arrows of Arha", "difficulty": 7, "description": "Cannot be cast in close combat. Summons k6+2 arrows that can be sent at one model. Range 24 inches. Use the wizard's BS to determine hits, ignoring penalties for movement or cover. Each arrow has Strength 3." },
-    { "name": "5. Shemtek's Luck", "difficulty": 6, "description": "The wizard can reroll all failed rolls, but the second result stands. Lasts until the beginning of the wizard's next turn." },
-    { "name": "6. Rezhebel's Sword", "difficulty": 8, "description": "A summoned sword gives the wizard +1 Attack (A), +2 Weapon Skill (WS), and +2 Strength (S). At the start of each of the wizard's team turns, roll his Ld; if the test fails, the sword disappears." }
+    { "name": "Fires of U'Zhul", "difficulty": 7, "description": "A ball of fire with a range of 18 inches, hits the first target in its path, Strength 4, normal armor saves." },
+    { "name": "Zimmeran's Flight", "difficulty": 7, "description": "Immediate movement of up to 12 inches, including into contact with an enemy (counts as a charge)." },
+    { "name": "Aramar's Terror", "difficulty": 7, "description": "A single model within 12 inches of the caster must pass a Ld test or be treated as Knocked Down from fear. Does not affect Undead or Fearless models." },
+    { "name": "Silver Arrows of Arha", "difficulty": 7, "description": "Cannot be cast in close combat. Summons k6+2 arrows that can be sent at one model. Range 24 inches. Use the wizard's BS to determine hits, ignoring penalties for movement or cover. Each arrow has Strength 3." },
+    { "name": "Shemtek's Luck", "difficulty": 6, "description": "The wizard can reroll all failed rolls, but the second result stands. Lasts until the beginning of the wizard's next turn." },
+    { "name": "Rezhebel's Sword", "difficulty": 8, "description": "A summoned sword gives the wizard +1 Attack (A), +2 Weapon Skill (WS), and +2 Strength (S). At the start of each of the wizard's team turns, roll his Ld; if the test fails, the sword disappears." }
   ],
   "Prayers of Sigmar": [
-    { "name": "1. Hammer of Sigmar", "difficulty": 7, "description": "The target receives +2S in close combat and doubles damage (2 wounds instead of 1). The caster must test the spell difficulty each shooting phase to maintain it." },
-    { "name": "2. Hearts of Steel", "difficulty": 8, "description": "All allied warriors within 8” become immune to Fear. Additionally, the entire warband gets +1 to pass Rout tests. The spell lasts until the caster is knocked down, stunned, or OOA. Recasting does not stack." },
-    { "name": "3. Soulfire", "difficulty": 9, "description": "All enemy models within 4” of the caster receive a S3 hit. Ignores armor saves. Possessed and Undead receive a S5 hit." },
-    { "name": "4. Shield of Faith", "difficulty": 6, "description": "The Priest becomes immune to all spells. At the start of his turn, roll k6 – on 1-2 the shield disappears." },
-    { "name": "5. Healing Hand", "difficulty": 5, "description": "All models within 2”, including the caster, regain their full pool of Wounds. Additionally, all knocked down and stunned models in range automatically stand up and can fight normally." },
-    { "name": "6. Armor of Righteousness", "difficulty": 9, "description": "The caster receives a 2+ armor save, which replaces his normal save. Additionally, he causes fear and becomes immune to it. The armor lasts until the player's next shooting phase." }
+    { "name": "Hammer of Sigmar", "difficulty": 7, "description": "The target receives +2S in close combat and doubles damage (2 wounds instead of 1). The caster must test the spell difficulty each shooting phase to maintain it." },
+    { "name": "Hearts of Steel", "difficulty": 8, "description": "All allied warriors within 8\" become immune to Fear. Additionally, the entire warband gets +1 to pass Rout tests. The spell lasts until the caster is knocked down, stunned, or OOA. Recasting does not stack." },
+    { "name": "Soulfire", "difficulty": 9, "description": "All enemy models within 4\" of the caster receive a S3 hit. Ignores armor saves. Possessed and Undead receive a S5 hit." },
+    { "name": "Shield of Faith", "difficulty": 6, "description": "The Priest becomes immune to all spells. At the start of his turn, roll k6 – on 1-2 the shield disappears." },
+    { "name": "Healing Hand", "difficulty": 5, "description": "All models within 2\", including the caster, regain their full pool of Wounds. Additionally, all knocked down and stunned models in range automatically stand up and can fight normally." },
+    { "name": "Armor of Righteousness", "difficulty": 9, "description": "The caster receives a 2+ armor save, which replaces his normal save. Additionally, he causes fear and becomes immune to it. The armor lasts until the player's next shooting phase." }
   ],
   "Waaaagh! Magic": [
-    { "name": "1. 'Ere We Go!", "difficulty": 9, "description": "Every Orc or Goblin within 4 inches of the Shaman automatically strikes first in close combat, regardless of circumstances. The spell lasts until the shaman is knocked down, stunned, or OOA." },
-    { "name": "2. Gidoutahere!", "difficulty": 7, "description": "Range 8 inches. Moves every enemy model on its line by d6 inches away from the Shaman. If the target hits a building, obstacle, or enemy model, each receives a S3 hit. Cannot be cast on models in close combat." },
-    { "name": "3. Zzap!", "difficulty": 9, "description": "Range 12 inches. D3 hits with S4 on the nearest enemy target, without armor saves." },
-    { "name": "4. Gofers!", "difficulty": 6, "description": "Until his next round, no enemy models can charge the Shaman. If the shaman is in close combat, he may immediately move up to 4 inches away from it." },
-    { "name": "5. Thump!", "difficulty": 7, "description": "A club appears in the shaman's hand, acting as a normal club with a +2 Strength bonus and adding +1 Attack to him. The spell lasts until the Shaman receives any wound." },
-    { "name": "6. Gork's Fire", "difficulty": 8, "description": "Two fiery projectiles fly from the shaman's nose with a range of 12 inches, each dealing k3 hits with S3. Both can hit one nearest model or be split between the two nearest models." }
+    { "name": "'Ere We Go!", "difficulty": 9, "description": "Every Orc or Goblin within 4 inches of the Shaman automatically strikes first in close combat, regardless of circumstances. The spell lasts until the shaman is knocked down, stunned, or OOA." },
+    { "name": "Gidoutahere!", "difficulty": 7, "description": "Range 8 inches. Moves every enemy model on its line by d6 inches away from the Shaman. If the target hits a building, obstacle, or enemy model, each receives a S3 hit. Cannot be cast on models in close combat." },
+    { "name": "Zzap!", "difficulty": 9, "description": "Range 12 inches. D3 hits with S4 on the nearest enemy target, without armor saves." },
+    { "name": "Gofers!", "difficulty": 6, "description": "Until his next round, no enemy models can charge the Shaman. If the shaman is in close combat, he may immediately move up to 4 inches away from it." },
+    { "name": "Thump!", "difficulty": 7, "description": "A club appears in the shaman's hand, acting as a normal club with a +2 Strength bonus and adding +1 Attack to him. The spell lasts until the Shaman receives any wound." },
+    { "name": "Gork's Fire", "difficulty": 8, "description": "Two fiery projectiles fly from the shaman's nose with a range of 12 inches, each dealing k3 hits with S3. Both can hit one nearest model or be split between the two nearest models." }
   ],
   "Necromancy": [
-    { "name": "1. Life Leech", "difficulty": 10, "description": "Choose a single model within 6 inches of the caster. The target receives an automatic wound without armor saves, and the caster gains one wound, which can raise their value even above the allowed maximum. The spell does not affect Undead or Possessed models." },
-    { "name": "2. Re-Animation", "difficulty": 5, "description": "One zombie that went OOA in the last shooting or combat phase (but not Large) can immediately return to the fight. You must place it within 6 inches of the caster and not in base contact with an enemy." },
-    { "name": "3. Death Vision", "difficulty": 6, "description": "The caster causes Fear until the end of the skirmish." },
-    { "name": "4. Spell of Doom", "difficulty": 9, "description": "Choose an enemy model within 12 inches of the caster. The model must immediately roll less than or equal to its Strength on a k6, or automatically roll on the Injury table." },
-    { "name": "5. Vanhel’s Danse Macabre", "difficulty": 6, "description": "A single Ghoul or Dire Wolf within 6 inches of the caster can immediately move again at its maximum movement distance (but without running). If this movement reaches an enemy, it counts as charging." },
-    { "name": "6. Spell of Awakening", "difficulty": "Auto", "description": "If an opponent of the Undead warband dies in battle with them, the necromancer can resurrect them as a Zombie. The resurrected model retains stats and equipment but cannot use skills or ranged weapons." }
+    { "name": "Life Leech", "difficulty": 10, "description": "Choose a single model within 6 inches of the caster. The target receives an automatic wound without armor saves, and the caster gains one wound, which can raise their value even above the allowed maximum. The spell does not affect Undead or Possessed models." },
+    { "name": "Re-Animation", "difficulty": 5, "description": "One zombie that went OOA in the last shooting or combat phase (but not Large) can immediately return to the fight. You must place it within 6 inches of the caster and not in base contact with an enemy." },
+    { "name": "Death Vision", "difficulty": 6, "description": "The caster causes Fear until the end of the skirmish." },
+    { "name": "Spell of Doom", "difficulty": 9, "description": "Choose an enemy model within 12 inches of the caster. The model must immediately roll less than or equal to its Strength on a k6, or automatically roll on the Injury table." },
+    { "name": "Vanhel's Danse Macabre", "difficulty": 6, "description": "A single Ghoul or Dire Wolf within 6 inches of the caster can immediately move again at its maximum movement distance (but without running). If this movement reaches an enemy, it counts as charging." },
+    { "name": "Spell of Awakening", "difficulty": "Auto", "description": "If an opponent of the Undead warband dies in battle with them, the necromancer can resurrect them as a Zombie. The resurrected model retains stats and equipment but cannot use skills or ranged weapons." }
   ],
   "Magic of the Horned Rat": [
-    { "name": "1. Warpfire", "difficulty": 8, "description": "A projectile flying for 8 inches and hitting the first target in its path. Deals D3 hits with Strength 4 to the target and one hit with Strength 3 to every model within 2 inches of that target." },
-    { "name": "2. Children of the Horned Rat", "difficulty": "Auto", "description": "The spell must be used before the battle and only once per battle. Summons D3 Giant Rats, which must be deployed within 6 inches of the Warlock. The rats disappear immediately after the battle." },
-    { "name": "3. Gnaw", "difficulty": 7, "description": "The spell deals 2D6 hits with Strength 1 to one model within 8 inches of the caster." },
-    { "name": "4. Black Fury", "difficulty": 8, "description": "The caster immediately charges an enemy within 12 inches (ignoring terrain and models in the way), receiving 2 extra Attacks and +1 Strength in this single round of close combat." },
-    { "name": "5. Eye of the Warp", "difficulty": 8, "description": "All standing models in contact with the caster must pass a Ld test. If they fail, they receive a Strength 3 hit and must move 2D6 inches away from the caster." },
-    { "name": "6. Sorcerer's Curse", "difficulty": 6, "description": "Spell at 12” on one model in range. The target must reroll all successful armor saves and hit rolls in the current Skaven turn and their upcoming shooting and close combat phase." }
+    { "name": "Warpfire", "difficulty": 8, "description": "A projectile flying for 8 inches and hitting the first target in its path. Deals D3 hits with Strength 4 to the target and one hit with Strength 3 to every model within 2 inches of that target." },
+    { "name": "Children of the Horned Rat", "difficulty": "Auto", "description": "The spell must be used before the battle and only once per battle. Summons D3 Giant Rats, which must be deployed within 6 inches of the Warlock. The rats disappear immediately after the battle." },
+    { "name": "Gnaw", "difficulty": 7, "description": "The spell deals 2D6 hits with Strength 1 to one model within 8 inches of the caster." },
+    { "name": "Black Fury", "difficulty": 8, "description": "The caster immediately charges an enemy within 12 inches (ignoring terrain and models in the way), receiving 2 extra Attacks and +1 Strength in this single round of close combat." },
+    { "name": "Eye of the Warp", "difficulty": 8, "description": "All standing models in contact with the caster must pass a Ld test. If they fail, they receive a Strength 3 hit and must move 2D6 inches away from the caster." },
+    { "name": "Sorcerer's Curse", "difficulty": 6, "description": "Spell at 12\" on one model in range. The target must reroll all successful armor saves and hit rolls in the current Skaven turn and their upcoming shooting and close combat phase." }
   ],
   "Chaos Rituals": [
-    { "name": "1. Visions of Torment", "difficulty": 10, "description": "Has a range of 6” and must be cast at the nearest model. The model is automatically Stunned, and if it cannot be Stunned, it is Knocked Down." },
-    { "name": "2. Eye of God", "difficulty": 7, "description": "Choose a model within 6 inches, friendly or enemy, and roll k6: 1 – wrath of the gods (OOA), 2-5 – +1 to a selected characteristic, 6 – +1 to every characteristic for the duration of the skirmish." },
-    { "name": "3. Dark Blood", "difficulty": 8, "description": "Attack with a range of 8 inches, dealing k3 hits with Strength 5. Hits the first model in its path. After using this spell, the model must roll for Injury, but treat OOA as Stunned." },
-    { "name": "4. Temptation of Chaos", "difficulty": 9, "description": "The spell has a range of 12 inches and must be cast at the nearest model. Test against the wizard's Ld. If the wizard wins, he takes control of the model until a Ld test is passed in the Rally phase." },
-    { "name": "5. Wings of Darkness", "difficulty": 7, "description": "Immediate movement of up to 12 inches, including into contact with an enemy (counts as a charge)." },
-    { "name": "6. Word of Pain", "difficulty": 7, "description": "All models (including friendly ones) within 3 inches of the wizard receive a S3 hit, without armor saves." }
+    { "name": "Visions of Torment", "difficulty": 10, "description": "Has a range of 6\" and must be cast at the nearest model. The model is automatically Stunned, and if it cannot be Stunned, it is Knocked Down." },
+    { "name": "Eye of God", "difficulty": 7, "description": "Choose a model within 6 inches, friendly or enemy, and roll k6: 1 – wrath of the gods (OOA), 2-5 – +1 to a selected characteristic, 6 – +1 to every characteristic for the duration of the skirmish." },
+    { "name": "Dark Blood", "difficulty": 8, "description": "Attack with a range of 8 inches, dealing k3 hits with Strength 5. Hits the first model in its path. After using this spell, the model must roll for Injury, but treat OOA as Stunned." },
+    { "name": "Temptation of Chaos", "difficulty": 9, "description": "The spell has a range of 12 inches and must be cast at the nearest model. Test against the wizard's Ld. If the wizard wins, he takes control of the model until a Ld test is passed in the Rally phase." },
+    { "name": "Wings of Darkness", "difficulty": 7, "description": "Immediate movement of up to 12 inches, including into contact with an enemy (counts as a charge)." },
+    { "name": "Word of Pain", "difficulty": 7, "description": "All models (including friendly ones) within 3 inches of the wizard receive a S3 hit, without armor saves." }
   ],
   "Prayers of Taal": [
-    { "name": "1. Stag's Leap", "difficulty": 7, "description": "The Priest's model can move up to 9”, including getting into contact with an enemy - it then counts as charging with +1 Strength." },
-    { "name": "2. Golden Nectar", "difficulty": 5, "description": "A model up to 2” from the priest (including him) can heal the full number of their wounds. Additionally, all living models within a 2” radius lose 1 Attack." },
-    { "name": "3. Bear's Paw", "difficulty": 7, "description": "Any friendly model within 6” range receives +2 Strength until the Priest's warband's next turn." },
-    { "name": "4. Earth's Wrath", "difficulty": 8, "description": "All terrain within 12” of the Priest becomes Difficult Terrain (models cannot run and can charge for the distance of their Movement (M))." },
-    { "name": "5. Summon Rodents", "difficulty": 7, "description": "Point to an enemy model within 12 inches of the Priest. It receives 2k6 hits with Strength 1, without armor saves." },
-    { "name": "6. Taal's Blessing", "difficulty": "X", "description": "Decrease the difficulty of one of the prayers already possessed by you by 1." }
+    { "name": "Stag's Leap", "difficulty": 7, "description": "The Priest's model can move up to 9\", including getting into contact with an enemy - it then counts as charging with +1 Strength." },
+    { "name": "Golden Nectar", "difficulty": 5, "description": "A model up to 2\" from the priest (including him) can heal the full number of their wounds. Additionally, all living models within a 2\" radius lose 1 Attack." },
+    { "name": "Bear's Paw", "difficulty": 7, "description": "Any friendly model within 6\" range receives +2 Strength until the Priest's warband's next turn." },
+    { "name": "Earth's Wrath", "difficulty": 8, "description": "All terrain within 12\" of the Priest becomes Difficult Terrain (models cannot run and can charge for the distance of their Movement (M))." },
+    { "name": "Summon Rodents", "difficulty": 7, "description": "Point to an enemy model within 12 inches of the Priest. It receives 2k6 hits with Strength 1, without armor saves." },
+    { "name": "Taal's Blessing", "difficulty": "X", "description": "Decrease the difficulty of one of the prayers already possessed by you by 1." }
   ]
 }

@@ -33,14 +33,16 @@
                 </div>
                 <span class="total-cost">Total Cost: <span id="total-cost-value">0</span> gc</span>
             </div>
-            <div class="actions">
-                <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
-                <button id="save-cache-btn" class="btn">Save to Cache</button>
-                <button id="export-json-btn" class="btn">Export JSON</button>
-                <label for="import-json-input" class="btn">Import JSON</label>
-                <input type="file" id="import-json-input" hidden accept=".json">
-                <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
-                <button id="clear-all-btn" class="btn danger">Clear All</button>
+            <div class="actions-carousel-wrapper">
+                <div class="actions">
+                    <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
+                    <button id="save-cache-btn" class="btn">Save to Cache</button>
+                    <button id="export-json-btn" class="btn">Export JSON</button>
+                    <label for="import-json-input" class="btn">Import JSON</label>
+                    <input type="file" id="import-json-input" hidden accept=".json">
+                    <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
+                    <button id="clear-all-btn" class="btn danger">Clear All</button>
+                </div>
             </div>
         </div>
     </header>
@@ -57,12 +59,15 @@
     </div>
 
     <div id="save-manager" class="no-print">
+        <button id="save-manager-toggle" class="save-manager-toggle">Saves ▴</button>
         <div class="save-manager-header">
             <h3>Saved Warbands</h3>
             <button id="delete-all-saves-btn" class="btn-text danger">Delete All</button>
         </div>
         <ul id="saved-warbands-list"></ul>
     </div>
+
+    <!-- Global Datalists Removed for Mobile Safari Compatibility -->
 
     <!-- Templates -->
     <template id="fighter-card-template">
@@ -79,17 +84,16 @@
                             <option value="">Quick Select Template...</option>
                         </select>
                     </div>
-                    <div class="fighter-flags"></div>
-                </div>
-                <div class="fighter-type-cost">
-                    <input type="text" class="fighter-type-input" placeholder="Fighter Type">
-                    <div class="cost-info">
-                        <div class="cost-input-container">
-                            <input type="number" class="fighter-base-cost" value="0">
-                            <span>base</span>
-                        </div>
-                        <div class="total-card-cost">
-                            Total: <span class="fighter-total-cost">0</span> gc
+                    <div class="card-header-meta">
+                        <input type="text" class="fighter-type-input fighter-type-badge" placeholder="Fighter Type">
+                        <div class="cost-info no-print">
+                            <div class="cost-input-container">
+                                <input type="number" class="fighter-base-cost" value="0">
+                                <span>base</span>
+                            </div>
+                            <div class="total-card-cost">
+                                Total: <span class="fighter-total-cost">0</span> gc
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -106,26 +110,54 @@
                     <div class="stat-col"><label>Ld</label><input type="number" class="stat-ld" value="0"></div>
                 </div>
 
-                <div class="card-section equipment-section">
+                <!-- Melee Weapons -->
+                <div class="card-section melee-section" data-category="melee">
                     <div class="section-layout">
                         <span class="material-symbols-outlined section-icon">swords</span>
-                        <div class="equipment-list"></div>
-                    </div>
-                    <div class="combobox-container no-print">
-                        <input type="text" class="equipment-input" list="equipment-options" placeholder="...">
-                        <datalist id="equipment-options"></datalist>
+                        <div class="melee-list item-list"></div>
                     </div>
                 </div>
 
-                <div class="card-section skills-section">
+                <!-- Ranged Weapons -->
+                <div class="card-section ranged-section" data-category="ranged">
+                    <div class="section-layout">
+                        <span class="material-symbols-outlined section-icon">target</span>
+                        <div class="ranged-list item-list"></div>
+                    </div>
+                </div>
+
+                <!-- Armor -->
+                <div class="card-section armor-section" data-category="armor">
+                    <div class="section-layout">
+                        <span class="material-symbols-outlined section-icon">shield</span>
+                        <div class="armor-list item-list"></div>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="card-section items-section" data-category="items">
+                    <div class="section-layout">
+                        <span class="material-symbols-outlined section-icon">inventory_2</span>
+                        <div class="items-list item-list"></div>
+                    </div>
+                </div>
+
+                <!-- Add Equipment -->
+                <div class="combobox-container no-print">
+                    <input type="text" class="equipment-input" enterkeyhint="done" autocomplete="off" placeholder="Add equipment...">
+                </div>
+
+                <!-- Skills -->
+                <div class="card-section skills-section" data-category="skills">
                     <div class="section-layout">
                         <span class="material-symbols-outlined section-icon">star_shine</span>
-                        <div class="skills-list"></div>
+                        <div class="skills-list item-list"></div>
                     </div>
-                    <div class="combobox-container no-print">
-                        <input type="text" class="skills-input" list="skill-options" placeholder="...">
-                        <datalist id="skill-options"></datalist>
-                    </div>
+                </div>
+
+                <!-- Add Skills -->
+                <div class="combobox-container no-print">
+                    <input type="text" class="skills-input" enterkeyhint="done" autocomplete="off" placeholder="Add skill...">
                 </div>
 
                 <div class="validation-warnings"></div>

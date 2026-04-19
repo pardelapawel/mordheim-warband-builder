@@ -23,6 +23,7 @@ let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills
 // Initialize app
 async function init() {
     initTheme();
+    initMobileUI();
 
     try {
         const rsResp = await fetch('data/rule_sets.json');
@@ -105,11 +106,11 @@ async function applyRuleSet(id, shouldRender = true) {
             fetch(`data/${folderName}/skills.json`).then(r => r.json()),
             fetch(`data/${folderName}/spells.json`).then(r => r.json())
         ]);
-        
+
         masterData.equipment = [];
         for (const [cat, items] of Object.entries(eq)) {
             items.forEach(i => {
-                i.originCategory = cat; 
+                i.originCategory = cat;
                 masterData.equipment.push(i);
             });
         }
@@ -117,6 +118,8 @@ async function applyRuleSet(id, shouldRender = true) {
         masterData.skills = flatten(sk);
         masterData.spells = flatten(sp);
         masterData.spellsByList = sp; // Keep structured for context-aware selection
+
+        populateGlobalDatalists();
     } catch (e) {
         console.error("Error loading rule set data", e);
     }
@@ -133,6 +136,26 @@ async function applyRuleSet(id, shouldRender = true) {
     });
 
     if (shouldRender) renderWarband();
+}
+
+function populateGlobalDatalists() {
+    const eqDatalist = document.getElementById('equipment-options');
+    const skillDatalist = document.getElementById('skill-options');
+    if (!eqDatalist || !skillDatalist) return;
+
+    eqDatalist.innerHTML = '';
+    skillDatalist.innerHTML = '';
+
+    masterData.equipment.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.name;
+        eqDatalist.appendChild(opt);
+    });
+    masterData.skills.forEach(skill => {
+        const opt = document.createElement('option');
+        opt.value = skill.name;
+        skillDatalist.appendChild(opt);
+    });
 }
 
 async function applyWarbandType(id, shouldRender = true) {
@@ -167,6 +190,20 @@ function initTheme() {
         const next = current === 'light-mode' ? 'dark-mode' : 'light-mode';
         document.body.className = next;
         localStorage.setItem('warband_theme', next);
+    };
+}
+
+function initMobileUI() {
+    const mgr = document.getElementById('save-manager');
+    const toggleBtn = document.getElementById('save-manager-toggle');
+
+    if (window.innerWidth <= 768) {
+        mgr.classList.add('collapsed');
+    }
+
+    toggleBtn.onclick = () => {
+        mgr.classList.toggle('collapsed');
+        toggleBtn.textContent = mgr.classList.contains('collapsed') ? 'Cached ▴' : 'Cached ▾';
     };
 }
 
@@ -216,7 +253,7 @@ function updateLegend() {
 
     const categories = {
         'Melee Weapons': { icon: 'swords', items: [], order: 1 },
-        'Ranged Weapons': { icon: 'bow_arrow', items: [], order: 2 },
+        'Ranged Weapons': { icon: 'target', items: [], order: 2 },
         'Armor': { icon: 'shield', items: [], order: 3 },
         'Items': { icon: 'inventory_2', items: [], order: 4 },
         'Skills': { icon: 'star_shine', items: [], order: 5 },
@@ -275,9 +312,9 @@ function updateLegend() {
                         ${catName}
                     </h3>
                     <div class="legend-items-list">
-                        ${catData.items.sort((a,b) => a.name.localeCompare(b.name)).map(item => `
+                        ${catData.items.sort((a, b) => a.name.localeCompare(b.name)).map(item => `
                             <div class="legend-item">
-                                <span class="legend-item-name">${item.name}</span>
+                                <span class="legend-item-name">${item.name}${item.difficulty ? ' (' + item.difficulty + ')' : ''}</span>
                                 <span class="legend-item-desc">${item.description || item.special || ''}</span>
                             </div>
                         `).join('')}
@@ -294,6 +331,13 @@ function updateLegend() {
 
 function restoreFocus() {
     if (!lastFocusedInput) return;
+
+    // Disable auto-focus on mobile to prevent keyboard/datalist loops
+    if (window.innerWidth <= 768) {
+        lastFocusedInput = null;
+        return;
+    }
+
     const cards = document.querySelectorAll('.fighter-card');
     const targetCard = cards[lastFocusedInput.cardIndex];
     if (targetCard) {
@@ -340,18 +384,18 @@ function createFighterCard(data, index) {
         span.textContent = 'Large Target';
         flagsEl.appendChild(span);
     }
-    if (data.spell_list) {
-        const span = document.createElement('span');
-        span.className = 'flag-badge highlight';
-        span.textContent = 'Wizard';
-        flagsEl.appendChild(span);
-    }
-    if (data.exp_start > 0) {
-        const span = document.createElement('span');
-        span.className = 'flag-badge secondary';
-        span.textContent = `Start Exp: ${data.exp_start}`;
-        flagsEl.appendChild(span);
-    }
+    // if (data.spell_list) {
+    //     const span = document.createElement('span');
+    //     span.className = 'flag-badge highlight';
+    //     span.textContent = 'Wizard';
+    //     flagsEl.appendChild(span);
+    // }
+    // if (data.exp_start > 0) {
+    //     const span = document.createElement('span');
+    //     span.className = 'flag-badge secondary';
+    //     span.textContent = `Start Exp: ${data.exp_start}`;
+    //     flagsEl.appendChild(span);
+    // }
 
     // Fill Basic Info
     const nameInput = cardEl.querySelector('.fighter-name');
@@ -399,9 +443,19 @@ function createFighterCard(data, index) {
         };
     });
 
+    // Helper to get which list element an equipment item belongs to
+    const getEqListEl = (item) => {
+        const cat = item.originCategory ||
+            (masterData.equipment.find(e => e.name.toLowerCase() === item.name.toLowerCase()) || {}).originCategory || '';
+        if (cat === 'melee_weapons') return cardEl.querySelector('.melee-list');
+        if (cat === 'ranged_weapons') return cardEl.querySelector('.ranged-list');
+        if (cat === 'armor') return cardEl.querySelector('.armor-list');
+        return cardEl.querySelector('.items-list');
+    };
+
     // Lists
-    const eqListEl = cardEl.querySelector('.equipment-list');
     data.equipment.forEach((item, itemIdx) => {
+        const listEl = getEqListEl(item);
         const row = document.createElement('div');
         row.className = 'item-row';
         row.innerHTML = `
@@ -436,8 +490,18 @@ function createFighterCard(data, index) {
             renderWarband();
             saveToCache();
         };
-        eqListEl.appendChild(row);
+        if (listEl) listEl.appendChild(row);
     });
+
+    // Mark empty equipment sections
+    ['melee-section', 'ranged-section', 'armor-section', 'items-section'].forEach(cls => {
+        const sec = cardEl.querySelector('.' + cls);
+        if (sec) {
+            const list = sec.querySelector('.item-list');
+            sec.classList.toggle('section-empty', !list || list.children.length === 0);
+        }
+    });
+
 
     const skillListEl = cardEl.querySelector('.skills-list');
     data.skills.forEach((skill, skillIdx) => {
@@ -481,7 +545,7 @@ function createFighterCard(data, index) {
                 spells.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.name;
-                    opt.textContent = s.name;
+                    opt.textContent = `${s.name} (${s.difficulty})`;
                     select.appendChild(opt);
                 });
 
@@ -507,21 +571,14 @@ function createFighterCard(data, index) {
         skillListEl.appendChild(row);
     });
 
-    // Datalists
-    const eqDatalist = cardEl.querySelector('#equipment-options');
-    const skillDatalist = cardEl.querySelector('#skill-options');
-    masterData.equipment.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.name;
-        eqDatalist.appendChild(opt);
-    });
-    masterData.skills.forEach(skill => {
-        const opt = document.createElement('option');
-        opt.value = skill.name;
-        skillDatalist.appendChild(opt);
-    });
+    // Mark empty skills section
+    const skillsSection = cardEl.querySelector('.skills-section');
+    if (skillsSection) {
+        const list = skillsSection.querySelector('.item-list');
+        skillsSection.classList.toggle('section-empty', !list || list.children.length === 0);
+    }
 
-    // Add Logic
+    // Add Logic and dynamic datalists
     const eqInput = cardEl.querySelector('.equipment-input');
     const skillInput = cardEl.querySelector('.skills-input');
 
@@ -543,24 +600,63 @@ function createFighterCard(data, index) {
         saveToCache();
     };
 
-    // Auto-add on exact match
-    const setupAutoAdd = (input, type) => {
-        input.oninput = () => {
-            const list = type === 'equipment' ? masterData.equipment : masterData.skills;
-            const match = list.find(i => i.name.toLowerCase() === input.value.toLowerCase());
-            if (match && input.value === match.name) handleAdd(type, input);
+    // Custom autocomplete to replace broken native mobile datalists
+    const setupAutocomplete = (input, type) => {
+        let container = input.parentElement;
+        let listEl = document.createElement('ul');
+        listEl.className = 'autocomplete-list';
+        container.appendChild(listEl);
+
+        const updateList = () => {
+            let val = input.value.toLowerCase();
+            let listData = type === 'equipment' ? masterData.equipment : masterData.skills;
+
+            // If empty, show all. If typed, filter.
+            let matches = listData;
+            if (val) {
+                matches = listData.filter(i => i.name.toLowerCase().includes(val));
+            }
+
+            listEl.innerHTML = '';
+            if (matches.length === 0) {
+                listEl.style.display = 'none';
+                return;
+            }
+
+            matches.forEach(match => {
+                let item = document.createElement('li');
+                item.textContent = match.name;
+                // mousedown prevents input blur before click 
+                item.addEventListener('mousedown', (e) => e.preventDefault());
+                item.onclick = () => {
+                    input.value = match.name;
+                    listEl.style.display = 'none';
+                    handleAdd(type, input);
+                };
+                listEl.appendChild(item);
+            });
+            listEl.style.display = 'block';
         };
-        input.onfocus = () => { lastFocusedInput = { cardIndex: index, type: type }; };
-        input.onkeydown = (e) => {
+
+        input.addEventListener('input', updateList);
+        input.addEventListener('focus', () => {
+            lastFocusedInput = { cardIndex: index, type: type };
+            updateList();
+        });
+        input.addEventListener('blur', () => {
+            listEl.style.display = 'none';
+        });
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                listEl.style.display = 'none';
                 handleAdd(type, input);
             }
-        };
+        });
     };
 
-    setupAutoAdd(eqInput, 'equipment');
-    setupAutoAdd(skillInput, 'skills');
+    setupAutocomplete(eqInput, 'equipment');
+    setupAutocomplete(skillInput, 'skills');
 
     // Remove Card
     wrapper.querySelector('.remove-btn').onclick = () => {
@@ -600,10 +696,10 @@ function applyFighterType(index, base) {
 
     // Reset and add starting equipment (Free Dagger for non-animals/ogres)
     fighter.equipment = [];
-    const noDaggerRaces = ["Zwierzę", "Ogr", "Animal", "Ogre", "Zwierzę jaskiniowe"];
-    if (!noDaggerRaces.includes(fighter.race)) {
-        fighter.equipment.push({ name: "Sztylet", cost: 0 });
-    }
+    // const noDaggerRaces = ["Zwierzę", "Ogr", "Animal", "Ogre", "Zwierzę jaskiniowe"];
+    // if (!noDaggerRaces.includes(fighter.race)) {
+    //     fighter.equipment.push({ name: "Sztylet", cost: 0 });
+    // }
 
     // Copy rules/flags
     fighter.is_large = base.is_large || false;
@@ -679,7 +775,7 @@ function loadFromCache() {
     const saved = localStorage.getItem('mordheim_current');
     if (saved) {
         const parsed = JSON.parse(saved);
-        
+
         // Migration: map old IDs to names
         if (parsed.ruleSetId === 'dragon_rock') parsed.ruleSetId = 'Dragon Rock';
         if (parsed.ruleSetId === 'smocza_turnia') parsed.ruleSetId = 'Drachenfels';

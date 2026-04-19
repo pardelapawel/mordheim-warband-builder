@@ -220,8 +220,10 @@ h4 {
     border-radius: 1.5rem;
     margin-top: 3rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    display: none; /* Hidden by default, shown when content exists */
-    order: -1; /* Keep on left even though it's after grid in HTML */
+    display: none;
+    /* Hidden by default, shown when content exists */
+    order: -1;
+    /* Keep on left even though it's after grid in HTML */
 }
 
 .legend-sidebar.active {
@@ -341,13 +343,14 @@ h4 {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 1.5rem;
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem 1.5rem 1.5rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
     height: 100%;
     min-height: 420px;
     transition: background-color 0.3s, border-color 0.3s;
+    overflow: visible;
 }
 
 .card-header {
@@ -444,26 +447,36 @@ h4 {
     opacity: 0.7;
 }
 
-.fighter-type-cost {
+.card-header-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--accent-color);
-    margin-bottom: 0.8rem;
+    margin-top: 0.8rem;
 }
 
-.fighter-type-input {
-    flex-grow: 1;
+.fighter-type-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--stat-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    width: 60%;
+    transition: all 0.2s;
+}
+
+.fighter-type-badge:hover,
+.fighter-type-badge:focus {
+    border-color: var(--accent-color);
     color: var(--accent-color);
-    background: transparent;
-    border: none;
-    border-bottom: 1px dashed var(--border-color);
-    margin-right: 10px;
-    font-size: 0.85rem;
+    outline: none;
 }
 
 .cost-info {
@@ -544,28 +557,35 @@ input[type=number] {
 }
 
 .card-section {
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.6rem;
     flex-grow: 1;
+    overflow: visible;
+}
+
+/* Section-empty hides the section in normal view too when print is triggered */
+.section-empty .section-layout::before {
+    display: none;
 }
 
 .section-layout {
     display: flex;
     position: relative;
-    padding-left: 36px; /* Space for icon gutter */
+    padding-left: 30px;   /* Space for icon gutter inside */
     min-height: 28px;
     margin-bottom: 0.4rem;
+    margin-left: -1.5rem; /* Bleed into card padding so icon sits on the edge */
 }
 
 .section-icon {
     position: absolute;
     left: 0;
     top: -2px;
-    width: 36px;
+    width: 30px;
     height: 28px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 20px;
+    font-size: 18px;
     color: var(--accent-color);
     z-index: 2;
     font-family: 'Material Symbols Outlined';
@@ -574,17 +594,19 @@ input[type=number] {
 .section-layout::before {
     content: "";
     position: absolute;
-    left: 17px; /* Center of 36px gutter */
-    top: 20px; /* Start below the icon */
-    bottom: 10px; /* End near the last entry */
+    left: 14px;       /* Centre of 30px gutter */
+    top: 22px;        /* Start below the icon */
+    bottom: 4px;
     width: 2px;
     background: var(--accent-color);
     z-index: 1;
     border-radius: 1px;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
-.equipment-list, .skills-list {
+.equipment-list,
+.skills-list,
+.item-list {
     width: 100%;
 }
 
@@ -678,9 +700,11 @@ input[type=number] {
 .combobox-container {
     display: flex;
     gap: 4px;
-    margin-top: 5px;
-    margin-left: 36px; /* Align with list (24px icon + 12px gap) */
+    margin-top: 4px;
+    margin-bottom: 2px;
+    margin-left: 14px;  /* Align with list content (icon gutter offset) */
 }
+
 
 .combobox-container input {
     flex-grow: 1;
@@ -695,6 +719,44 @@ input[type=number] {
 .combobox-container input:focus {
     outline: 2px solid var(--accent-color);
     border-color: transparent;
+}
+
+.combobox-container {
+    position: relative;
+}
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    display: none;
+    list-style: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 2px;
+}
+
+.autocomplete-list li {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--stat-bg);
+    color: var(--text-primary);
+}
+
+.autocomplete-list li:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-list li:hover {
+    background: var(--accent-color);
+    color: white;
 }
 
 /* Placeholder */
@@ -744,13 +806,14 @@ input[type=number] {
     }
 
     .card-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 88mm);
-        gap: 7mm;
-        padding: 0;
-        margin: 0 auto;
-        justify-content: center;
-        align-items: start;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4mm !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        justify-items: center !important;
+        align-items: start !important;
     }
 
     .main-layout {
@@ -790,15 +853,17 @@ input[type=number] {
     }
 
     .fighter-card {
-        width: 88mm;
-        height: auto;
-        min-height: 99mm;
-        box-shadow: none;
-        border: 1px solid black;
-        border-radius: 5mm;
-        padding: 5mm;
-        display: flex;
-        flex-direction: column;
+        width: 100% !important;
+        max-width: 88mm !important;
+        height: auto !important;
+        min-height: 99mm !important;
+        box-shadow: none !important;
+        border: 1px solid black !important;
+        border-radius: 5mm !important;
+        padding: 5mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
     }
 
     .fighter-type-input,
@@ -810,7 +875,19 @@ input[type=number] {
         size: A4;
         margin: 10mm;
     }
+
+    /* Hide empty sections in print */
+    .section-empty {
+        display: none !important;
+    }
+
+    .card-wrapper {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
 }
+
 
 #save-manager {
     position: fixed;
@@ -849,8 +926,9 @@ input[type=number] {
 .btn-text:hover {
     text-decoration: underline;
 }
+
 /* Responsive UI adjustments */
-@media (max-width: 1200px) {
+@media screen and (max-width: 1200px) {
     .main-layout {
         flex-direction: column !important;
         padding: 0 1rem;
@@ -869,4 +947,130 @@ input[type=number] {
         width: 100%;
         padding: 1rem 0;
     }
+}
+
+@media screen and (max-width: 768px) {
+    .app-header {
+        padding: 1rem;
+        position: relative;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .warband-meta {
+        margin: 1rem 0;
+        width: 100%;
+    }
+
+    .rules-selectors {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .selector-group {
+        justify-content: space-between;
+    }
+
+    .actions-carousel-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    .actions-carousel-wrapper::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 40px;
+        background: linear-gradient(to right, transparent, var(--header-bg));
+        pointer-events: none;
+    }
+
+    .actions-carousel-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 40px;
+        background: linear-gradient(to left, transparent, var(--header-bg));
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .actions {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        gap: 0.5rem;
+        justify-content: flex-start;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-left: 10px;
+        padding-right: 40px;
+        width: 100%;
+    }
+
+    .actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+
+    .logo {
+        font-size: 1.4rem;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem 0;
+        gap: 1.5rem;
+    }
+
+    .fighter-card {
+        min-height: auto;
+    }
+
+    #save-manager {
+        width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+
+    #save-manager.collapsed {
+        transform: translateY(100%);
+    }
+
+    .save-manager-toggle {
+        display: block !important;
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 10px 10px 0 0;
+        font-family: 'Metamorphous', serif;
+        font-size: 0.8rem;
+        cursor: pointer;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.save-manager-toggle {
+    display: none;
 }
