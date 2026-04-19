@@ -16,6 +16,20 @@
             <h1 class="logo">Mordheim Builder</h1>
             <div class="warband-meta">
                 <input type="text" id="warband-name" placeholder="Warband Name..." value="My New Warband">
+                <div class="rules-selectors no-print">
+                    <div class="selector-group">
+                        <label for="rule-set-select">Rule Set:</label>
+                        <select id="rule-set-select">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <div class="selector-group">
+                        <label for="warband-type-select">Type:</label>
+                        <select id="warband-type-select" disabled>
+                            <option value="">Select Rule Set First</option>
+                        </select>
+                    </div>
+                </div>
                 <span class="total-cost">Total Cost: <span id="total-cost-value">0</span> gc</span>
             </div>
             <div class="actions">
@@ -38,7 +52,10 @@
     </main>
 
     <div id="save-manager" class="no-print">
-        <h3>Saved Warbands</h3>
+        <div class="save-manager-header">
+            <h3>Saved Warbands</h3>
+            <button id="delete-all-saves-btn" class="btn-text danger">Delete All</button>
+        </div>
         <ul id="saved-warbands-list"></ul>
     </div>
 
@@ -48,12 +65,16 @@
             <button class="remove-btn no-print" title="Remove Fighter">&times;</button>
             <article class="fighter-card">
                 <div class="card-header">
-                    <input type="text" class="fighter-name" placeholder="Name of the Warrior">
+                    <div class="name-container">
+                        <input type="text" class="fighter-name" placeholder="Name of the Warrior">
+                        <button class="reroll-name-btn no-print" title="Generate New Name">🎲</button>
+                    </div>
                     <div class="type-selection no-print">
                         <select class="fighter-type-select">
                             <option value="">Quick Select Template...</option>
                         </select>
                     </div>
+                    <div class="fighter-flags"></div>
                 </div>
                 <div class="fighter-type-cost">
                     <input type="text" class="fighter-type-input" placeholder="Fighter Type">
@@ -103,6 +124,7 @@
         </div>
     </template>
 
+    <script src="nameGenerator.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

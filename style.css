@@ -72,18 +72,69 @@ h1, h2, h3, h4 {
 
 .warband-meta {
     display: flex;
-    align-items: center;
-    gap: 2rem;
+    flex-direction: column;
+    gap: 0.8rem;
+    flex-grow: 1;
+    margin: 0 2rem;
 }
 
-.warband-meta input {
-    font-family: 'Almendra', serif;
-    font-size: 1.2rem;
-    border: none;
-    border-bottom: 2px solid var(--border-color);
-    padding: 0.2rem;
-    color: var(--text-primary);
+.rules-selectors {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+.selector-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selector-group label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.selector-group select {
     background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-bottom: 1px solid transparent;
+    transition: var(--transition);
+}
+
+.selector-group select:hover, .selector-group select:focus {
+    border-bottom-color: var(--accent);
+    outline: none;
+}
+
+.selector-group select option {
+    background: var(--card-bg);
+}
+
+#warband-name {
+    font-family: 'Metamorphous', serif;
+    font-size: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
 }
 
 .total-cost {
@@ -185,17 +236,42 @@ h1, h2, h3, h4 {
     border-bottom: 2px solid var(--accent-color);
     padding-bottom: 0.8rem;
     margin-bottom: 1rem;
+    position: relative;
+}
+
+.name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.3rem;
 }
 
 .fighter-name {
-    width: 100%;
+    flex-grow: 1;
     font-family: 'Metamorphous', cursive;
     font-size: 1.2rem;
     border: none;
     background: transparent;
     color: var(--text-primary);
     text-align: center;
-    margin-bottom: 0.3rem;
+}
+
+.reroll-name-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 4px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.reroll-name-btn:hover {
+    opacity: 1;
+    background: var(--stat-bg);
+    border-color: var(--accent-color);
+    transform: scale(1.1);
 }
 
 .type-selection select {
@@ -207,6 +283,42 @@ h1, h2, h3, h4 {
     border-radius: 4px;
     color: var(--text-secondary);
     text-align: center;
+}
+
+.fighter-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+    justify-content: center;
+}
+
+.flag-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--stat-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.flag-badge.danger {
+    background: #4a0000;
+    color: #ffcccc;
+    border-color: #8b0000;
+}
+
+.flag-badge.highlight {
+    background: #1a2a4a;
+    color: #cceeff;
+    border-color: #3b5998;
+}
+
+.flag-badge.secondary {
+    opacity: 0.7;
 }
 
 .fighter-type-cost {
@@ -320,10 +432,55 @@ input[type=number] { -moz-appearance: textfield; }
     padding-left: 0.5rem;
 }
 
+.item-name-edit {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    flex-grow: 1;
+    padding: 2px 4px;
+    border-bottom: 1px dashed transparent;
+    transition: all 0.2s;
+    width: 60%;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.2;
+    min-height: 1.2rem;
+}
+
+.item-name-edit:hover, .item-name-edit:focus {
+    border-bottom-color: var(--border-color);
+    background: rgba(0,0,0,0.02);
+    outline: none;
+}
+
+.add-spell-btn {
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.add-spell-btn:hover {
+    opacity: 1;
+}
+
+.inline-spell-picker {
+    font-size: 0.7rem;
+    padding: 2px;
+    margin-left: 5px;
+    background: var(--stat-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
 .item-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 4px 0;
     border-bottom: 1px dotted var(--border-color);
     font-size: 0.8rem;
@@ -449,5 +606,31 @@ input[type=number] { -moz-appearance: textfield; }
     border: 1px solid var(--border-color);
     border-radius: 1rem;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    width: 250px;
+    width: 300px;
+}
+
+.save-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.btn-text {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.btn-text.danger {
+    color: #c1121f;
+}
+
+.btn-text:hover {
+    text-decoration: underline;
 }

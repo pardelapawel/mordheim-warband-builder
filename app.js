@@ -2,14 +2,19 @@
  * Mordheim Warband Builder logic
  */
 
+let ruleSets = [];
 let masterData = {
     fighters: [],
     equipment: [],
-    skills: []
+    skills: [],
+    spells: [],
+    spellsByList: {}
 };
 
 let currentWarband = {
     name: "My New Warband",
+    ruleSetId: "",
+    warbandTypeId: "",
     fighters: []
 };
 
@@ -17,24 +22,127 @@ let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills
 
 // Initialize app
 async function init() {
+    initTheme();
+
     try {
-        const response = await fetch('data.json');
-        masterData = await response.json();
+        const rsResp = await fetch('data/rule_sets.json');
+        ruleSets = await rsResp.json();
     } catch (e) {
-        console.warn("Could not load data.json", e);
+        console.error("Could not load rule sets manifest", e);
     }
 
-    initTheme();
+    setupRuleSelectors();
     loadFromCache();
+
+    // Default to first rule set if none selected
+    if (!currentWarband.ruleSetId && ruleSets.length > 0) {
+        currentWarband.ruleSetId = ruleSets[0].id;
+    }
+
+    if (currentWarband.ruleSetId) {
+        await applyRuleSet(currentWarband.ruleSetId, false);
+        // Default to first warband type if none selected
+        if (!currentWarband.warbandTypeId) {
+            const rs = ruleSets.find(r => r.id === currentWarband.ruleSetId);
+            if (rs && rs.warbands.length > 0) {
+                currentWarband.warbandTypeId = rs.warbands[0].id;
+            }
+        }
+        if (currentWarband.warbandTypeId) {
+            await applyWarbandType(currentWarband.warbandTypeId, false);
+        }
+    }
+
     renderWarband();
     renderSavedList();
+}
+
+function setupRuleSelectors() {
+    const rsSelect = document.getElementById('rule-set-select');
+    const wtSelect = document.getElementById('warband-type-select');
+
+    rsSelect.innerHTML = '<option value="">-- Select Rule Set --</option>';
+    ruleSets.forEach(rs => {
+        const opt = document.createElement('option');
+        opt.value = rs.id;
+        opt.textContent = rs.name;
+        rsSelect.appendChild(opt);
+    });
+
+    rsSelect.onchange = async () => {
+        await applyRuleSet(rsSelect.value);
+        saveToCache();
+    };
+
+    wtSelect.onchange = async () => {
+        await applyWarbandType(wtSelect.value);
+        saveToCache();
+    };
+}
+
+async function applyRuleSet(id, shouldRender = true) {
+    if (!id) return;
+    currentWarband.ruleSetId = id;
+    const rs = ruleSets.find(r => r.id === id);
+
+    // Helper to flatten nested object of arrays
+    const flatten = (obj) => Object.values(obj).flat();
+
+    // Load data
+    try {
+        const [eq, sk, sp] = await Promise.all([
+            fetch(`data/${id}/equipment.json`).then(r => r.json()),
+            fetch(`data/${id}/skills.json`).then(r => r.json()),
+            fetch(`data/${id}/spells.json`).then(r => r.json())
+        ]);
+        masterData.equipment = flatten(eq);
+        masterData.skills = flatten(sk);
+        masterData.spells = flatten(sp);
+        masterData.spellsByList = sp; // Keep structured for context-aware selection
+    } catch (e) {
+        console.error("Error loading rule set data", e);
+    }
+
+    // Update Warband Type Select
+    const wtSelect = document.getElementById('warband-type-select');
+    wtSelect.disabled = false;
+    wtSelect.innerHTML = '<option value="">-- Generic / None --</option>';
+    rs.warbands.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.name;
+        wtSelect.appendChild(opt);
+    });
+
+    if (shouldRender) renderWarband();
+}
+
+async function applyWarbandType(id, shouldRender = true) {
+    currentWarband.warbandTypeId = id;
+    const rs = ruleSets.find(r => r.id === currentWarband.ruleSetId);
+    if (!rs) return;
+
+    const wb = rs.warbands.find(w => w.id === id);
+    if (wb) {
+        try {
+            const resp = await fetch(`data/${currentWarband.ruleSetId}/warbands/${wb.file}`);
+            const data = await resp.json();
+            masterData.fighters = data.fighters;
+        } catch (e) {
+            console.error("Error loading warband type data", e);
+        }
+    } else {
+        masterData.fighters = [];
+    }
+
+    if (shouldRender) renderWarband();
 }
 
 // Theme Logic
 function initTheme() {
     const savedTheme = localStorage.getItem('warband_theme') || 'light-mode';
     document.body.className = savedTheme;
-    
+
     document.getElementById('theme-toggle-btn').onclick = () => {
         const current = document.body.className;
         const next = current === 'light-mode' ? 'dark-mode' : 'light-mode';
@@ -47,10 +155,13 @@ function initTheme() {
 function renderWarband() {
     const grid = document.getElementById('card-grid');
     const placeholder = document.getElementById('add-card-placeholder');
-    
+
     grid.querySelectorAll('.card-wrapper').forEach(el => el.remove());
 
     document.getElementById('warband-name').value = currentWarband.name;
+    document.getElementById('rule-set-select').value = currentWarband.ruleSetId || "";
+    document.getElementById('warband-type-select').value = currentWarband.warbandTypeId || "";
+    document.getElementById('warband-type-select').disabled = !currentWarband.ruleSetId;
 
     currentWarband.fighters.forEach((fighter, index) => {
         const card = createFighterCard(fighter, index);
@@ -62,13 +173,13 @@ function renderWarband() {
 }
 
 function restoreFocus() {
-    if(!lastFocusedInput) return;
+    if (!lastFocusedInput) return;
     const cards = document.querySelectorAll('.fighter-card');
     const targetCard = cards[lastFocusedInput.cardIndex];
-    if(targetCard) {
+    if (targetCard) {
         const selector = lastFocusedInput.type === 'equipment' ? '.equipment-input' : '.skills-input';
         const input = targetCard.querySelector(selector);
-        if(input) input.focus();
+        if (input) input.focus();
     }
 }
 
@@ -82,9 +193,10 @@ function createFighterCard(data, index) {
     const typeSelect = cardEl.querySelector('.fighter-type-select');
     masterData.fighters.forEach(f => {
         const opt = document.createElement('option');
-        opt.value = f.id;
+        const fid = f.id || f.name;
+        opt.value = fid;
         opt.textContent = f.name;
-        if(data.typeId === f.id) opt.selected = true;
+        if (data.typeId === fid) opt.selected = true;
         typeSelect.appendChild(opt);
     });
 
@@ -92,19 +204,49 @@ function createFighterCard(data, index) {
     const baseCostInput = cardEl.querySelector('.fighter-base-cost');
 
     typeSelect.onchange = () => {
-        const selected = masterData.fighters.find(f => f.id === typeSelect.value);
-        if(selected) {
+        const selected = masterData.fighters.find(f => (f.id || f.name) === typeSelect.value);
+        if (selected) {
             applyFighterType(index, selected);
             renderWarband();
             saveToCache();
         }
     };
 
+    // Flags (Large, Wizard, Exp)
+    const flagsEl = cardEl.querySelector('.fighter-flags');
+    if (data.is_large) {
+        const span = document.createElement('span');
+        span.className = 'flag-badge danger';
+        span.textContent = 'Large Target';
+        flagsEl.appendChild(span);
+    }
+    if (data.spell_list) {
+        const span = document.createElement('span');
+        span.className = 'flag-badge highlight';
+        span.textContent = 'Wizard';
+        flagsEl.appendChild(span);
+    }
+    if (data.exp_start > 0) {
+        const span = document.createElement('span');
+        span.className = 'flag-badge secondary';
+        span.textContent = `Start Exp: ${data.exp_start}`;
+        flagsEl.appendChild(span);
+    }
+
     // Fill Basic Info
     const nameInput = cardEl.querySelector('.fighter-name');
     nameInput.value = data.customName || '';
     nameInput.oninput = () => {
         currentWarband.fighters[index].customName = nameInput.value;
+        saveToCache();
+    };
+
+    const rerollBtn = cardEl.querySelector('.reroll-name-btn');
+    rerollBtn.onclick = () => {
+        const fighter = currentWarband.fighters[index];
+        const newName = NameGenerator.generate(fighter);
+        fighter.customName = newName;
+        nameInput.value = newName;
         saveToCache();
     };
 
@@ -140,14 +282,23 @@ function createFighterCard(data, index) {
         row.className = 'item-row';
         row.innerHTML = `
             <div class="item-content">
-                <span>${item.name}</span>
+                <textarea class="item-name-edit item-name" rows="1">${item.name}</textarea>
                 <span class="cost-hint no-print">
                     (<input type="number" class="item-cost-edit" value="${item.cost}"> gc)
                 </span>
             </div>
             <span class="item-delete no-print">&times;</span>
         `;
-        
+
+        const nameEdit = row.querySelector('.item-name');
+        const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
+        nameEdit.oninput = () => {
+            currentWarband.fighters[index].equipment[itemIdx].name = nameEdit.value;
+            saveToCache();
+            resize();
+        };
+        setTimeout(resize, 0);
+
         const costEdit = row.querySelector('.item-cost-edit');
         costEdit.oninput = () => {
             currentWarband.fighters[index].equipment[itemIdx].cost = parseInt(costEdit.value) || 0;
@@ -168,7 +319,62 @@ function createFighterCard(data, index) {
     data.skills.forEach((skill, skillIdx) => {
         const row = document.createElement('div');
         row.className = 'item-row';
-        row.innerHTML = `<span>${skill.name}</span><span class="item-delete no-print">&times;</span>`;
+
+        const isSpellList = skill.name.toLowerCase().includes('spell list') ||
+            skill.name.toLowerCase().includes('magia') ||
+            skill.name.toLowerCase().includes('modlitwy');
+
+        row.innerHTML = `
+            <div class="item-content">
+                <textarea class="item-name-edit skill-name" rows="1">${skill.name}</textarea>
+                ${isSpellList ? '<span class="add-spell-btn no-print" title="Pick Spell">➕</span>' : ''}
+            </div>
+            <span class="item-delete no-print">&times;</span>
+        `;
+
+        const nameEdit = row.querySelector('.skill-name');
+        const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
+        nameEdit.oninput = () => {
+            currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+            saveToCache();
+            resize();
+        };
+        setTimeout(resize, 0);
+
+        if (isSpellList) {
+            const addBtn = row.querySelector('.add-spell-btn');
+            addBtn.onclick = () => {
+                const listName = data.spell_list;
+                const spells = masterData.spellsByList[listName] || [];
+                if (spells.length === 0) {
+                    alert("No spells found for list: " + listName);
+                    return;
+                }
+
+                const select = document.createElement('select');
+                select.className = 'inline-spell-picker no-print';
+                select.innerHTML = '<option value="">-- Pick Spell --</option>';
+                spells.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.name;
+                    opt.textContent = s.name;
+                    select.appendChild(opt);
+                });
+
+                select.onchange = () => {
+                    if (select.value) {
+                        const current = nameEdit.value;
+                        const suffix = ` (${select.value})`;
+                        nameEdit.value = current.includes('(') ? current.replace(/\(.*\)/, suffix) : current + suffix;
+                        currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+                        saveToCache();
+                    }
+                    select.remove();
+                };
+                addBtn.after(select);
+            };
+        }
+
         row.querySelector('.item-delete').onclick = () => {
             currentWarband.fighters[index].skills.splice(skillIdx, 1);
             renderWarband();
@@ -197,13 +403,13 @@ function createFighterCard(data, index) {
 
     const handleAdd = (type, input) => {
         const val = input.value.trim();
-        if(!val) return;
+        if (!val) return;
 
         lastFocusedInput = { cardIndex: index, type: type };
 
-        if(type === 'equipment') {
+        if (type === 'equipment') {
             const found = masterData.equipment.find(i => i.name.toLowerCase() === val.toLowerCase());
-            const cost = found ? found.cost : 0; 
+            const cost = found ? found.cost : 0;
             currentWarband.fighters[index].equipment.push({ name: val, cost: cost });
         } else {
             currentWarband.fighters[index].skills.push({ name: val });
@@ -218,11 +424,11 @@ function createFighterCard(data, index) {
         input.oninput = () => {
             const list = type === 'equipment' ? masterData.equipment : masterData.skills;
             const match = list.find(i => i.name.toLowerCase() === input.value.toLowerCase());
-            if(match && input.value === match.name) handleAdd(type, input);
+            if (match && input.value === match.name) handleAdd(type, input);
         };
         input.onfocus = () => { lastFocusedInput = { cardIndex: index, type: type }; };
         input.onkeydown = (e) => {
-            if(e.key === 'Enter') {
+            if (e.key === 'Enter') {
                 e.preventDefault();
                 handleAdd(type, input);
             }
@@ -252,10 +458,41 @@ function createFighterCard(data, index) {
 
 function applyFighterType(index, base) {
     const fighter = currentWarband.fighters[index];
-    fighter.typeId = base.id;
+    fighter.templateName = base.name; // Keep the original template name
+    fighter.typeId = base.id || base.name;
     fighter.type = base.name;
+    fighter.race = base.race || "Człowiek";
     fighter.baseCost = base.cost;
-    fighter.stats = { m: base.m, ws: base.ws, bs: base.bs, s: base.s, t: base.t, w: base.w, i: base.i, a: base.a, ld: base.ld };
+
+    // Auto-generate name based on new race/type
+    fighter.customName = NameGenerator.generate(base);
+
+    // Add starting rules/skills
+    const startingSkills = (base.rules || []).map(r => ({ name: r }));
+    if (base.spell_list) {
+        startingSkills.push({ name: `${base.spell_list}` });
+    }
+    fighter.skills = startingSkills;
+
+    // Reset and add starting equipment (Free Dagger for non-animals/ogres)
+    fighter.equipment = [];
+    const noDaggerRaces = ["Zwierzę", "Ogr", "Animal", "Ogre", "Zwierzę jaskiniowe"];
+    if (!noDaggerRaces.includes(fighter.race)) {
+        fighter.equipment.push({ name: "Sztylet", cost: 0 });
+    }
+
+    // Copy rules/flags
+    fighter.is_large = base.is_large || false;
+    fighter.spell_list = base.spell_list || null;
+    fighter.exp_start = base.exp_start || 0;
+
+    // Map stats from either base.stats or direct base properties
+    const s = base.stats || base;
+    fighter.stats = {
+        m: s.m || 0, ws: s.ws || 0, bs: s.bs || 0,
+        s: s.s || 0, t: s.t || 0, w: s.w || 0,
+        i: s.i || 0, a: s.a || 0, ld: s.ld || 0
+    };
     fighter.requirements = base.requirements || null;
 }
 
@@ -279,20 +516,25 @@ function checkValidation(fighter) {
         const found = masterData.equipment.find(m => m.name === e.name);
         return found ? (found.tags || []) : [];
     });
-    if(fighter.requirements) {
-        if(fighter.requirements.noArmorIfWizard && eqTags.includes('armor')) warnings.push("Wizards cannot wear armor.");
-        if(fighter.requirements.noBlackPowder && eqTags.includes('black-powder')) warnings.push("Elves cannot use black-powder.");
+    if (fighter.requirements) {
+        if (fighter.requirements.noArmorIfWizard && eqTags.includes('armor')) warnings.push("Wizards cannot wear armor.");
+        if (fighter.requirements.noBlackPowder && eqTags.includes('black-powder')) warnings.push("Elves cannot use black-powder.");
     }
     return warnings;
 }
 
 // State Management
 function addFighter() {
-    currentWarband.fighters.push({
+    const newFighter = {
         typeId: "", type: "New Hero", customName: "", baseCost: 0,
+        race: "Człowiek", // Default race
         stats: { m: 0, ws: 0, bs: 0, s: 0, t: 0, w: 0, i: 0, a: 0, ld: 0 },
         equipment: [], skills: [], requirements: null
-    });
+    };
+
+    newFighter.customName = NameGenerator.generate(newFighter);
+
+    currentWarband.fighters.push(newFighter);
     renderWarband();
     saveToCache();
 }
@@ -300,10 +542,10 @@ function addFighter() {
 function saveToCache() {
     currentWarband.name = document.getElementById('warband-name').value;
     localStorage.setItem('mordheim_current', JSON.stringify(currentWarband));
-    
+
     let saved = JSON.parse(localStorage.getItem('mordheim_saves') || '[]');
     const idx = saved.findIndex(s => s.name === currentWarband.name);
-    if(idx > -1) saved[idx] = currentWarband;
+    if (idx > -1) saved[idx] = currentWarband;
     else saved.push(JSON.parse(JSON.stringify(currentWarband)));
     localStorage.setItem('mordheim_saves', JSON.stringify(saved));
     renderSavedList();
@@ -311,7 +553,11 @@ function saveToCache() {
 
 function loadFromCache() {
     const saved = localStorage.getItem('mordheim_current');
-    if(saved) currentWarband = JSON.parse(saved);
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        // Deep merge to ensure structure
+        currentWarband = { ...currentWarband, ...parsed };
+    }
 }
 
 function renderSavedList() {
@@ -332,6 +578,12 @@ function renderSavedList() {
 // Global Actions
 document.getElementById('add-card-placeholder').onclick = addFighter;
 document.getElementById('save-cache-btn').onclick = saveToCache;
+document.getElementById('delete-all-saves-btn').onclick = () => {
+    if (confirm("Are you sure you want to delete ALL saved warbands? This cannot be undone.")) {
+        localStorage.removeItem('mordheim_saves');
+        renderSavedList();
+    }
+};
 document.getElementById('warband-name').onchange = saveToCache;
 document.getElementById('export-json-btn').onclick = () => {
     const blob = new Blob([JSON.stringify(currentWarband, null, 2)], { type: 'application/json' });
@@ -340,14 +592,19 @@ document.getElementById('export-json-btn').onclick = () => {
 };
 document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
-    if(!file) return;
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => { currentWarband = JSON.parse(event.target.result); renderWarband(); saveToCache(); };
     reader.readAsText(file);
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
 document.getElementById('clear-all-btn').onclick = () => {
-    if(confirm("Clear this warband?")) { currentWarband = { name: "New Warband", fighters: [] }; renderWarband(); saveToCache(); }
+    if (confirm("Clear this warband?")) {
+        currentWarband.name = "New Warband";
+        currentWarband.fighters = [];
+        renderWarband();
+        saveToCache();
+    }
 };
 
 init();
