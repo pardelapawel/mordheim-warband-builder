@@ -1,0 +1,321 @@
+{
+  "warband_name": "Servants of Darkness",
+  "fighters": [
+    {
+      "name": "Vampire",
+      "type": "Leader",
+      "race": "Undead",
+      "max_quantity": 1,
+      "cost": 110,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 4, "bs": 4, "s": 4, "t": 4, "w": 2, "i": 5, "a": 2, "ld": 8 },
+      "rules": ["Leader", "Causes Fear", "Immune to Psychology", "Immune to Poisons", "No Pain", "Night Nobility", "Serious Threats"],
+      "modifies_limits": { "minion": 5 },
+      "skills": ["Combat", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Eshin Assassin",
+      "type": "Leader",
+      "race": "Skaven",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 4, "bs": 4, "s": 4, "t": 3, "w": 1, "i": 5, "a": 1, "ld": 7 },
+      "rules": ["Leader", "Perfect Assassin", "Rat King", "Serious Threats"],
+      "modifies_limits": { "black_rat": 4 },
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Orc Boss",
+      "type": "Leader",
+      "race": "Greenskin",
+      "max_quantity": 1,
+      "cost": 80,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 4, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "rules": ["Leader", "Da Boss", "Serious Threats"],
+      "modifies_limits": { "orc": 5, "goblin": 5 },
+      "skills": ["Combat", "Shooting", "Strength", "Speed"]
+    },
+    {
+      "name": "Arena Champion",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 70,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 4, "t": 3, "w": 1, "i": 4, "a": 2, "ld": 8 },
+      "requirements": { "noRangedExceptThrowing": true },
+      "rules": ["Leader", "Chaos Champion", "Serious Threats"],
+      "modifies_limits": { "gladiator": 5 },
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Necromancer",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "spell_list": "Necromancy",
+      "requirements": { "noArmor": true },
+      "skills": ["Academic", "Speed"]
+    },
+    {
+      "name": "Eshin Sorcerer",
+      "type": "Wizard",
+      "race": "Skaven",
+      "max_quantity": 1,
+      "cost": 45,
+      "exp_start": 8,
+      "stats": { "m": 5, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 6 },
+      "spell_list": "Magic of the Horned Rat",
+      "requirements": { "noArmor": true },
+      "skills": ["Academic", "Speed"]
+    },
+    {
+      "name": "Magister of Chaos",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 70,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "spell_list": "Chaos Rituals",
+      "requirements": { "noArmor": true },
+      "skills": ["Combat", "Academic", "Speed"]
+    },
+    {
+      "name": "Orc Shaman",
+      "type": "Wizard",
+      "race": "Greenskin",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 10,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "spell_list": "WAAA! Magic",
+      "requirements": { "noArmor": true },
+      "skills": ["Academic", "Strength"]
+    },
+    {
+      "name": "Minion",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 20,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Black Rat",
+      "type": "Hero",
+      "race": "Skaven",
+      "max_quantity": 2,
+      "cost": 40,
+      "exp_start": 8,
+      "stats": { "m": 6, "ws": 4, "bs": 3, "s": 4, "t": 3, "w": 1, "i": 5, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Shooting", "Strength", "Speed"]
+    },
+    {
+      "name": "Night Runner",
+      "type": "Hero",
+      "race": "Skaven",
+      "max_quantity": 2,
+      "cost": 20,
+      "exp_start": 0,
+      "stats": { "m": 6, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 4 },
+      "skills": ["Combat", "Shooting", "Speed"]
+    },
+    {
+      "name": "Mutant",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 25,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Mutations"],
+      "skills": ["Combat", "Speed"]
+    },
+    {
+      "name": "Gladiator",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 30,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "requirements": { "noPowderWeapons": true },
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Dark Soul",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 35,
+      "exp_start": 6,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 4, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "rules": ["Insane"],
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Orc",
+      "type": "Hero",
+      "race": "Greenskin",
+      "max_quantity": 1,
+      "cost": 25,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Shooting", "Strength"]
+    },
+    {
+      "name": "Goblin",
+      "type": "Hero",
+      "race": "Greenskin",
+      "max_quantity": 1,
+      "cost": 15,
+      "exp_start": 6,
+      "stats": { "m": 4, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 5 },
+      "skills": ["Combat", "Shooting", "Speed"]
+    },
+    {
+      "name": "Fallen Dwarf",
+      "type": "Hero",
+      "race": "Dwarf",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 8,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "rules": ["Hard to Kill", "Hard Head", "Armored", "Hatred of Dwarfs"],
+      "skills": ["Combat", "Shooting", "Strength"]
+    },
+    {
+      "name": "Beastman",
+      "type": "Hero",
+      "race": "Beastmen",
+      "max_quantity": 2,
+      "cost": 45,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 2, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Ogre Mercenary",
+      "type": "Special",
+      "race": "Ogre",
+      "max_quantity": 1,
+      "cost": 120,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 3, "bs": 2, "s": 4, "t": 4, "w": 3, "i": 3, "a": 2, "ld": 7 },
+      "requirements": { "useOgreEquipment": true },
+      "rules": ["Fear", "Large Target"],
+      "is_large": true,
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Dark Elf",
+      "type": "Special",
+      "race": "Elf",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 12,
+      "stats": { "m": 5, "ws": 5, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 6, "a": 1, "ld": 8 },
+      "requirements": { "rangedOnlyCrossbows": true },
+      "rules": ["Hatred of Elf Rangers", "Excellent Sight"],
+      "skills": ["Combat", "Shooting", "Academic", "Speed"]
+    },
+    {
+      "name": "Possessed",
+      "type": "Special",
+      "race": "Possessed",
+      "max_quantity": 1,
+      "cost": 90,
+      "exp_start": 8,
+      "stats": { "m": 5, "ws": 4, "bs": 0, "s": 4, "t": 4, "w": 2, "i": 4, "a": 2, "ld": 7 },
+      "requirements": { "noEquipment": true },
+      "rules": ["Causes Fear", "Mutations"],
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Wulfen",
+      "type": "Special",
+      "race": "Possessed",
+      "max_quantity": 1,
+      "cost": 75,
+      "exp_start": 8,
+      "stats": { "m": 6, "ws": 4, "bs": 0, "s": 4, "t": 4, "w": 1, "i": 4, "a": 2, "ld": 7 },
+      "requirements": { "noEquipment": true },
+      "rules": ["Fear", "Bestial"],
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Rat Ogre",
+      "type": "Animal",
+      "race": "Skaven",
+      "max_quantity": 1,
+      "cost": 160,
+      "stats": { "m": 6, "ws": 3, "bs": 3, "s": 5, "t": 5, "w": 3, "i": 4, "a": 3, "ld": 4 },
+      "rules": ["Fear", "Stupidity", "Large Target"],
+      "is_large": true
+    },
+    {
+      "name": "Minotaur",
+      "type": "Animal",
+      "race": "Beastmen",
+      "max_quantity": 1,
+      "cost": 150,
+      "stats": { "m": 6, "ws": 4, "bs": 3, "s": 4, "t": 4, "w": 3, "i": 4, "a": 3, "ld": 8 },
+      "rules": ["Armed", "Fear", "Bloodlust", "Large Target"],
+      "is_large": true
+    },
+    {
+      "name": "Troll",
+      "type": "Animal",
+      "race": "Greenskin",
+      "max_quantity": 1,
+      "cost": 150,
+      "stats": { "m": 6, "ws": 3, "bs": 1, "s": 5, "t": 4, "w": 3, "i": 1, "a": 3, "ld": 4 },
+      "rules": ["Fear", "Stupidity", "Large Target", "Regeneration", "Always Hungry", "Vomit"],
+      "is_large": true
+    },
+    {
+      "name": "Giant Rat",
+      "type": "Animal",
+      "race": "Skaven",
+      "max_quantity": 4,
+      "cost": 15,
+      "stats": { "m": 6, "ws": 2, "bs": 0, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 4 }
+    },
+    {
+      "name": "Dire Wolf",
+      "type": "Animal",
+      "race": "Animal",
+      "max_quantity": 2,
+      "cost": 15,
+      "stats": { "m": 7, "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 5 }
+    },
+    {
+      "name": "Ghoul",
+      "type": "Animal",
+      "race": "Undead",
+      "max_quantity": 2,
+      "cost": 40,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 4, "w": 1, "i": 3, "a": 2, "ld": 5 },
+      "rules": ["Fear"]
+    },
+    {
+      "name": "Cave Squig",
+      "type": "Animal",
+      "race": "Greenskin",
+      "max_quantity": 3,
+      "cost": 15,
+      "stats": { "m": "2k6", "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 5 },
+      "rules": ["Movement", "Keeper"]
+    }
+  ],
+  "mutations": ["Daemon Soul", "Great Claw", "Cloven Hooves", "Tentacle", "Black Blood", "Spikes", "Scorpion Tail", "Extra Arm", "Hideous", "Tiny Horns"],
+  "special_skills": ["Tail Fight", "Wall Runner", "Tuff 'Ed", "WAAA!", "Big Un", "Serious Threats"]
+}

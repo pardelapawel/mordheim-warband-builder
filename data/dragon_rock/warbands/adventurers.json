@@ -1,0 +1,209 @@
+{
+  "warband_name": "Adventurers",
+  "fighters": [
+    {
+      "name": "Mercenary Captain",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "rules": ["Leader (12\")", "Mercenary", "Blood Oath"],
+      "modifies_limits": { "human_mercenary": 5 },
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Witch Hunter",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "rules": ["Leader", "Burn the Witch!", "Religious Fanatic", "Total Determination"],
+      "modifies_limits": { "flagellant": 3, "sister_of_sigmar": 3, "wandering_wizard": 0 },
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Dwarf Noble",
+      "type": "Leader",
+      "race": "Dwarf",
+      "max_quantity": 1,
+      "cost": 85,
+      "exp_start": 20,
+      "stats": { "m": 3, "ws": 5, "bs": 4, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "rules": ["Leader", "Hard to Kill", "Hard Head", "Armored", "Conservative", "Exceptionally Tough", "Truly Hardy", "Hard Skull"],
+      "modifies_limits": { "max_heroes": 5, "dwarf_warrior": 4 },
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Warrior-Priest of Sigmar",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "spell_list": "Prayers of Sigmar",
+      "requirements": { "noRanged": true },
+      "rules": ["Sign of Sigmar"],
+      "skills": ["Combat", "Academic", "Strength"]
+    },
+    {
+      "name": "Priest of Taal",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 45,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "spell_list": "Prayers of Taal",
+      "skills": ["Combat", "Academic"]
+    },
+    {
+      "name": "Wandering Wizard",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "spell_list": "Lesser Magic",
+      "requirements": { "noArmor": true },
+      "skills": ["Academic"]
+    },
+    {
+      "name": "Human Mercenary",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 25,
+      "exp_start": 6,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Wannabe Hero"],
+      "skills": ["Combat", "Shooting", "Strength", "Speed"]
+    },
+    {
+      "name": "Human Youngblood",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 15,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Shooting", "Strength", "Speed"]
+    },
+    {
+      "name": "Flagellant",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 4, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 10 },
+      "requirements": { "noArmor": true, "noRanged": true },
+      "rules": ["Fanatical"],
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Halfling Scout",
+      "type": "Hero",
+      "race": "Halfling",
+      "max_quantity": 1,
+      "cost": 20,
+      "exp_start": 6,
+      "stats": { "m": 4, "ws": 2, "bs": 4, "s": 2, "t": 2, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "rules": ["Infiltration"],
+      "skills": ["Shooting", "Academic", "Speed"]
+    },
+    {
+      "name": "Sister of Sigmar",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "requirements": { "noRanged": true },
+      "rules": ["Devotion to the Cause", "Sign of Sigmar"],
+      "skills": ["Combat", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Dwarf Warrior",
+      "type": "Hero",
+      "race": "Dwarf",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 8,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "rules": ["Hard to Kill", "Hard Head", "Armored", "Hatred of Greenskins", "Exceptionally Tough", "Truly Hardy", "Hard Skull"],
+      "skills": ["Combat", "Shooting", "Strength"]
+    },
+    {
+      "name": "Dwarf Slayer",
+      "type": "Hero",
+      "race": "Dwarf",
+      "max_quantity": 2,
+      "cost": 50,
+      "exp_start": 8,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "requirements": { "noArmor": true, "noRangedExceptPistols": true },
+      "rules": ["Hard to Kill", "Hard Head", "Hatred of Greenskins", "Death Wish", "Exceptionally Tough", "Truly Hardy", "Hard Skull", "Cruel Charge", "Monster Slayer", "Berserker"],
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Renegade Vampire",
+      "type": "Special",
+      "race": "Undead",
+      "max_quantity": 1,
+      "cost": 110,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 4, "bs": 4, "s": 4, "t": 4, "w": 2, "i": 5, "a": 2, "ld": 8 },
+      "rules": ["Causes Fear", "Immune to Psychology", "Immune to Poisons", "No Pain", "Suspicious"],
+      "skills": ["Combat", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Ogre Mercenary",
+      "type": "Special",
+      "race": "Ogre",
+      "max_quantity": 1,
+      "cost": 120,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 3, "bs": 2, "s": 4, "t": 4, "w": 3, "i": 3, "a": 2, "ld": 7 },
+      "requirements": { "useOgreEquipment": true },
+      "rules": ["Fear", "Large Target"],
+      "is_large": true,
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Elf Ranger",
+      "type": "Special",
+      "race": "Elf",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 12,
+      "stats": { "m": 5, "ws": 5, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 6, "a": 1, "ld": 8 },
+      "requirements": { "noPoisons": true, "noDrugs": true, "rangedOnlyBows": true },
+      "rules": ["Hatred of Dark Elves", "Excellent Sight", "Infiltration"],
+      "skills": ["Combat", "Shooting", "Academic", "Speed"]
+    },
+    {
+      "name": "Trained Bear",
+      "type": "Animal",
+      "race": "Animal",
+      "max_quantity": 1,
+      "cost": 120,
+      "stats": { "m": 6, "ws": 3, "bs": 0, "s": 5, "t": 5, "w": 2, "i": 2, "a": 2, "ld": 6 },
+      "rules": ["Fear", "Bear Hug"]
+    },
+    {
+      "name": "Warhound",
+      "type": "Animal",
+      "race": "Animal",
+      "max_quantity": 3,
+      "cost": 15,
+      "stats": { "m": 6, "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 5 }
+    }
+  ]
+}

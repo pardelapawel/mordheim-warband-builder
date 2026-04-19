@@ -1,0 +1,290 @@
+{
+  "melee_weapons": [
+    {
+      "name": "Dagger",
+      "cost": 2,
+      "description": "Strength: User's ; Enemy armor: +1 ; Criticals: unarmed",
+      "special": "1 free for everyone at purchase"
+    },
+    {
+      "name": "Hammer, staff or mace",
+      "cost": 3,
+      "description": "Strength: User's ; Concussion ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Axe, pick or warhammer",
+      "cost": 5,
+      "description": "Strength: User's ; Enemy armor: -1 ; Criticals: slashing"
+    },
+    {
+      "name": "Sword",
+      "cost": 8,
+      "description": "Strength: User's ; Parry (5+); Criticals: slashing"
+    },
+    {
+      "name": "Two-handed hammer/mace",
+      "cost": 15,
+      "description": "Strength: User's +2 (first round) / +1 (subsequent) ; Two-handed ; Concussion ; Parry (6+) ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Two-handed flail",
+      "cost": 15,
+      "description": "Strength: User's +2 (first round) / +1 (subsequent) ; Two-handed ; Concussion ; No Parry ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Two-handed axe/pick/warhammer",
+      "cost": 15,
+      "description": "Strength: User's +2 / +1 ; Two-handed ; Enemy armor: -1 ; Parry (6+) ; Criticals: slashing"
+    },
+    {
+      "name": "Two-handed sword",
+      "cost": 15,
+      "description": "Strength: User's +2 / +1 ; Two-handed ; Parry (5+) ; Criticals: slashing"
+    },
+    {
+      "name": "Morning Star",
+      "cost": 15,
+      "description": "Strength: User's +1 (first round) / User's (subsequent) ; Enemy armor: -1 ; Main ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Halberd",
+      "cost": 10,
+      "description": "Strength: User's +1 ; Two-handed ; Parry (5+) ; Criticals: polearm"
+    },
+    {
+      "name": "Spear",
+      "cost": 10,
+      "description": "Strength: User's ; +1 to Damage roll ; Main ; Criticals: polearm"
+    },
+    {
+      "name": "Steel Whip",
+      "cost": 10,
+      "description": "Strength: User's ; Initiative (+1) ; No Parry ; Criticals: slashing"
+    },
+    {
+      "name": "Battle Claws",
+      "cost": 35,
+      "restricted": "Servants of Darkness",
+      "description": "Pair (takes both hands) ; +1 Attack ; Climbing (+1) ; Parry (5+/5+) ; Criticals: unarmed"
+    },
+    {
+      "name": "Squig Goad",
+      "cost": 15,
+      "restricted": "Servants of Darkness",
+      "description": "Main ; +1 to Damage roll ; Handler (Squigs up to 12\") ; Criticals: polearm"
+    },
+    {
+      "name": "Dwarf Axe",
+      "cost": 12,
+      "restricted": "Adventurers",
+      "description": "Strength: User's ; Armor: -1 ; Parry (5+) ; Criticals: slashing"
+    }
+  ],
+  "ranged_weapons": [
+    {
+      "name": "Bow",
+      "cost": 10,
+      "description": "Range: 24 inches; Strength: 3"
+    },
+    {
+      "name": "Longbow",
+      "cost": 15,
+      "description": "Range: 30 inches; Strength: 3"
+    },
+    {
+      "name": "Elf Bow",
+      "cost": 30,
+      "description": "Range: 36 inches; Strength: 3; Enemy armor: -1"
+    },
+    {
+      "name": "Crossbow",
+      "cost": 25,
+      "description": "Range: 30 inches; Strength: 4; Move or fire"
+    },
+    {
+      "name": "Sling",
+      "cost": 5,
+      "description": "Range: 18 inches; Strength: 3; Two shots (at close range without movement)"
+    },
+    {
+      "name": "Throwing Stars and Knives",
+      "cost": 10,
+      "description": "Range: 6 inches; Strength: User's; Thrown (not in combat)"
+    },
+    {
+      "name": "Throwing Axes, Hammers and Javelins",
+      "cost": 15,
+      "description": "Range: 6 inches; Strength: User's +1 ; Thrown"
+    },
+    {
+      "name": "Repeating Crossbow",
+      "cost": 30,
+      "description": "Range: 24 inches; Strength: 3; Two shots"
+    },
+    {
+      "name": "Crossbow Pistols",
+      "cost": 25,
+      "description": "Range: 10 inches; Strength: 4; Close combat (extra weapon / 2 attacks in 1st round)"
+    },
+    {
+      "name": "Blowpipe",
+      "cost": 20,
+      "restricted": "Servants of Darkness",
+      "description": "Range 8\" ; Strength 1 ; Armor +1 ; Poison (Black Lotus) ; Silent (can fire from hiding)"
+    },
+    {
+      "name": "Pistols",
+      "cost": 30,
+      "tags": ["black-powder"],
+      "description": "Range: 6 inches; Strength: 4; Enemy armor: -1 ; Close combat"
+    },
+    {
+      "name": "Duelling Pistols",
+      "cost": 50,
+      "tags": ["black-powder"],
+      "description": "Range: 10 inches; Strength: 4; Enemy armor: -1 ; Close combat ; Accuracy (+1 hit)"
+    },
+    {
+      "name": "Blunderbuss",
+      "cost": 30,
+      "tags": ["black-powder"],
+      "description": "Range: Special (line 16\") ; Strength 3 ; Reload ; Hits everyone under the line"
+    },
+    {
+      "name": "Handgun",
+      "cost": 30,
+      "tags": ["black-powder"],
+      "description": "Range: 24 inches ; Strength: 4 ; Enemy armor: -1 ; Move or fire"
+    },
+    {
+      "name": "Hunting Rifle",
+      "cost": 100,
+      "tags": ["black-powder"],
+      "description": "Range: 48 inches ; Strength: 4 ; Enemy armor: -1 ; Move or fire ; Target selection (any seen)"
+    }
+  ],
+  "armor": [
+    {
+      "name": "Light Armor",
+      "cost": 10,
+      "campaign_cost": 20,
+      "tags": ["armor"],
+      "description": "Armor 5+"
+    },
+    {
+      "name": "Heavy Armor",
+      "cost": 25,
+      "campaign_cost": 50,
+      "tags": ["armor"],
+      "description": "Armor 4+ ; -1 to Climbing tests"
+    },
+    {
+      "name": "Ithilmar Armor",
+      "cost": 35,
+      "campaign_cost": 70,
+      "tags": ["armor"],
+      "description": "Armor 4+"
+    },
+    {
+      "name": "Gromril Armor",
+      "cost": 50,
+      "campaign_cost": 100,
+      "tags": ["armor"],
+      "description": "Armor 3+"
+    },
+    {
+      "name": "Shield",
+      "cost": 7,
+      "tags": ["armor"],
+      "description": "Armor 5+ (or +1 to armor) ; Parry (4+) ; Improvised blow (dagger) ; Clumsy (-1 I)"
+    },
+    {
+      "name": "Buckler",
+      "cost": 5,
+      "tags": ["armor"],
+      "description": "Armor 5+ (or +1 to melee armor) ; Parry (4+) ; Improvised blow (dagger)"
+    },
+    {
+      "name": "Helmet",
+      "cost": 5,
+      "tags": ["armor"],
+      "description": "Stun protection (roll 4+ turns it into Knocked Down)"
+    }
+  ],
+  "equipment_ogre": [
+    {
+      "name": "Ogre Two-handed Weapon",
+      "cost": 5,
+      "note": "+5 to base price",
+      "description": "Can be used as 'Strongman' (+2 S) or 'Giant' (one-handed)"
+    },
+    {
+      "name": "Ogre Javelins",
+      "cost": 30,
+      "description": "Range 12\" ; Strength User's +1 ; Thrown"
+    },
+    {
+      "name": "Ogre Crossbow",
+      "cost": 40,
+      "description": "Range 36\" ; Strength 5 ; Move or fire"
+    },
+    {
+      "name": "Ogre Pistols",
+      "cost": 50,
+      "tags": ["black-powder"],
+      "description": "Range 24\" ; Strength 4 ; Armor -1 ; Close combat"
+    },
+    {
+      "name": "Deck Cannon",
+      "cost": 65,
+      "tags": ["black-powder"],
+      "description": "Ball (24\", S5, k3 damage rolls) or Case Shot (18\", S3, area 2\") ; Armor -1 ; Reload ; Maintenance 10gc"
+    },
+    {
+      "name": "Ogre Light Armor",
+      "cost": 20,
+      "campaign_cost": 40,
+      "tags": ["armor"],
+      "description": "Armor 5+"
+    },
+    {
+      "name": "Ogre Heavy Armor",
+      "cost": 50,
+      "campaign_cost": 100,
+      "tags": ["armor"],
+      "description": "Armor 4+ ; -1 to Climbing tests"
+    },
+    {
+      "name": "Ogre Shield",
+      "cost": 14,
+      "tags": ["armor"],
+      "description": "Armor 5+ (or +1 to armor) ; Parry (4+) ; Improvised blow (dagger) ; Clumsy (-1 I)"
+    }
+  ],
+  "items": [
+    { "name": "Black Lotus", "cost": 20, "description": "Automatically wounds on a hit roll of 6." },
+    { "name": "Garlic", "cost": 1, "restricted": "Adventurers", "description": "Vampire charging the possessor must pass a Ld test." },
+    { "name": "Holy Water", "cost": 10, "restricted": "Adventurers", "description": "Automatically inflicts 1 wound on Undead/Possessed without an armor roll." },
+    { "name": "Hammer Consecration", "cost": 10, "restricted": "Adventurers", "description": "Adds 'Holy' trait: +1 Strength in attacks against Possessed and Undead." },
+    { "name": "Bugman's Ale", "cost": 50, "description": "Makes the entire warband immune to Fear until the end of the skirmish." },
+    { "name": "Cathayan Silk Cloak", "cost": 50, "description": "Reroll the first failed Rout test." },
+    { "name": "Crimson Shade", "cost": 10, "description": "+k3 Initiative, +1 Move, +1 Strength for the duration of the skirmish." },
+    { "name": "Lantern", "cost": 10, "description": "+4 inches to the detection range of hidden models." },
+    { "name": "Dark Venom", "cost": 35, "description": "Weapon counts as having +1 Strength." },
+    { "name": "Elf Cloak", "cost": 100, "description": "Shooting at the model is at a -1 penalty to Hit." },
+    { "name": "Leather Cloak", "cost": 10, "description": "Adds +1 to Armor roll against ranged attacks." },
+    { "name": "Healing Herbs", "cost": 20, "description": "Restores all lost Wounds in the Recovery phase." },
+    { "name": "Net", "cost": 5, "description": "Range 8\" ; Thrown ; Entanglement (Strength test for the target)." },
+    { "name": "Holy (Cursed) Relic", "cost": 15, "description": "Possessor automatically passes their first Ld test in the skirmish." },
+    { "name": "Holy Book", "cost": 120, "restricted": "Adventurers", "description": "+1 to the roll result when attempting to cast a prayer." },
+    { "name": "Hunting Arrows", "cost": 25, "description": "Adds +1 to the Damage roll for bows." },
+    { "name": "Lucky Charm", "cost": 10, "description": "On 4+, negates the first hit on the model." },
+    { "name": "Mad Cap Mushrooms", "cost": 10, "description": "Model is subject to Frenzy rules. After combat roll k6 (1 = permanently Stupid)." },
+    { "name": "Mandrake Root", "cost": 10, "description": "+1 Toughness, treats Stun as Knocked Down." },
+    { "name": "Map of Ruins", "cost": 25, "description": "Allows choosing a scenario or rerolling an exploration die." },
+    { "name": "Superior Powder", "cost": 30, "description": "Black powder weapon counts as having +1 Strength." },
+    { "name": "Tears of Shallaya", "cost": 10, "restricted": "Adventurers", "description": "Possessor becomes immune to the effects of all poisons." },
+    { "name": "Book of Magic", "cost": 200, "description": "Automatically adds one random spell." },
+    { "name": "Kislevite Vodka", "cost": 40, "restricted": "Adventurers", "description": "+1 Ld for all models in the warband for the duration of the skirmish." }
+  ]
+}
