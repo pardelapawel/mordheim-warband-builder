@@ -212,6 +212,8 @@ function renderWarband() {
     const grid = document.getElementById('card-grid');
     const placeholder = document.getElementById('add-card-placeholder');
 
+    const scrollPos = window.scrollY;
+
     grid.querySelectorAll('.card-wrapper').forEach(el => el.remove());
 
     document.getElementById('warband-name').value = currentWarband.name;
@@ -227,6 +229,8 @@ function renderWarband() {
     updateTotalCost();
     updateLegend();
     restoreFocus();
+
+    window.scrollTo(0, scrollPos);
 }
 
 function updateLegend() {
@@ -365,9 +369,11 @@ function createFighterCard(data, index) {
     });
 
     const typeInput = cardEl.querySelector('.fighter-type-input');
+    const raceInput = cardEl.querySelector('.fighter-race-input');
     const baseCostInput = cardEl.querySelector('.fighter-base-cost');
 
     typeSelect.onchange = () => {
+        typeSelect.blur();
         const selected = masterData.fighters.find(f => (f.id || f.name) === typeSelect.value);
         if (selected) {
             applyFighterType(index, selected);
@@ -418,11 +424,21 @@ function createFighterCard(data, index) {
         resizeName();
     };
 
-    typeInput.value = data.type || '';
+    typeInput.textContent = data.type || '';
     typeInput.oninput = () => {
-        currentWarband.fighters[index].type = typeInput.value;
+        currentWarband.fighters[index].type = typeInput.textContent.trim();
         saveToCache();
     };
+    typeInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); typeInput.blur(); } };
+
+    if (raceInput) {
+        raceInput.textContent = data.race || '';
+        raceInput.oninput = () => {
+            currentWarband.fighters[index].race = raceInput.textContent.trim();
+            saveToCache();
+        };
+        raceInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); raceInput.blur(); } };
+    }
 
     baseCostInput.value = data.baseCost || 0;
     baseCostInput.oninput = () => {
@@ -532,10 +548,22 @@ function createFighterCard(data, index) {
         if (isSpellList) {
             const addBtn = row.querySelector('.add-spell-btn');
             addBtn.onclick = () => {
-                const listName = data.spell_list;
-                const spells = masterData.spellsByList[listName] || [];
+                let spells = [];
+                // First check if the skill name itself implies a specific spell list
+                const matchingList = Object.keys(masterData.spellsByList).find(listKey => 
+                    skill.name.toLowerCase().includes(listKey.toLowerCase())
+                );
+
+                if (matchingList) {
+                    spells = masterData.spellsByList[matchingList];
+                } else if (data.spell_list && masterData.spellsByList[data.spell_list]) {
+                    spells = masterData.spellsByList[data.spell_list];
+                } else {
+                    spells = masterData.spells; // fallback to all spells
+                }
+
                 if (spells.length === 0) {
-                    alert("No spells found for list: " + listName);
+                    alert("No spells available in database.");
                     return;
                 }
 
@@ -556,6 +584,7 @@ function createFighterCard(data, index) {
                         nameEdit.value = current.includes('(') ? current.replace(/\(.*\)/, suffix) : current + suffix;
                         currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
                         saveToCache();
+                        updateLegend();
                     }
                     select.remove();
                 };
@@ -609,7 +638,8 @@ function createFighterCard(data, index) {
 
         const updateList = () => {
             let val = input.value.toLowerCase();
-            let listData = type === 'equipment' ? masterData.equipment : masterData.skills;
+            let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
+            let listData = type === 'equipment' ? masterData.equipment : [...masterData.skills, ...spellLists, ...masterData.spells];
 
             // If empty, show all. If typed, filter.
             let matches = listData;

@@ -85,7 +85,10 @@
                         </select>
                     </div>
                     <div class="card-header-meta">
-                        <input type="text" class="fighter-type-input fighter-type-badge" placeholder="Fighter Type">
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; flex-grow: 1; margin-right: 10px; align-items: center;">
+                            <span class="fighter-type-input fighter-type-badge" contenteditable="true" spellcheck="false" data-placeholder="Type"></span>
+                            <span class="fighter-race-input fighter-type-badge" contenteditable="true" spellcheck="false" data-placeholder="Race"></span>
+                        </div>
                         <div class="cost-info no-print">
                             <div class="cost-input-container">
                                 <input type="number" class="fighter-base-cost" value="0">
