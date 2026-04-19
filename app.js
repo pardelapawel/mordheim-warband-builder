@@ -36,14 +36,14 @@ async function init() {
 
     // Default to first rule set if none selected
     if (!currentWarband.ruleSetId && ruleSets.length > 0) {
-        currentWarband.ruleSetId = ruleSets[0].id;
+        currentWarband.ruleSetId = ruleSets[0].name;
     }
 
     if (currentWarband.ruleSetId) {
         await applyRuleSet(currentWarband.ruleSetId, false);
         // Default to first warband type if none selected
         if (!currentWarband.warbandTypeId) {
-            const rs = ruleSets.find(r => r.id === currentWarband.ruleSetId);
+            const rs = ruleSets.find(r => r.name === currentWarband.ruleSetId);
             if (rs && rs.warbands.length > 0) {
                 currentWarband.warbandTypeId = rs.warbands[0].id;
             }
@@ -64,13 +64,13 @@ function setupRuleSelectors() {
     rsSelect.innerHTML = '';
     ruleSets.forEach(rs => {
         const opt = document.createElement('option');
-        opt.value = rs.id;
+        opt.value = rs.name;
         opt.textContent = rs.name;
         rsSelect.appendChild(opt);
     });
 
     rsSelect.onchange = async () => {
-        const newRuleSet = ruleSets.find(r => r.id === rsSelect.value);
+        const newRuleSet = ruleSets.find(r => r.name === rsSelect.value);
         let firstWbId = "";
         if (newRuleSet && newRuleSet.warbands.length > 0) {
             firstWbId = newRuleSet.warbands[0].id;
@@ -89,7 +89,11 @@ function setupRuleSelectors() {
 async function applyRuleSet(id, shouldRender = true) {
     if (!id) return;
     currentWarband.ruleSetId = id;
-    const rs = ruleSets.find(r => r.id === id);
+    const rs = ruleSets.find(r => r.name === id);
+    if (!rs) return;
+
+    // Helper to normalize name to folder name (e.g. "Dragon Rock" -> "dragon_rock")
+    const folderName = id.toLowerCase().replace(/\s+/g, '_');
 
     // Helper to flatten nested object of arrays
     const flatten = (obj) => Object.values(obj).flat();
@@ -97,11 +101,19 @@ async function applyRuleSet(id, shouldRender = true) {
     // Load data
     try {
         const [eq, sk, sp] = await Promise.all([
-            fetch(`data/${id}/equipment.json`).then(r => r.json()),
-            fetch(`data/${id}/skills.json`).then(r => r.json()),
-            fetch(`data/${id}/spells.json`).then(r => r.json())
+            fetch(`data/${folderName}/equipment.json`).then(r => r.json()),
+            fetch(`data/${folderName}/skills.json`).then(r => r.json()),
+            fetch(`data/${folderName}/spells.json`).then(r => r.json())
         ]);
-        masterData.equipment = flatten(eq);
+        
+        masterData.equipment = [];
+        for (const [cat, items] of Object.entries(eq)) {
+            items.forEach(i => {
+                i.originCategory = cat; 
+                masterData.equipment.push(i);
+            });
+        }
+
         masterData.skills = flatten(sk);
         masterData.spells = flatten(sp);
         masterData.spellsByList = sp; // Keep structured for context-aware selection
@@ -125,13 +137,14 @@ async function applyRuleSet(id, shouldRender = true) {
 
 async function applyWarbandType(id, shouldRender = true) {
     currentWarband.warbandTypeId = id;
-    const rs = ruleSets.find(r => r.id === currentWarband.ruleSetId);
+    const rs = ruleSets.find(r => r.name === currentWarband.ruleSetId);
     if (!rs) return;
 
     const wb = rs.warbands.find(w => w.id === id);
     if (wb) {
         try {
-            const resp = await fetch(`data/${currentWarband.ruleSetId}/warbands/${wb.file}`);
+            const folderName = rs.name.toLowerCase().replace(/\s+/g, '_');
+            const resp = await fetch(`data/${folderName}/warbands/${wb.file}`);
             const data = await resp.json();
             masterData.fighters = data.fighters;
         } catch (e) {
@@ -175,7 +188,108 @@ function renderWarband() {
     });
 
     updateTotalCost();
+    updateLegend();
     restoreFocus();
+}
+
+function updateLegend() {
+    const sidebar = document.getElementById('legend-sidebar');
+    if (!sidebar) return;
+
+    const usedTerms = new Set();
+    const equipment = [];
+    const skills = [];
+    const spells = [];
+
+    // Collect terms
+    currentWarband.fighters.forEach(f => {
+        f.equipment.forEach(e => usedTerms.add(e.name.trim()));
+        f.skills.forEach(s => {
+            // Extract spell name if format is "Skill Name (Spell Name)"
+            const spellMatch = s.name.match(/\((.*)\)/);
+            if (spellMatch) {
+                usedTerms.add(spellMatch[1].trim());
+            }
+            usedTerms.add(s.name.trim());
+        });
+    });
+
+    const categories = {
+        'Melee Weapons': { icon: 'swords', items: [], order: 1 },
+        'Ranged Weapons': { icon: 'bow_arrow', items: [], order: 2 },
+        'Armor': { icon: 'shield', items: [], order: 3 },
+        'Items': { icon: 'inventory_2', items: [], order: 4 },
+        'Skills': { icon: 'star_shine', items: [], order: 5 },
+        'Spells': { icon: 'auto_fix_high', items: [], order: 6 }
+    };
+
+    const addedNames = new Set();
+
+    usedTerms.forEach(term => {
+        if (!term) return;
+        let found = null;
+        let category = null;
+
+        const termLower = term.toLowerCase();
+
+        // 1. Search Spells
+        found = masterData.spells.find(s => s.name.toLowerCase() === termLower);
+        if (found) {
+            category = 'Spells';
+        } else {
+            // 2. Search Equipment
+            const eq = masterData.equipment.find(e => e.name.toLowerCase() === termLower);
+            if (eq) {
+                found = eq;
+                if (eq.originCategory === 'melee_weapons') category = 'Melee Weapons';
+                else if (eq.originCategory === 'ranged_weapons') category = 'Ranged Weapons';
+                else if (eq.originCategory === 'armor') category = 'Armor';
+                else category = 'Items';
+            } else {
+                // 3. Search Skills
+                found = masterData.skills.find(s => s.name.toLowerCase() === termLower);
+                if (found) category = 'Skills';
+            }
+        }
+
+        if (found && category && !addedNames.has(found.name)) {
+            categories[category].items.push(found);
+            addedNames.add(found.name);
+        }
+    });
+
+    // Render HTML
+    let html = '<h2 class="legend-title">Warband Glossary</h2>';
+    let hasContent = false;
+
+    // Sort categories by order
+    const sortedCats = Object.entries(categories).sort((a, b) => a[1].order - b[1].order);
+
+    for (const [catName, catData] of sortedCats) {
+        if (catData.items.length > 0) {
+            hasContent = true;
+            html += `
+                <div class="legend-group">
+                    <h3 class="legend-group-title">
+                        <span class="material-symbols-outlined">${catData.icon}</span>
+                        ${catName}
+                    </h3>
+                    <div class="legend-items-list">
+                        ${catData.items.sort((a,b) => a.name.localeCompare(b.name)).map(item => `
+                            <div class="legend-item">
+                                <span class="legend-item-name">${item.name}</span>
+                                <span class="legend-item-desc">${item.description || item.special || ''}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    sidebar.innerHTML = html;
+    if (hasContent) sidebar.classList.add('active');
+    else sidebar.classList.remove('active');
 }
 
 function restoreFocus() {
@@ -565,6 +679,11 @@ function loadFromCache() {
     const saved = localStorage.getItem('mordheim_current');
     if (saved) {
         const parsed = JSON.parse(saved);
+        
+        // Migration: map old IDs to names
+        if (parsed.ruleSetId === 'dragon_rock') parsed.ruleSetId = 'Dragon Rock';
+        if (parsed.ruleSetId === 'smocza_turnia') parsed.ruleSetId = 'Drachenfels';
+
         // Deep merge to ensure structure
         currentWarband = { ...currentWarband, ...parsed };
     }

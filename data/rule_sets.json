@@ -1,15 +1,13 @@
 [
   {
-    "id": "dragon_rock",
-    "name": "Dragon Rock (English)",
+    "name": "Dragon Rock",
     "warbands": [
       { "id": "adventurers", "name": "Adventurers", "file": "adventurers.json" },
       { "id": "servants_of_darkness", "name": "Servants of Darkness", "file": "servants_of_darkness.json" }
     ]
   },
   {
-    "id": "smocza_turnia",
-    "name": "Smocza Turnia (Polish)",
+    "name": "Drachenfels",
     "warbands": [
       { "id": "awanturnicy", "name": "Awanturnicy", "file": "awanturnicy.json" },
       { "id": "sludzy_ciemnosci", "name": "Słudzy Ciemności", "file": "sludzy_ciemnosci.json" }
