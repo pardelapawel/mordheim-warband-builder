@@ -61,7 +61,7 @@ function setupRuleSelectors() {
     const rsSelect = document.getElementById('rule-set-select');
     const wtSelect = document.getElementById('warband-type-select');
 
-    rsSelect.innerHTML = '<option value="">-- Select Rule Set --</option>';
+    rsSelect.innerHTML = '';
     ruleSets.forEach(rs => {
         const opt = document.createElement('option');
         opt.value = rs.id;
@@ -70,7 +70,13 @@ function setupRuleSelectors() {
     });
 
     rsSelect.onchange = async () => {
-        await applyRuleSet(rsSelect.value);
+        const newRuleSet = ruleSets.find(r => r.id === rsSelect.value);
+        let firstWbId = "";
+        if (newRuleSet && newRuleSet.warbands.length > 0) {
+            firstWbId = newRuleSet.warbands[0].id;
+        }
+        await applyRuleSet(rsSelect.value, false);
+        if (firstWbId) await applyWarbandType(firstWbId);
         saveToCache();
     };
 
@@ -106,7 +112,7 @@ async function applyRuleSet(id, shouldRender = true) {
     // Update Warband Type Select
     const wtSelect = document.getElementById('warband-type-select');
     wtSelect.disabled = false;
-    wtSelect.innerHTML = '<option value="">-- Generic / None --</option>';
+    wtSelect.innerHTML = '';
     rs.warbands.forEach(w => {
         const opt = document.createElement('option');
         opt.value = w.id;
@@ -236,10 +242,13 @@ function createFighterCard(data, index) {
     // Fill Basic Info
     const nameInput = cardEl.querySelector('.fighter-name');
     nameInput.value = data.customName || '';
+    const resizeName = () => { nameInput.style.height = 'auto'; nameInput.style.height = nameInput.scrollHeight + 'px'; };
     nameInput.oninput = () => {
         currentWarband.fighters[index].customName = nameInput.value;
         saveToCache();
+        resizeName();
     };
+    setTimeout(resizeName, 0);
 
     const rerollBtn = cardEl.querySelector('.reroll-name-btn');
     rerollBtn.onclick = () => {
@@ -248,6 +257,7 @@ function createFighterCard(data, index) {
         fighter.customName = newName;
         nameInput.value = newName;
         saveToCache();
+        resizeName();
     };
 
     typeInput.value = data.type || '';
