@@ -388,7 +388,7 @@ function createFighterCard(data, index) {
         const span = document.createElement('span');
         span.className = 'flag-badge danger';
         span.textContent = 'Large Target';
-        flagsEl.appendChild(span);
+        //flagsEl.appendChild(span);
     }
     // if (data.spell_list) {
     //     const span = document.createElement('span');
