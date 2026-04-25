@@ -24,6 +24,7 @@ let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills
 async function init() {
     initTheme();
     initMobileUI();
+    initScrollHeader();
 
     try {
         const rsResp = await fetch('data/rule_sets.json');
@@ -205,6 +206,19 @@ function initMobileUI() {
         mgr.classList.toggle('collapsed');
         toggleBtn.textContent = mgr.classList.contains('collapsed') ? 'Cached ▴' : 'Cached ▾';
     };
+}
+
+function initScrollHeader() {
+    const header = document.querySelector('.app-header');
+    const SCROLL_THRESHOLD = 60;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > SCROLL_THRESHOLD) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    }, { passive: true });
 }
 
 // Rendering
@@ -758,6 +772,14 @@ function updateTotalCost() {
         total += calculateFighterCost(f);
     });
     document.getElementById('total-cost-value').textContent = total;
+
+    // Update compact sticky bar
+    const compactCost = document.getElementById('compact-cost-value');
+    if (compactCost) compactCost.textContent = total;
+    const compactFighters = document.getElementById('compact-fighters-count');
+    if (compactFighters) compactFighters.textContent = currentWarband.fighters.length;
+    const compactName = document.getElementById('compact-warband-name');
+    if (compactName) compactName.textContent = document.getElementById('warband-name').value || currentWarband.name;
 }
 
 function checkValidation(fighter) {
@@ -840,6 +862,10 @@ document.getElementById('delete-all-saves-btn').onclick = () => {
     }
 };
 document.getElementById('warband-name').onchange = saveToCache;
+document.getElementById('warband-name').oninput = () => {
+    const compactName = document.getElementById('compact-warband-name');
+    if (compactName) compactName.textContent = document.getElementById('warband-name').value;
+};
 document.getElementById('export-json-btn').onclick = () => {
     const blob = new Blob([JSON.stringify(currentWarband, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
