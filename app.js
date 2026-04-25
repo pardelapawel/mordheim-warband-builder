@@ -226,6 +226,13 @@ function renderWarband() {
         grid.insertBefore(card, placeholder);
     });
 
+    // Sync fold-all button label
+    const foldAllBtn = document.getElementById('fold-all-btn');
+    if (foldAllBtn) {
+        const anyExpanded = currentWarband.fighters.some(f => !f.folded);
+        foldAllBtn.textContent = anyExpanded ? '⊟ Fold All' : '⊞ Expand All';
+    }
+
     updateTotalCost();
     updateLegend();
     restoreFocus();
@@ -356,6 +363,29 @@ function createFighterCard(data, index) {
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.card-wrapper');
     const cardEl = clone.querySelector('.fighter-card');
+
+    // Fold / expand logic
+    const foldBtn = wrapper.querySelector('.fold-btn');
+    const applyFoldState = (folded) => {
+        if (folded) {
+            cardEl.classList.add('folded');
+            foldBtn.textContent = '▼';
+            foldBtn.classList.add('folded-state');
+            foldBtn.title = 'Expand Card';
+        } else {
+            cardEl.classList.remove('folded');
+            foldBtn.textContent = '▲';
+            foldBtn.classList.remove('folded-state');
+            foldBtn.title = 'Fold Card';
+        }
+    };
+    applyFoldState(!!data.folded);
+    foldBtn.onclick = () => {
+        const isFolded = cardEl.classList.contains('folded');
+        currentWarband.fighters[index].folded = !isFolded;
+        applyFoldState(!isFolded);
+        saveToCache();
+    };
 
     // Populate Type Select
     const typeSelect = cardEl.querySelector('.fighter-type-select');
@@ -833,6 +863,14 @@ function renderSavedList() {
 // Global Actions
 document.getElementById('add-card-placeholder').onclick = addFighter;
 document.getElementById('save-cache-btn').onclick = saveToCache;
+
+// Fold All / Expand All
+document.getElementById('fold-all-btn').onclick = () => {
+    const anyExpanded = currentWarband.fighters.some(f => !f.folded);
+    currentWarband.fighters.forEach(f => { f.folded = anyExpanded; });
+    renderWarband();
+    saveToCache();
+};
 document.getElementById('delete-all-saves-btn').onclick = () => {
     if (confirm("Are you sure you want to delete ALL saved warbands? This cannot be undone.")) {
         localStorage.removeItem('mordheim_saves');

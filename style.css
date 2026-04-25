@@ -338,6 +338,32 @@ h4 {
     transform: scale(1.15);
 }
 
+.fold-btn {
+    position: absolute;
+    top: -12px;
+    left: -12px;
+    width: 32px;
+    height: 32px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-size: 0.7rem;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.fold-btn:hover {
+    transform: scale(1.15);
+    background: var(--accent-color);
+}
+
 /* Card */
 .fighter-card {
     background: var(--card-bg);
@@ -352,6 +378,36 @@ h4 {
     transition: background-color 0.3s, border-color 0.3s;
     overflow: visible;
 }
+
+/* Folded card: compact, show only header */
+.fighter-card.folded {
+    min-height: unset;
+    height: auto;
+}
+
+.fighter-card.folded .stats-table,
+.fighter-card.folded .card-section,
+.fighter-card.folded .combobox-container,
+.fighter-card.folded .validation-warnings,
+.fighter-card.folded .type-selection {
+    display: none;
+}
+
+.fighter-card.folded .card-header {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.fold-btn.expanded {
+    /* arrow pointing up when card is expanded — default */
+}
+
+.fold-btn.folded-state {
+    background: var(--accent-color);
+    color: white;
+}
+
 
 .card-header {
     border-bottom: 2px solid var(--accent-color);
