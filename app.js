@@ -210,15 +210,39 @@ function initMobileUI() {
 
 function initScrollHeader() {
     const header = document.querySelector('.app-header');
-    const SCROLL_THRESHOLD = 60;
+    if (!header) return;
 
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > SCROLL_THRESHOLD) {
-            header.classList.add('scrolled');
-        } else {
+    const COLLAPSE_THRESHOLD = 120;
+    const EXPAND_THRESHOLD = 48;
+    let isScrolled = false;
+    let ticking = false;
+
+    const syncHeaderState = () => {
+        ticking = false;
+        if (window.innerWidth <= 768) {
+            isScrolled = false;
             header.classList.remove('scrolled');
+            return;
         }
-    }, { passive: true });
+
+        const nextScrolled = isScrolled
+            ? window.scrollY > EXPAND_THRESHOLD
+            : window.scrollY > COLLAPSE_THRESHOLD;
+
+        if (nextScrolled === isScrolled) return;
+        isScrolled = nextScrolled;
+        header.classList.toggle('scrolled', isScrolled);
+    };
+
+    const requestSync = () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(syncHeaderState);
+    };
+
+    window.addEventListener('scroll', requestSync, { passive: true });
+    window.addEventListener('resize', requestSync);
+    syncHeaderState();
 }
 
 // Rendering

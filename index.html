@@ -13,41 +13,42 @@
 </head>
 <body class="light-mode">
     <header class="app-header no-print">
-        <div class="header-compact-bar">
-            <span class="compact-logo">⚔</span>
-            <span id="compact-warband-name" class="compact-warband-name"></span>
-            <span class="compact-stat">🧑 <strong id="compact-fighters-count">0</strong> fighters</span>
-            <span class="compact-stat">🪙 <strong id="compact-cost-value">0</strong> gc</span>
-        </div>
-        <div class="header-content">
-            <h1 class="logo">Mordheim Builder</h1>
-            <div class="warband-meta">
-                <input type="text" id="warband-name" placeholder="Warband Name..." value="My New Warband">
-                <div class="rules-selectors no-print">
-                    <div class="selector-group">
-                        <label for="rule-set-select">Rule Set:</label>
-                        <select id="rule-set-select">
-                            <option value="">Loading...</option>
-                        </select>
-                    </div>
-                    <div class="selector-group">
-                        <label for="warband-type-select">Type:</label>
-                        <select id="warband-type-select" disabled>
-                            <option value="">Select Rule Set First</option>
-                        </select>
-                    </div>
-                </div>
-                <span class="total-cost">Total Cost: <span id="total-cost-value">0</span> gc</span>
+        <div class="header-inner">
+            <div class="header-compact-bar" aria-hidden="true">
+                <span id="compact-warband-name" class="compact-warband-name"></span>
+                <span class="compact-stat"><strong id="compact-fighters-count">0</strong> cards</span>
+                <span class="compact-stat"><strong id="compact-cost-value">0</strong> gc</span>
             </div>
-            <div class="actions-carousel-wrapper">
-                <div class="actions">
-                    <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
-                    <button id="save-cache-btn" class="btn">Save to Cache</button>
-                    <button id="export-json-btn" class="btn">Export JSON</button>
-                    <label for="import-json-input" class="btn">Import JSON</label>
-                    <input type="file" id="import-json-input" hidden accept=".json">
-                    <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
-                    <button id="clear-all-btn" class="btn danger">Clear All</button>
+            <div class="header-content">
+                <h1 class="logo">Mordheim Builder</h1>
+                <div class="warband-meta">
+                    <input type="text" id="warband-name" placeholder="Warband Name..." value="My New Warband">
+                    <div class="rules-selectors no-print">
+                        <div class="selector-group">
+                            <label for="rule-set-select">Rule Set:</label>
+                            <select id="rule-set-select">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="selector-group">
+                            <label for="warband-type-select">Type:</label>
+                            <select id="warband-type-select" disabled>
+                                <option value="">Select Rule Set First</option>
+                            </select>
+                        </div>
+                    </div>
+                    <span class="total-cost">Total Cost: <span id="total-cost-value">0</span> gc</span>
+                </div>
+                <div class="actions-carousel-wrapper">
+                    <div class="actions">
+                        <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
+                        <button id="save-cache-btn" class="btn">Save to Cache</button>
+                        <button id="export-json-btn" class="btn">Export JSON</button>
+                        <label for="import-json-input" class="btn">Import JSON</label>
+                        <input type="file" id="import-json-input" hidden accept=".json">
+                        <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
+                        <button id="clear-all-btn" class="btn danger">Clear All</button>
+                    </div>
                 </div>
             </div>
         </div>
