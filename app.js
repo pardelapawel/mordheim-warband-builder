@@ -24,6 +24,7 @@ let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills
 async function init() {
     initTheme();
     initMobileUI();
+    initScrollHeader();
 
     try {
         const rsResp = await fetch('data/rule_sets.json');
@@ -205,6 +206,43 @@ function initMobileUI() {
         mgr.classList.toggle('collapsed');
         toggleBtn.textContent = mgr.classList.contains('collapsed') ? 'Cached ▴' : 'Cached ▾';
     };
+}
+
+function initScrollHeader() {
+    const header = document.querySelector('.app-header');
+    if (!header) return;
+
+    const COLLAPSE_THRESHOLD = 120;
+    const EXPAND_THRESHOLD = 48;
+    let isScrolled = false;
+    let ticking = false;
+
+    const syncHeaderState = () => {
+        ticking = false;
+        if (window.innerWidth <= 768) {
+            isScrolled = false;
+            header.classList.remove('scrolled');
+            return;
+        }
+
+        const nextScrolled = isScrolled
+            ? window.scrollY > EXPAND_THRESHOLD
+            : window.scrollY > COLLAPSE_THRESHOLD;
+
+        if (nextScrolled === isScrolled) return;
+        isScrolled = nextScrolled;
+        header.classList.toggle('scrolled', isScrolled);
+    };
+
+    const requestSync = () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(syncHeaderState);
+    };
+
+    window.addEventListener('scroll', requestSync, { passive: true });
+    window.addEventListener('resize', requestSync);
+    syncHeaderState();
 }
 
 // Rendering
@@ -758,6 +796,14 @@ function updateTotalCost() {
         total += calculateFighterCost(f);
     });
     document.getElementById('total-cost-value').textContent = total;
+
+    // Update compact sticky bar
+    const compactCost = document.getElementById('compact-cost-value');
+    if (compactCost) compactCost.textContent = total;
+    const compactFighters = document.getElementById('compact-fighters-count');
+    if (compactFighters) compactFighters.textContent = currentWarband.fighters.length;
+    const compactName = document.getElementById('compact-warband-name');
+    if (compactName) compactName.textContent = document.getElementById('warband-name').value || currentWarband.name;
 }
 
 function checkValidation(fighter) {
@@ -840,6 +886,10 @@ document.getElementById('delete-all-saves-btn').onclick = () => {
     }
 };
 document.getElementById('warband-name').onchange = saveToCache;
+document.getElementById('warband-name').oninput = () => {
+    const compactName = document.getElementById('compact-warband-name');
+    if (compactName) compactName.textContent = document.getElementById('warband-name').value;
+};
 document.getElementById('export-json-btn').onclick = () => {
     const blob = new Blob([JSON.stringify(currentWarband, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
