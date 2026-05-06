@@ -14,11 +14,6 @@
 <body class="light-mode">
     <header class="app-header no-print">
         <div class="header-inner">
-            <div class="header-compact-bar" aria-hidden="true">
-                <span id="compact-warband-name" class="compact-warband-name"></span>
-                <span class="compact-stat"><strong id="compact-fighters-count">0</strong> cards</span>
-                <span class="compact-stat"><strong id="compact-cost-value">0</strong> gc</span>
-            </div>
             <div class="header-content">
                 <h1 class="logo">Mordheim Builder</h1>
                 <div class="warband-meta">
@@ -42,6 +37,7 @@
                 <div class="actions-carousel-wrapper">
                     <div class="actions">
                         <button id="theme-toggle-btn" class="btn" title="Toggle Light/Dark Mode">🌓</button>
+                        <button id="fold-all-btn" class="btn" title="Fold / Expand All Cards">⊟ Fold All</button>
                         <button id="save-cache-btn" class="btn">Save to Cache</button>
                         <button id="export-json-btn" class="btn">Export JSON</button>
                         <label for="import-json-input" class="btn">Import JSON</label>
@@ -53,6 +49,12 @@
             </div>
         </div>
     </header>
+
+    <div class="header-compact-bar sticky-summary-bar no-print" aria-hidden="true">
+        <span id="compact-warband-name" class="compact-warband-name"></span>
+        <span class="compact-stat"><strong id="compact-fighters-count">0</strong> cards</span>
+        <span class="compact-stat"><strong id="compact-cost-value">0</strong> gc</span>
+    </div>
 
     <div class="main-layout">
         <main class="card-grid" id="card-grid">
@@ -80,6 +82,7 @@
     <template id="fighter-card-template">
         <div class="card-wrapper">
             <button class="remove-btn no-print" title="Remove Fighter">&times;</button>
+            <button class="fold-btn no-print" title="Fold / Expand Card">▲</button>
             <article class="fighter-card">
                 <div class="card-header">
                     <div class="name-container">
@@ -176,6 +179,8 @@
     </template>
 
     <script src="nameGenerator.js"></script>
+    <script src="headerScroll.js"></script>
+    <script src="warbandUtils.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -210,28 +210,35 @@ function initMobileUI() {
 
 function initScrollHeader() {
     const header = document.querySelector('.app-header');
-    if (!header) return;
+    const summaryBar = document.querySelector('.sticky-summary-bar');
+    if (!header || !summaryBar) return;
 
-    const COLLAPSE_THRESHOLD = 120;
-    const EXPAND_THRESHOLD = 48;
-    let isScrolled = false;
+    const { getHeaderLayoutState, getSummaryBarPinnedState } = globalThis.HeaderScroll || {};
+    if (typeof getHeaderLayoutState !== 'function' || typeof getSummaryBarPinnedState !== 'function') {
+        throw new Error('HeaderScroll helpers are unavailable.');
+    }
+
     let ticking = false;
 
     const syncHeaderState = () => {
         ticking = false;
-        if (window.innerWidth <= 768) {
-            isScrolled = false;
-            header.classList.remove('scrolled');
+        const layoutState = getHeaderLayoutState({
+            viewportWidth: window.innerWidth,
+            isScrolled: false,
+            mobileBreakpoint: 768
+        });
+
+        header.classList.remove('scrolled');
+        summaryBar.hidden = !layoutState.useStickySummaryBar;
+        if (summaryBar.hidden) {
+            summaryBar.classList.remove('is-pinned');
             return;
         }
 
-        const nextScrolled = isScrolled
-            ? window.scrollY > EXPAND_THRESHOLD
-            : window.scrollY > COLLAPSE_THRESHOLD;
-
-        if (nextScrolled === isScrolled) return;
-        isScrolled = nextScrolled;
-        header.classList.toggle('scrolled', isScrolled);
+        const isPinned = getSummaryBarPinnedState({
+            summaryBarTop: summaryBar.getBoundingClientRect().top
+        });
+        summaryBar.classList.toggle('is-pinned', isPinned);
     };
 
     const requestSync = () => {
@@ -263,6 +270,13 @@ function renderWarband() {
         const card = createFighterCard(fighter, index);
         grid.insertBefore(card, placeholder);
     });
+
+    // Sync fold-all button label
+    const foldAllBtn = document.getElementById('fold-all-btn');
+    if (foldAllBtn) {
+        const anyExpanded = currentWarband.fighters.some(f => !f.folded);
+        foldAllBtn.textContent = anyExpanded ? '⊟ Fold All' : '⊞ Expand All';
+    }
 
     updateTotalCost();
     updateLegend();
@@ -394,6 +408,29 @@ function createFighterCard(data, index) {
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.card-wrapper');
     const cardEl = clone.querySelector('.fighter-card');
+
+    // Fold / expand logic
+    const foldBtn = wrapper.querySelector('.fold-btn');
+    const applyFoldState = (folded) => {
+        if (folded) {
+            cardEl.classList.add('folded');
+            foldBtn.textContent = '▼';
+            foldBtn.classList.add('folded-state');
+            foldBtn.title = 'Expand Card';
+        } else {
+            cardEl.classList.remove('folded');
+            foldBtn.textContent = '▲';
+            foldBtn.classList.remove('folded-state');
+            foldBtn.title = 'Fold Card';
+        }
+    };
+    applyFoldState(!!data.folded);
+    foldBtn.onclick = () => {
+        const isFolded = cardEl.classList.contains('folded');
+        currentWarband.fighters[index].folded = !isFolded;
+        applyFoldState(!isFolded);
+        saveToCache();
+    };
 
     // Populate Type Select
     const typeSelect = cardEl.querySelector('.fighter-type-select');
@@ -879,6 +916,14 @@ function renderSavedList() {
 // Global Actions
 document.getElementById('add-card-placeholder').onclick = addFighter;
 document.getElementById('save-cache-btn').onclick = saveToCache;
+
+// Fold All / Expand All
+document.getElementById('fold-all-btn').onclick = () => {
+    const anyExpanded = currentWarband.fighters.some(f => !f.folded);
+    currentWarband.fighters.forEach(f => { f.folded = anyExpanded; });
+    renderWarband();
+    saveToCache();
+};
 document.getElementById('delete-all-saves-btn').onclick = () => {
     if (confirm("Are you sure you want to delete ALL saved warbands? This cannot be undone.")) {
         localStorage.removeItem('mordheim_saves');
@@ -891,15 +936,15 @@ document.getElementById('warband-name').oninput = () => {
     if (compactName) compactName.textContent = document.getElementById('warband-name').value;
 };
 document.getElementById('export-json-btn').onclick = () => {
-    const blob = new Blob([JSON.stringify(currentWarband, null, 2)], { type: 'application/json' });
+    const blob = new Blob([WarbandUtils.serializeWarband(currentWarband)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `${currentWarband.name.replace(/\s+/g, '_')}.json`; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = WarbandUtils.generateExportFilename(currentWarband.name); a.click();
 };
 document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => { currentWarband = JSON.parse(event.target.result); renderWarband(); saveToCache(); };
+    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); renderWarband(); saveToCache(); };
     reader.readAsText(file);
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
