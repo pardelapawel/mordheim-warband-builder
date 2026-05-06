@@ -9,6 +9,7 @@ const { DEPLOY_FILES, DEPLOY_DIRS, preparePages } = require('../scripts/prepareP
 
 const rootDir = path.join(__dirname, '..');
 const outDir = path.join(__dirname, 'artifacts', 'prepare-pages-output');
+const prPreviewWorkflowPath = path.join(rootDir, '.github', 'workflows', 'pr-preview.yml');
 
 function removeOutputDir() {
     fs.rmSync(outDir, { recursive: true, force: true });
@@ -41,8 +42,19 @@ test('preparePages copies deploy assets and excludes repo-only folders', () => {
     assert.equal(fs.existsSync(path.join(outDir, '.github')), false);
 });
 
-test('preparePages exposes stable preview URL helper input format', () => {
-    const prNumber = 18;
-    const previewPath = `pr-${prNumber}`;
-    assert.equal(previewPath, 'pr-18');
+test('pr preview workflow publishes to a PR-specific gh-pages path', async () => {
+    const workflow = await fs.promises.readFile(prPreviewWorkflowPath, 'utf8');
+
+    assert.match(workflow, /PREVIEW_PATH: pr-\$\{\{ github\.event\.pull_request\.number \}\}/);
+    assert.match(workflow, /PREVIEW_URL: .*\/pr-\$\{\{ github\.event\.pull_request\.number \}\}\//);
+    assert.match(workflow, /mkdir -p "gh-pages\/\$\{PREVIEW_PATH\}"/);
+    assert.match(workflow, /cp -R dist-pages\/\. "gh-pages\/\$\{PREVIEW_PATH\}\/"/);
+});
+
+test('pr preview workflow checks out an immutable PR SHA and serializes gh-pages writes', async () => {
+    const workflow = await fs.promises.readFile(prPreviewWorkflowPath, 'utf8');
+
+    assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+    assert.match(workflow, /concurrency:\r?\n\s+group: gh-pages/);
+    assert.match(workflow, /cancel-in-progress: false/);
 });
