@@ -210,28 +210,35 @@ function initMobileUI() {
 
 function initScrollHeader() {
     const header = document.querySelector('.app-header');
-    if (!header) return;
+    const summaryBar = document.querySelector('.sticky-summary-bar');
+    if (!header || !summaryBar) return;
 
-    const COLLAPSE_THRESHOLD = 120;
-    const EXPAND_THRESHOLD = 48;
-    let isScrolled = false;
+    const { getHeaderLayoutState, getSummaryBarPinnedState } = globalThis.HeaderScroll || {};
+    if (typeof getHeaderLayoutState !== 'function' || typeof getSummaryBarPinnedState !== 'function') {
+        throw new Error('HeaderScroll helpers are unavailable.');
+    }
+
     let ticking = false;
 
     const syncHeaderState = () => {
         ticking = false;
-        if (window.innerWidth <= 768) {
-            isScrolled = false;
-            header.classList.remove('scrolled');
+        const layoutState = getHeaderLayoutState({
+            viewportWidth: window.innerWidth,
+            isScrolled: false,
+            mobileBreakpoint: 768
+        });
+
+        header.classList.remove('scrolled');
+        summaryBar.hidden = !layoutState.useStickySummaryBar;
+        if (summaryBar.hidden) {
+            summaryBar.classList.remove('is-pinned');
             return;
         }
 
-        const nextScrolled = isScrolled
-            ? window.scrollY > EXPAND_THRESHOLD
-            : window.scrollY > COLLAPSE_THRESHOLD;
-
-        if (nextScrolled === isScrolled) return;
-        isScrolled = nextScrolled;
-        header.classList.toggle('scrolled', isScrolled);
+        const isPinned = getSummaryBarPinnedState({
+            summaryBarTop: summaryBar.getBoundingClientRect().top
+        });
+        summaryBar.classList.toggle('is-pinned', isPinned);
     };
 
     const requestSync = () => {
