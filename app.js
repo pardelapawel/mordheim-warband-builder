@@ -936,15 +936,15 @@ document.getElementById('warband-name').oninput = () => {
     if (compactName) compactName.textContent = document.getElementById('warband-name').value;
 };
 document.getElementById('export-json-btn').onclick = () => {
-    const blob = new Blob([JSON.stringify(currentWarband, null, 2)], { type: 'application/json' });
+    const blob = new Blob([WarbandUtils.serializeWarband(currentWarband)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `${currentWarband.name.replace(/\s+/g, '_')}.json`; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = WarbandUtils.generateExportFilename(currentWarband.name); a.click();
 };
 document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => { currentWarband = JSON.parse(event.target.result); renderWarband(); saveToCache(); };
+    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); renderWarband(); saveToCache(); };
     reader.readAsText(file);
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
