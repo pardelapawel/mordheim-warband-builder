@@ -408,6 +408,11 @@ function createFighterCard(data, index) {
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.card-wrapper');
     const cardEl = clone.querySelector('.fighter-card');
+    const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
+
+    if (typeof buildPrintSectionSummaries !== 'function') {
+        throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
+    }
 
     // Fold / expand logic
     const foldBtn = wrapper.querySelector('.fold-btn');
@@ -681,6 +686,13 @@ function createFighterCard(data, index) {
         const list = skillsSection.querySelector('.item-list');
         skillsSection.classList.toggle('section-empty', !list || list.children.length === 0);
     }
+
+    const printSummaries = buildPrintSectionSummaries(data, masterData.equipment);
+    cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
+    cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
+    cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
+    cardEl.querySelector('.items-print-summary').textContent = printSummaries.items;
+    cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
 
     // Add Logic and dynamic datalists
     const eqInput = cardEl.querySelector('.equipment-input');

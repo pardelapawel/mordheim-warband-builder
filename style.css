@@ -726,6 +726,11 @@ input[type=number] {
     width: 100%;
 }
 
+.print-summary {
+    display: none;
+    width: 100%;
+}
+
 .item-name-edit {
     border: none;
     background: transparent;
@@ -971,8 +976,9 @@ input[type=number] {
     .fighter-card {
         width: 100% !important;
         max-width: 88mm !important;
-        height: auto !important;
+        height: 99mm !important;
         min-height: 99mm !important;
+        max-height: 99mm !important;
         box-shadow: none !important;
         border: 1px solid black !important;
         border-radius: 5mm !important;
@@ -980,6 +986,7 @@ input[type=number] {
         display: flex !important;
         flex-direction: column !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
     .fighter-card.folded .stats-table {
@@ -1004,14 +1011,72 @@ input[type=number] {
         border-bottom: none !important;
     }
 
+    .fighter-name {
+        font-size: 1rem !important;
+    }
+
+    .stats-table {
+        margin-bottom: 0.6rem !important;
+    }
+
+    .stat-col label {
+        font-size: 0.55rem !important;
+    }
+
+    .stat-col input {
+        font-size: 0.85rem !important;
+    }
+
+    .card-section {
+        margin-bottom: 0.3rem !important;
+        flex-grow: 0 !important;
+    }
+
+    .section-layout {
+        display: block !important;
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+        min-height: auto !important;
+        margin-bottom: 0.15rem !important;
+    }
+
+    .section-layout::before {
+        display: none !important;
+    }
+
+    .section-icon {
+        display: none !important;
+    }
+
+    .section-empty {
+        display: block !important;
+    }
+
+    .section-empty .section-layout::before {
+        display: block !important;
+    }
+
+    .item-row {
+        display: none !important;
+    }
+
+    .item-list {
+        display: none !important;
+    }
+
+    .print-summary {
+        display: block !important;
+        font-size: 0.64rem !important;
+        line-height: 1.2 !important;
+        color: black !important;
+        padding: 0.05rem 0 !important;
+        word-break: break-word;
+        text-align: left !important;
+    }
+
     @page {
         size: A4;
         margin: 10mm;
-    }
-
-    /* Hide empty sections in print */
-    .section-empty {
-        display: none !important;
     }
 
     .card-wrapper {
