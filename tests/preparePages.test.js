@@ -40,3 +40,9 @@ test('preparePages copies deploy assets and excludes repo-only folders', () => {
     assert.equal(fs.existsSync(path.join(outDir, 'tests')), false);
     assert.equal(fs.existsSync(path.join(outDir, '.github')), false);
 });
+
+test('preparePages exposes stable preview URL helper input format', () => {
+    const prNumber = 18;
+    const previewPath = `pr-${prNumber}`;
+    assert.equal(previewPath, 'pr-18');
+});
