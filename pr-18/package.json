@@ -1,8 +1,0 @@
-{
-  "name": "mordheim-warband-builder",
-  "version": "1.0.0",
-  "description": "Mordheim Warband Builder",
-  "scripts": {
-    "test": "node --test \"./tests/*.test.js\""
-  }
-}
