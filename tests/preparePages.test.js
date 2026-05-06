@@ -18,6 +18,11 @@ after(() => {
     removeOutputDir();
 });
 
+test('prepare:pages script is defined in package.json', async () => {
+    const packageJson = JSON.parse(await fs.promises.readFile(path.join(__dirname, '..', 'package.json'), 'utf8'));
+    assert.equal(packageJson.scripts['prepare:pages'], 'node ./scripts/preparePages.js');
+});
+
 test('preparePages copies deploy assets and excludes repo-only folders', () => {
     removeOutputDir();
 
