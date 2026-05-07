@@ -9,6 +9,7 @@ const { DEPLOY_FILES, DEPLOY_DIRS, preparePages } = require('../scripts/prepareP
 
 const rootDir = path.join(__dirname, '..');
 const outDir = path.join(__dirname, 'artifacts', 'prepare-pages-output');
+const deployWorkflowPath = path.join(rootDir, '.github', 'workflows', 'deploy.yml');
 const prPreviewWorkflowPath = path.join(rootDir, '.github', 'workflows', 'pr-preview.yml');
 
 function removeOutputDir() {
@@ -57,4 +58,29 @@ test('pr preview workflow checks out an immutable PR SHA and serializes gh-pages
     assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
     assert.match(workflow, /concurrency:\r?\n\s+group: gh-pages/);
     assert.match(workflow, /cancel-in-progress: false/);
+});
+
+test('deploy workflow publishes dist-pages into gh-pages root', async () => {
+    const workflow = await fs.promises.readFile(deployWorkflowPath, 'utf8');
+
+    assert.match(workflow, /ref:\s*gh-pages/);
+    assert.match(workflow, /path:\s*gh-pages/);
+    assert.match(workflow, /Copy-Item dist-pages\\\* gh-pages\\/);
+    assert.doesNotMatch(workflow, /actions\/deploy-pages@v4/);
+});
+
+test('deploy workflow preserves existing PR preview directories', async () => {
+    const workflow = await fs.promises.readFile(deployWorkflowPath, 'utf8');
+
+    assert.match(workflow, /Get-ChildItem gh-pages -Force/);
+    assert.match(workflow, /-notlike 'pr-\*'/);
+});
+
+test('preview workflow remains branch-based and updates one PR directory', async () => {
+    const workflow = await fs.promises.readFile(prPreviewWorkflowPath, 'utf8');
+
+    assert.match(workflow, /ref:\s*gh-pages/);
+    assert.match(workflow, /mkdir -p "gh-pages\/\$\{PREVIEW_PATH\}"/);
+    assert.match(workflow, /git -C gh-pages add -A "\$\{PREVIEW_PATH\}"/);
+    assert.match(workflow, /const marker = '<!-- pr-preview-link -->';/);
 });
