@@ -4,6 +4,6 @@
   "description": "Mordheim Warband Builder",
   "scripts": {
     "prepare:pages": "node ./scripts/preparePages.js",
-    "test": "node --test \"./tests/*.test.js\""
+    "test": "node --test ./tests/*.test.js"
   }
 }
