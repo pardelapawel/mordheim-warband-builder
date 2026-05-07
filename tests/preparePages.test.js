@@ -84,3 +84,11 @@ test('preview workflow remains branch-based and updates one PR directory', async
     assert.match(workflow, /git -C gh-pages add -A "\$\{PREVIEW_PATH\}"/);
     assert.match(workflow, /const marker = '<!-- pr-preview-link -->';/);
 });
+
+test('preparePages includes legendUtils runtime asset', () => {
+    removeOutputDir();
+
+    preparePages({ rootDir, outDir });
+
+    assert.equal(fs.existsSync(path.join(outDir, 'legendUtils.js')), true);
+});

@@ -8,6 +8,7 @@ const DEPLOY_FILES = [
     'style.css',
     'app.js',
     'headerScroll.js',
+    'legendUtils.js',
     'warbandUtils.js',
     'nameGenerator.js',
     'printUtils.js',
