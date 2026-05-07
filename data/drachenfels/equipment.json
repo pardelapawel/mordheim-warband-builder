@@ -7,12 +7,32 @@
       "special": "1 gratis dla każdego przy zakupie"
     },
     {
-      "name": "Młot, pałka lub maczuga",
+      "name": "Młot",
       "cost": 3,
       "description": "Siła: Użytkownika ; Ogłuszanie ; Krytyki: obuchowe"
     },
     {
-      "name": "Topór, kilof lub nadziak",
+      "name": "Pałka",
+      "cost": 3,
+      "description": "Siła: Użytkownika ; Ogłuszanie ; Krytyki: obuchowe"
+    },
+    {
+      "name": "Maczuga",
+      "cost": 3,
+      "description": "Siła: Użytkownika ; Ogłuszanie ; Krytyki: obuchowe"
+    },
+    {
+      "name": "Topór",
+      "cost": 5,
+      "description": "Siła: Użytkownika ; Pancerz przeciwnika: -1 ; Krytyki: sieczne"
+    },
+    {
+      "name": "Kilof",
+      "cost": 5,
+      "description": "Siła: Użytkownika ; Pancerz przeciwnika: -1 ; Krytyki: sieczne"
+    },
+    {
+      "name": "Nadziak",
       "cost": 5,
       "description": "Siła: Użytkownika ; Pancerz przeciwnika: -1 ; Krytyki: sieczne"
     },
