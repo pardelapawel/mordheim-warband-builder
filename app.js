@@ -308,6 +308,20 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
+function updateCardPrintSummaries(cardEl, fighter) {
+    const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
+    if (typeof buildPrintSectionSummaries !== 'function') {
+        throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
+    }
+
+    const printSummaries = buildPrintSectionSummaries(fighter, masterData.equipment);
+    cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
+    cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
+    cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
+    cardEl.querySelector('.items-print-summary').textContent = printSummaries.items;
+    cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
+}
+
 function updateLegend() {
     const sidebar = document.getElementById('legend-sidebar');
     if (!sidebar) return;
@@ -365,6 +379,8 @@ function updateLegend() {
         input.oninput = () => {
             const termKey = normalizeLegendTerm(input.dataset.termKey);
             glossaryState.descriptions[termKey] = input.value;
+            const printEl = input.parentElement?.querySelector('.legend-item-desc');
+            if (printEl) printEl.textContent = input.value;
             saveToCache();
         };
     });
@@ -405,10 +421,15 @@ function createFighterCard(data, index) {
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.card-wrapper');
     const cardEl = clone.querySelector('.fighter-card');
-    const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
+    const { getEquipmentCategory } = globalThis.PrintUtils || {};
+    const { createEquipmentEntry, renameEquipmentEntry } = globalThis.LegendUtils || {};
 
-    if (typeof buildPrintSectionSummaries !== 'function') {
-        throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
+    if (typeof getEquipmentCategory !== 'function') {
+        throw new Error('PrintUtils.getEquipmentCategory is unavailable.');
+    }
+
+    if (typeof createEquipmentEntry !== 'function' || typeof renameEquipmentEntry !== 'function') {
+        throw new Error('LegendUtils equipment helpers are unavailable.');
     }
 
     // Fold / expand logic
@@ -538,8 +559,7 @@ function createFighterCard(data, index) {
 
     // Helper to get which list element an equipment item belongs to
     const getEqListEl = (item) => {
-        const cat = item.originCategory ||
-            (masterData.equipment.find(e => e.name.toLowerCase() === item.name.toLowerCase()) || {}).originCategory || '';
+        const cat = getEquipmentCategory(item, masterData.equipment);
         if (cat === 'melee_weapons') return cardEl.querySelector('.melee-list');
         if (cat === 'ranged_weapons') return cardEl.querySelector('.ranged-list');
         if (cat === 'armor') return cardEl.querySelector('.armor-list');
@@ -564,7 +584,13 @@ function createFighterCard(data, index) {
         const nameEdit = row.querySelector('.item-name');
         const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
         nameEdit.oninput = () => {
-            currentWarband.fighters[index].equipment[itemIdx].name = nameEdit.value;
+            currentWarband.fighters[index].equipment[itemIdx] = renameEquipmentEntry(
+                currentWarband.fighters[index].equipment[itemIdx],
+                nameEdit.value,
+                masterData.equipment
+            );
+            updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+            updateLegend();
             saveToCache();
             resize();
         };
@@ -617,6 +643,8 @@ function createFighterCard(data, index) {
         const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
         nameEdit.oninput = () => {
             currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+            updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+            updateLegend();
             saveToCache();
             resize();
         };
@@ -684,12 +712,7 @@ function createFighterCard(data, index) {
         skillsSection.classList.toggle('section-empty', !list || list.children.length === 0);
     }
 
-    const printSummaries = buildPrintSectionSummaries(data, masterData.equipment);
-    cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
-    cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
-    cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
-    cardEl.querySelector('.items-print-summary').textContent = printSummaries.items;
-    cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
+    updateCardPrintSummaries(cardEl, data);
 
     // Add Logic and dynamic datalists
     const eqInput = cardEl.querySelector('.equipment-input');
@@ -702,9 +725,7 @@ function createFighterCard(data, index) {
         lastFocusedInput = { cardIndex: index, type: type };
 
         if (type === 'equipment') {
-            const found = masterData.equipment.find(i => i.name.toLowerCase() === val.toLowerCase());
-            const cost = found ? found.cost : 0;
-            currentWarband.fighters[index].equipment.push({ name: val, cost: cost });
+            currentWarband.fighters[index].equipment.push(createEquipmentEntry(val, masterData.equipment));
         } else {
             currentWarband.fighters[index].skills.push({ name: val });
         }

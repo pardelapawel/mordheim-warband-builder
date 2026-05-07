@@ -11,6 +11,32 @@
         return String(term || '').trim().toLowerCase();
     }
 
+    function getEquipmentCatalogEntry(name, equipmentCatalog) {
+        const termKey = normalizeLegendTerm(name);
+        return (equipmentCatalog || []).find(item => normalizeLegendTerm(item.name) === termKey);
+    }
+
+    function getEquipmentOriginCategory(item, equipmentCatalog) {
+        return item?.originCategory || getEquipmentCatalogEntry(item?.name, equipmentCatalog)?.originCategory || '';
+    }
+
+    function createEquipmentEntry(name, equipmentCatalog) {
+        const found = getEquipmentCatalogEntry(name, equipmentCatalog);
+        return {
+            name,
+            cost: found ? found.cost : 0,
+            originCategory: found?.originCategory || ''
+        };
+    }
+
+    function renameEquipmentEntry(item, nextName, equipmentCatalog) {
+        return {
+            ...item,
+            name: nextName,
+            originCategory: getEquipmentOriginCategory(item, equipmentCatalog)
+        };
+    }
+
     function extractUsedTerms(fighters) {
         const termsByKey = new Map();
 
@@ -67,9 +93,9 @@
             if (!found) {
                 found = equipmentCatalog.find(item => normalizeLegendTerm(item.name) === termKey);
                 if (found) {
-                    if (found.originCategory === 'melee_weapons') categoryName = 'Melee Weapons';
-                    else if (found.originCategory === 'ranged_weapons') categoryName = 'Ranged Weapons';
-                    else if (found.originCategory === 'armor') categoryName = 'Armor';
+                    if (getEquipmentOriginCategory(found, equipmentCatalog) === 'melee_weapons') categoryName = 'Melee Weapons';
+                    else if (getEquipmentOriginCategory(found, equipmentCatalog) === 'ranged_weapons') categoryName = 'Ranged Weapons';
+                    else if (getEquipmentOriginCategory(found, equipmentCatalog) === 'armor') categoryName = 'Armor';
                     else categoryName = 'Items';
                 }
             }
@@ -108,5 +134,11 @@
         return categories;
     }
 
-    return { normalizeLegendTerm, extractUsedTerms, buildLegendGroups };
+    return {
+        normalizeLegendTerm,
+        extractUsedTerms,
+        buildLegendGroups,
+        createEquipmentEntry,
+        renameEquipmentEntry
+    };
 }));
