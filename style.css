@@ -315,6 +315,13 @@ h4 {
     font-size: 0.85rem;
 }
 
+.legend-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .legend-item-name {
     font-weight: 700;
     color: var(--text-primary);
@@ -322,11 +329,49 @@ h4 {
     margin-bottom: 2px;
 }
 
-.legend-item-desc {
+.legend-item-desc,
+.legend-item-desc-edit {
     color: var(--text-secondary);
     display: block;
-    font-style: italic;
     line-height: 1.3;
+}
+
+.legend-item-desc {
+    font-style: italic;
+}
+
+.legend-item-desc-edit {
+    margin-top: 0.2rem;
+    width: 100%;
+    min-height: 2.8rem;
+    resize: vertical;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.4rem;
+    background: var(--card-bg);
+}
+
+.legend-item-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.legend-item-delete:hover {
+    color: var(--accent-color);
+}
+
+.legend-empty {
+    color: var(--text-secondary);
+    text-align: center;
+    font-style: italic;
+}
+
+.print-only {
+    display: none;
 }
 
 /* Custom scrollbar for legend */
@@ -971,6 +1016,10 @@ input[type=number] {
 
     .legend-item-desc {
         color: black;
+    }
+
+    .print-only {
+        display: block !important;
     }
 
     .fighter-card {

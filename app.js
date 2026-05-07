@@ -15,7 +15,8 @@ let currentWarband = {
     name: "My New Warband",
     ruleSetId: "",
     warbandTypeId: "",
-    fighters: []
+    fighters: [],
+    glossary: { descriptions: {}, deletedTerms: [] }
 };
 
 let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills' }
@@ -285,82 +286,51 @@ function renderWarband() {
     window.scrollTo(0, scrollPos);
 }
 
+function ensureGlossaryState() {
+    if (!currentWarband.glossary || typeof currentWarband.glossary !== 'object') {
+        currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
+    }
+    if (!currentWarband.glossary.descriptions || typeof currentWarband.glossary.descriptions !== 'object') {
+        currentWarband.glossary.descriptions = {};
+    }
+    if (!Array.isArray(currentWarband.glossary.deletedTerms)) {
+        currentWarband.glossary.deletedTerms = [];
+    }
+    return currentWarband.glossary;
+}
+
+function escapeHtml(text) {
+    return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function updateLegend() {
     const sidebar = document.getElementById('legend-sidebar');
     if (!sidebar) return;
+    const { buildLegendGroups, normalizeLegendTerm } = globalThis.LegendUtils || {};
+    if (typeof buildLegendGroups !== 'function' || typeof normalizeLegendTerm !== 'function') {
+        throw new Error('LegendUtils helpers are unavailable.');
+    }
 
-    const usedTerms = new Set();
-    const equipment = [];
-    const skills = [];
-    const spells = [];
-
-    // Collect terms
-    currentWarband.fighters.forEach(f => {
-        f.equipment.forEach(e => usedTerms.add(e.name.trim()));
-        f.skills.forEach(s => {
-            // Extract spell name if format is "Skill Name (Spell Name)"
-            const spellMatch = s.name.match(/\((.*)\)/);
-            if (spellMatch) {
-                usedTerms.add(spellMatch[1].trim());
-            }
-            usedTerms.add(s.name.trim());
-        });
-    });
-
-    const categories = {
-        'Melee Weapons': { icon: 'swords', items: [], order: 1 },
-        'Ranged Weapons': { icon: 'target', items: [], order: 2 },
-        'Armor': { icon: 'shield', items: [], order: 3 },
-        'Items': { icon: 'inventory_2', items: [], order: 4 },
-        'Skills': { icon: 'star_shine', items: [], order: 5 },
-        'Spells': { icon: 'auto_fix_high', items: [], order: 6 }
-    };
-
-    const addedNames = new Set();
-
-    usedTerms.forEach(term => {
-        if (!term) return;
-        let found = null;
-        let category = null;
-
-        const termLower = term.toLowerCase();
-
-        // 1. Search Spells
-        found = masterData.spells.find(s => s.name.toLowerCase() === termLower);
-        if (found) {
-            category = 'Spells';
-        } else {
-            // 2. Search Equipment
-            const eq = masterData.equipment.find(e => e.name.toLowerCase() === termLower);
-            if (eq) {
-                found = eq;
-                if (eq.originCategory === 'melee_weapons') category = 'Melee Weapons';
-                else if (eq.originCategory === 'ranged_weapons') category = 'Ranged Weapons';
-                else if (eq.originCategory === 'armor') category = 'Armor';
-                else category = 'Items';
-            } else {
-                // 3. Search Skills
-                found = masterData.skills.find(s => s.name.toLowerCase() === termLower);
-                if (found) category = 'Skills';
-            }
-        }
-
-        if (found && category && !addedNames.has(found.name)) {
-            categories[category].items.push(found);
-            addedNames.add(found.name);
-        }
+    const glossaryState = ensureGlossaryState();
+    const categories = buildLegendGroups({
+        fighters: currentWarband.fighters,
+        masterData,
+        glossaryState
     });
 
     // Render HTML
     let html = '<h2 class="legend-title">Warband Glossary</h2>';
-    let hasContent = false;
+    let hasContent = categories.some(category => category.items.length > 0);
 
-    // Sort categories by order
-    const sortedCats = Object.entries(categories).sort((a, b) => a[1].order - b[1].order);
-
-    for (const [catName, catData] of sortedCats) {
+    for (const category of categories) {
+        const catName = category.name;
+        const catData = category;
         if (catData.items.length > 0) {
-            hasContent = true;
             html += `
                 <div class="legend-group">
                     <h3 class="legend-group-title">
@@ -368,10 +338,14 @@ function updateLegend() {
                         ${catName}
                     </h3>
                     <div class="legend-items-list">
-                        ${catData.items.sort((a, b) => a.name.localeCompare(b.name)).map(item => `
+                        ${catData.items.map(item => `
                             <div class="legend-item">
-                                <span class="legend-item-name">${item.name}${item.difficulty ? ' (' + item.difficulty + ')' : ''}</span>
-                                <span class="legend-item-desc">${item.description || item.special || ''}</span>
+                                <div class="legend-item-header">
+                                    <span class="legend-item-name">${escapeHtml(item.name)}${item.difficulty ? ' (' + escapeHtml(item.difficulty) + ')' : ''}</span>
+                                    <button class="legend-item-delete no-print" type="button" data-term-key="${escapeHtml(item.key)}" title="Delete glossary entry">&times;</button>
+                                </div>
+                                <textarea class="legend-item-desc-edit no-print" rows="2" data-term-key="${escapeHtml(item.key)}" placeholder="Description...">${escapeHtml(item.description)}</textarea>
+                                <span class="legend-item-desc print-only">${escapeHtml(item.description)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -380,9 +354,34 @@ function updateLegend() {
         }
     }
 
+    if (!hasContent) {
+        html += '<p class="legend-empty">No glossary entries yet.</p>';
+    }
+
     sidebar.innerHTML = html;
-    if (hasContent) sidebar.classList.add('active');
-    else sidebar.classList.remove('active');
+    sidebar.classList.add('active');
+
+    sidebar.querySelectorAll('.legend-item-desc-edit').forEach(input => {
+        input.oninput = () => {
+            const termKey = normalizeLegendTerm(input.dataset.termKey);
+            glossaryState.descriptions[termKey] = input.value;
+            saveToCache();
+            const printEl = input.parentElement?.querySelector('.legend-item-desc');
+            if (printEl) printEl.textContent = input.value;
+        };
+    });
+
+    sidebar.querySelectorAll('.legend-item-delete').forEach(btn => {
+        btn.onclick = () => {
+            const termKey = normalizeLegendTerm(btn.dataset.termKey);
+            if (!glossaryState.deletedTerms.some(key => normalizeLegendTerm(key) === termKey)) {
+                glossaryState.deletedTerms.push(termKey);
+            }
+            delete glossaryState.descriptions[termKey];
+            renderWarband();
+            saveToCache();
+        };
+    });
 }
 
 function restoreFocus() {
@@ -956,7 +955,7 @@ document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); renderWarband(); saveToCache(); };
+    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); ensureGlossaryState(); renderWarband(); saveToCache(); };
     reader.readAsText(file);
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
@@ -964,6 +963,7 @@ document.getElementById('clear-all-btn').onclick = () => {
     if (confirm("Clear this warband?")) {
         currentWarband.name = "New Warband";
         currentWarband.fighters = [];
+        currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
         renderWarband();
         saveToCache();
     }
