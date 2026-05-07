@@ -389,6 +389,33 @@ h4 {
     transform: scale(1.15);
 }
 
+.copy-btn {
+    position: absolute;
+    top: 24px;
+    right: -12px;
+    width: 32px;
+    height: 32px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.copy-btn:hover {
+    transform: scale(1.15);
+    background: var(--accent-color);
+    color: white;
+}
+
 .fold-btn {
     position: absolute;
     top: -12px;
