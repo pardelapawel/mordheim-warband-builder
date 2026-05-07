@@ -75,3 +75,12 @@ test('deploy workflow preserves existing PR preview directories', async () => {
     assert.match(workflow, /Get-ChildItem gh-pages -Force/);
     assert.match(workflow, /-notlike 'pr-\*'/);
 });
+
+test('preview workflow remains branch-based and updates one PR directory', async () => {
+    const workflow = await fs.promises.readFile(prPreviewWorkflowPath, 'utf8');
+
+    assert.match(workflow, /ref:\s*gh-pages/);
+    assert.match(workflow, /mkdir -p "gh-pages\/\$\{PREVIEW_PATH\}"/);
+    assert.match(workflow, /git -C gh-pages add -A "\$\{PREVIEW_PATH\}"/);
+    assert.match(workflow, /const marker = '<!-- pr-preview-link -->';/);
+});
