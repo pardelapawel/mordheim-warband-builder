@@ -1295,3 +1295,26 @@ input[type=number] {
 .save-manager-toggle {
     display: none;
 }
+
+/* Footer */
+.app-footer {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.app-footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}
+
+.footer-divider {
+    margin: 0 0.5rem;
+}
