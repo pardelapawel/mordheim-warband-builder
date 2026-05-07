@@ -2,12 +2,12 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { buildLegendGroups } = require('../legendUtils.js');
+const { buildLegendGroups, createEquipmentEntry, renameEquipmentEntry } = require('../legendUtils.js');
 
 const masterData = {
     equipment: [
-        { name: 'Sword', originCategory: 'melee_weapons', description: 'Sharp blade' },
-        { name: 'Helmet', originCategory: 'armor', description: 'Head protection' }
+        { name: 'Sword', originCategory: 'melee_weapons', description: 'Sharp blade', cost: 10 },
+        { name: 'Helmet', originCategory: 'armor', description: 'Head protection', cost: 5 }
     ],
     skills: [
         { name: 'Step Aside', description: 'Improve dodge' }
@@ -58,4 +58,19 @@ test('buildLegendGroups captures spells extracted from skill suffixes', () => {
     assert.deepEqual(spells, [
         { key: 'fireball', name: 'Fireball', difficulty: '8+', description: 'Deals fire damage' }
     ]);
+});
+
+test('createEquipmentEntry preserves catalog category for known equipment', () => {
+    assert.deepEqual(createEquipmentEntry('Sword', masterData.equipment), {
+        name: 'Sword',
+        cost: 10,
+        originCategory: 'melee_weapons'
+    });
+});
+
+test('renameEquipmentEntry keeps inferred category when renaming known equipment', () => {
+    assert.deepEqual(
+        renameEquipmentEntry({ name: 'Sword', cost: 10 }, 'Jagged Sword', masterData.equipment),
+        { name: 'Jagged Sword', cost: 10, originCategory: 'melee_weapons' }
+    );
 });
