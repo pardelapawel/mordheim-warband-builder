@@ -6,12 +6,10 @@ on:
       - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: gh-pages
   cancel-in-progress: false
 
 jobs:
@@ -32,11 +30,8 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Checkout main branch
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -44,17 +39,43 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Prepare Pages artifact
+      - name: Prepare Pages output
         run: npm run prepare:pages
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
         with:
-          path: dist-pages
+          ref: gh-pages
+          path: gh-pages
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Replace root site and preserve previews
+        shell: pwsh
+        run: |
+          Get-ChildItem gh-pages -Force |
+            Where-Object {
+              $_.Name -ne '.git' -and
+              $_.Name -notlike 'pr-*'
+            } |
+            Remove-Item -Recurse -Force
+
+          Copy-Item dist-pages\* gh-pages\ -Recurse -Force
+
+      - name: Detect gh-pages changes
+        id: changes
+        shell: bash
+        run: |
+          if [[ -n "$(git -C gh-pages status --short)" ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push root site
+        if: steps.changes.outputs.has_changes == 'true'
+        shell: bash
+        run: |
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C gh-pages add -A
+          git -C gh-pages commit -m "Deploy main site"
+          git -C gh-pages push origin gh-pages
