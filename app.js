@@ -313,7 +313,7 @@ function updateLegend() {
     if (!sidebar) return;
     const { buildLegendGroups, normalizeLegendTerm } = globalThis.LegendUtils || {};
     if (typeof buildLegendGroups !== 'function' || typeof normalizeLegendTerm !== 'function') {
-        throw new Error('LegendUtils helpers are unavailable.');
+        throw new Error('Legend glossary helpers are missing. Please refresh the page, and if the issue persists, contact support.');
     }
 
     const glossaryState = ensureGlossaryState();
@@ -334,15 +334,15 @@ function updateLegend() {
             html += `
                 <div class="legend-group">
                     <h3 class="legend-group-title">
-                        <span class="material-symbols-outlined">${catData.icon}</span>
-                        ${catName}
+                        <span class="material-symbols-outlined">${escapeHtml(catData.icon)}</span>
+                        ${escapeHtml(catName)}
                     </h3>
                     <div class="legend-items-list">
                         ${catData.items.map(item => `
                             <div class="legend-item">
                                 <div class="legend-item-header">
                                     <span class="legend-item-name">${escapeHtml(item.name)}${item.difficulty ? ' (' + escapeHtml(item.difficulty) + ')' : ''}</span>
-                                    <button class="legend-item-delete no-print" type="button" data-term-key="${escapeHtml(item.key)}" title="Delete glossary entry">&times;</button>
+                                    <button class="legend-item-delete no-print" type="button" data-term-key="${escapeHtml(item.key)}" title="Delete glossary entry" aria-label="Delete ${escapeHtml(item.name)} from glossary">&times;</button>
                                 </div>
                                 <textarea class="legend-item-desc-edit no-print" rows="2" data-term-key="${escapeHtml(item.key)}" placeholder="Description...">${escapeHtml(item.description)}</textarea>
                                 <span class="legend-item-desc print-only">${escapeHtml(item.description)}</span>
@@ -366,15 +366,13 @@ function updateLegend() {
             const termKey = normalizeLegendTerm(input.dataset.termKey);
             glossaryState.descriptions[termKey] = input.value;
             saveToCache();
-            const printEl = input.parentElement?.querySelector('.legend-item-desc');
-            if (printEl) printEl.textContent = input.value;
         };
     });
 
     sidebar.querySelectorAll('.legend-item-delete').forEach(btn => {
         btn.onclick = () => {
             const termKey = normalizeLegendTerm(btn.dataset.termKey);
-            if (!glossaryState.deletedTerms.some(key => normalizeLegendTerm(key) === termKey)) {
+            if (!glossaryState.deletedTerms.includes(termKey)) {
                 glossaryState.deletedTerms.push(termKey);
             }
             delete glossaryState.descriptions[termKey];

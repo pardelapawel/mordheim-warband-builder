@@ -26,7 +26,7 @@
                 const skillKey = normalizeLegendTerm(skillName);
                 if (skillKey && !termsByKey.has(skillKey)) termsByKey.set(skillKey, skillName);
 
-                const spellMatch = skillName.match(/\((.*)\)/);
+                const spellMatch = skillName.match(/\((.*?)\)/);
                 if (spellMatch) {
                     const spellName = String(spellMatch[1] || '').trim();
                     const spellKey = normalizeLegendTerm(spellName);
