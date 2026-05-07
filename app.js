@@ -782,6 +782,11 @@ function createFighterCard(data, index) {
         saveToCache();
     };
 
+    // Copy Card
+    wrapper.querySelector('.copy-btn').onclick = () => {
+        copyFighter(index);
+    };
+
     // Cost
     const totalCardCost = calculateFighterCost(data);
     cardEl.querySelector('.fighter-total-cost').textContent = totalCardCost;
@@ -880,6 +885,14 @@ function addFighter() {
     newFighter.customName = NameGenerator.generate(newFighter);
 
     currentWarband.fighters.push(newFighter);
+    renderWarband();
+    saveToCache();
+}
+
+function copyFighter(index) {
+    const original = currentWarband.fighters[index];
+    const copy = structuredClone(original);
+    currentWarband.fighters.splice(index + 1, 0, copy);
     renderWarband();
     saveToCache();
 }
