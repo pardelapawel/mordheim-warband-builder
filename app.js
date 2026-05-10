@@ -15,7 +15,8 @@ let currentWarband = {
     name: "My New Warband",
     ruleSetId: "",
     warbandTypeId: "",
-    fighters: []
+    fighters: [],
+    glossary: { descriptions: {}, deletedTerms: [] }
 };
 
 let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills' }
@@ -285,93 +286,80 @@ function renderWarband() {
     window.scrollTo(0, scrollPos);
 }
 
+function ensureGlossaryState() {
+    if (!currentWarband.glossary || typeof currentWarband.glossary !== 'object') {
+        currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
+    }
+    if (!currentWarband.glossary.descriptions || typeof currentWarband.glossary.descriptions !== 'object') {
+        currentWarband.glossary.descriptions = {};
+    }
+    if (!Array.isArray(currentWarband.glossary.deletedTerms)) {
+        currentWarband.glossary.deletedTerms = [];
+    }
+    return currentWarband.glossary;
+}
+
+function escapeHtml(text) {
+    return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function updateCardPrintSummaries(cardEl, fighter) {
+    const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
+    if (typeof buildPrintSectionSummaries !== 'function') {
+        throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
+    }
+
+    const printSummaries = buildPrintSectionSummaries(fighter, masterData.equipment);
+    cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
+    cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
+    cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
+    cardEl.querySelector('.items-print-summary').textContent = printSummaries.items;
+    cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
+}
+
 function updateLegend() {
     const sidebar = document.getElementById('legend-sidebar');
     if (!sidebar) return;
+    const { buildLegendGroups, normalizeLegendTerm } = globalThis.LegendUtils || {};
+    if (typeof buildLegendGroups !== 'function' || typeof normalizeLegendTerm !== 'function') {
+        throw new Error('Legend glossary helpers are missing. Please refresh the page, and if the issue persists, contact support.');
+    }
 
-    const usedTerms = new Set();
-    const equipment = [];
-    const skills = [];
-    const spells = [];
-
-    // Collect terms
-    currentWarband.fighters.forEach(f => {
-        f.equipment.forEach(e => usedTerms.add(e.name.trim()));
-        f.skills.forEach(s => {
-            // Extract spell name if format is "Skill Name (Spell Name)"
-            const spellMatch = s.name.match(/\((.*)\)/);
-            if (spellMatch) {
-                usedTerms.add(spellMatch[1].trim());
-            }
-            usedTerms.add(s.name.trim());
-        });
-    });
-
-    const categories = {
-        'Melee Weapons': { icon: 'swords', items: [], order: 1 },
-        'Ranged Weapons': { icon: 'target', items: [], order: 2 },
-        'Armor': { icon: 'shield', items: [], order: 3 },
-        'Items': { icon: 'inventory_2', items: [], order: 4 },
-        'Skills': { icon: 'star_shine', items: [], order: 5 },
-        'Spells': { icon: 'auto_fix_high', items: [], order: 6 }
-    };
-
-    const addedNames = new Set();
-
-    usedTerms.forEach(term => {
-        if (!term) return;
-        let found = null;
-        let category = null;
-
-        const termLower = term.toLowerCase();
-
-        // 1. Search Spells
-        found = masterData.spells.find(s => s.name.toLowerCase() === termLower);
-        if (found) {
-            category = 'Spells';
-        } else {
-            // 2. Search Equipment
-            const eq = masterData.equipment.find(e => e.name.toLowerCase() === termLower);
-            if (eq) {
-                found = eq;
-                if (eq.originCategory === 'melee_weapons') category = 'Melee Weapons';
-                else if (eq.originCategory === 'ranged_weapons') category = 'Ranged Weapons';
-                else if (eq.originCategory === 'armor') category = 'Armor';
-                else category = 'Items';
-            } else {
-                // 3. Search Skills
-                found = masterData.skills.find(s => s.name.toLowerCase() === termLower);
-                if (found) category = 'Skills';
-            }
-        }
-
-        if (found && category && !addedNames.has(found.name)) {
-            categories[category].items.push(found);
-            addedNames.add(found.name);
-        }
+    const glossaryState = ensureGlossaryState();
+    const categories = buildLegendGroups({
+        fighters: currentWarband.fighters,
+        masterData,
+        glossaryState
     });
 
     // Render HTML
     let html = '<h2 class="legend-title">Warband Glossary</h2>';
-    let hasContent = false;
+    let hasContent = categories.some(category => category.items.length > 0);
 
-    // Sort categories by order
-    const sortedCats = Object.entries(categories).sort((a, b) => a[1].order - b[1].order);
-
-    for (const [catName, catData] of sortedCats) {
+    for (const category of categories) {
+        const catName = category.name;
+        const catData = category;
         if (catData.items.length > 0) {
-            hasContent = true;
             html += `
                 <div class="legend-group">
                     <h3 class="legend-group-title">
-                        <span class="material-symbols-outlined">${catData.icon}</span>
-                        ${catName}
+                        <span class="material-symbols-outlined">${escapeHtml(catData.icon)}</span>
+                        ${escapeHtml(catName)}
                     </h3>
                     <div class="legend-items-list">
-                        ${catData.items.sort((a, b) => a.name.localeCompare(b.name)).map(item => `
+                        ${catData.items.map(item => `
                             <div class="legend-item">
-                                <span class="legend-item-name">${item.name}${item.difficulty ? ' (' + item.difficulty + ')' : ''}</span>
-                                <span class="legend-item-desc">${item.description || item.special || ''}</span>
+                                <div class="legend-item-header">
+                                    <span class="legend-item-name">${escapeHtml(item.name)}${item.difficulty ? ' (' + escapeHtml(item.difficulty) + ')' : ''}</span>
+                                    <button class="legend-item-delete no-print" type="button" data-term-key="${escapeHtml(item.key)}" title="Delete glossary entry" aria-label="Delete ${escapeHtml(item.name)} from glossary">&times;</button>
+                                </div>
+                                <textarea class="legend-item-desc-edit no-print" rows="2" data-term-key="${escapeHtml(item.key)}" placeholder="Description...">${escapeHtml(item.description)}</textarea>
+                                <span class="legend-item-desc print-only">${escapeHtml(item.description)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -380,9 +368,34 @@ function updateLegend() {
         }
     }
 
+    if (!hasContent) {
+        html += '<p class="legend-empty">No glossary entries yet.</p>';
+    }
+
     sidebar.innerHTML = html;
-    if (hasContent) sidebar.classList.add('active');
-    else sidebar.classList.remove('active');
+    sidebar.classList.add('active');
+
+    sidebar.querySelectorAll('.legend-item-desc-edit').forEach(input => {
+        input.oninput = () => {
+            const termKey = normalizeLegendTerm(input.dataset.termKey);
+            glossaryState.descriptions[termKey] = input.value;
+            const printEl = input.parentElement?.querySelector('.legend-item-desc');
+            if (printEl) printEl.textContent = input.value;
+            saveToCache();
+        };
+    });
+
+    sidebar.querySelectorAll('.legend-item-delete').forEach(btn => {
+        btn.onclick = () => {
+            const termKey = normalizeLegendTerm(btn.dataset.termKey);
+            if (!glossaryState.deletedTerms.includes(termKey)) {
+                glossaryState.deletedTerms.push(termKey);
+            }
+            delete glossaryState.descriptions[termKey];
+            renderWarband();
+            saveToCache();
+        };
+    });
 }
 
 function restoreFocus() {
@@ -408,10 +421,15 @@ function createFighterCard(data, index) {
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.card-wrapper');
     const cardEl = clone.querySelector('.fighter-card');
-    const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
+    const { getEquipmentCategory } = globalThis.PrintUtils || {};
+    const { createEquipmentEntry, renameEquipmentEntry } = globalThis.LegendUtils || {};
 
-    if (typeof buildPrintSectionSummaries !== 'function') {
-        throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
+    if (typeof getEquipmentCategory !== 'function') {
+        throw new Error('PrintUtils.getEquipmentCategory is unavailable.');
+    }
+
+    if (typeof createEquipmentEntry !== 'function' || typeof renameEquipmentEntry !== 'function') {
+        throw new Error('LegendUtils equipment helpers are unavailable.');
     }
 
     // Fold / expand logic
@@ -541,8 +559,7 @@ function createFighterCard(data, index) {
 
     // Helper to get which list element an equipment item belongs to
     const getEqListEl = (item) => {
-        const cat = item.originCategory ||
-            (masterData.equipment.find(e => e.name.toLowerCase() === item.name.toLowerCase()) || {}).originCategory || '';
+        const cat = getEquipmentCategory(item, masterData.equipment);
         if (cat === 'melee_weapons') return cardEl.querySelector('.melee-list');
         if (cat === 'ranged_weapons') return cardEl.querySelector('.ranged-list');
         if (cat === 'armor') return cardEl.querySelector('.armor-list');
@@ -567,7 +584,13 @@ function createFighterCard(data, index) {
         const nameEdit = row.querySelector('.item-name');
         const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
         nameEdit.oninput = () => {
-            currentWarband.fighters[index].equipment[itemIdx].name = nameEdit.value;
+            currentWarband.fighters[index].equipment[itemIdx] = renameEquipmentEntry(
+                currentWarband.fighters[index].equipment[itemIdx],
+                nameEdit.value,
+                masterData.equipment
+            );
+            updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+            updateLegend();
             saveToCache();
             resize();
         };
@@ -620,6 +643,8 @@ function createFighterCard(data, index) {
         const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
         nameEdit.oninput = () => {
             currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+            updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+            updateLegend();
             saveToCache();
             resize();
         };
@@ -687,12 +712,7 @@ function createFighterCard(data, index) {
         skillsSection.classList.toggle('section-empty', !list || list.children.length === 0);
     }
 
-    const printSummaries = buildPrintSectionSummaries(data, masterData.equipment);
-    cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
-    cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
-    cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
-    cardEl.querySelector('.items-print-summary').textContent = printSummaries.items;
-    cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
+    updateCardPrintSummaries(cardEl, data);
 
     // Add Logic and dynamic datalists
     const eqInput = cardEl.querySelector('.equipment-input');
@@ -705,9 +725,7 @@ function createFighterCard(data, index) {
         lastFocusedInput = { cardIndex: index, type: type };
 
         if (type === 'equipment') {
-            const found = masterData.equipment.find(i => i.name.toLowerCase() === val.toLowerCase());
-            const cost = found ? found.cost : 0;
-            currentWarband.fighters[index].equipment.push({ name: val, cost: cost });
+            currentWarband.fighters[index].equipment.push(createEquipmentEntry(val, masterData.equipment));
         } else {
             currentWarband.fighters[index].skills.push({ name: val });
         }
@@ -969,7 +987,7 @@ document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); renderWarband(); saveToCache(); };
+    reader.onload = (event) => { currentWarband = WarbandUtils.deserializeWarband(event.target.result); ensureGlossaryState(); renderWarband(); saveToCache(); };
     reader.readAsText(file);
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
@@ -977,6 +995,7 @@ document.getElementById('clear-all-btn').onclick = () => {
     if (confirm("Clear this warband?")) {
         currentWarband.name = "New Warband";
         currentWarband.fighters = [];
+        currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
         renderWarband();
         saveToCache();
     }
