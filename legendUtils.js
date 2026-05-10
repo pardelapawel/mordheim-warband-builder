@@ -82,6 +82,7 @@
         const equipmentCatalog = masterData?.equipment || [];
         const skillCatalog = masterData?.skills || [];
         const spellCatalog = masterData?.spells || [];
+        const spellListNames = Object.keys(masterData?.spellsByList || {});
 
         usedTerms.forEach(term => {
             const termKey = normalizeLegendTerm(term);
@@ -103,6 +104,14 @@
             if (!found) {
                 found = skillCatalog.find(skill => normalizeLegendTerm(skill.name) === termKey);
                 if (found) categoryName = 'Skills';
+            }
+
+            if (!found) {
+                const matchedSpellList = spellListNames.find(name => normalizeLegendTerm(name) === termKey);
+                if (matchedSpellList) {
+                    found = { name: matchedSpellList };
+                    categoryName = 'Skills';
+                }
             }
 
             if (!found) {

@@ -14,7 +14,12 @@ const masterData = {
     ],
     spells: [
         { name: 'Fireball', difficulty: '8+', description: 'Deals fire damage' }
-    ]
+    ],
+    spellsByList: {
+        'Prayers of Taal': [
+            { name: "Taal's Blessing", difficulty: 'X', description: 'Taal prayer' }
+        ]
+    }
 };
 
 test('buildLegendGroups includes custom equipment in Items', () => {
@@ -58,6 +63,21 @@ test('buildLegendGroups captures spells extracted from skill suffixes', () => {
     assert.deepEqual(spells, [
         { key: 'fireball', name: 'Fireball', difficulty: '8+', description: 'Deals fire damage' }
     ]);
+});
+
+test('buildLegendGroups keeps spell list entries in Skills group', () => {
+    const groups = buildLegendGroups({
+        fighters: [{ equipment: [], skills: [{ name: 'Prayers of Taal' }] }],
+        masterData,
+        glossaryState: { descriptions: {}, deletedTerms: [] }
+    });
+    const skills = groups.find(group => group.name === 'Skills').items;
+    const items = groups.find(group => group.name === 'Items').items;
+
+    assert.deepEqual(skills, [
+        { key: 'prayers of taal', name: 'Prayers of Taal', difficulty: '', description: '' }
+    ]);
+    assert.equal(items.length, 0);
 });
 
 test('createEquipmentEntry preserves catalog category for known equipment', () => {
