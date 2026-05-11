@@ -9,10 +9,10 @@ const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 
 test('fighter template has separate equipment inputs per category', () => {
-    assert.match(indexHtml, /class="equipment-input melee-input"/);
-    assert.match(indexHtml, /class="equipment-input ranged-input"/);
-    assert.match(indexHtml, /class="equipment-input armor-input"/);
-    assert.match(indexHtml, /class="equipment-input items-input"/);
+    assert.match(indexHtml, /class="card-section melee-section"[\s\S]*class="equipment-input melee-input"/);
+    assert.match(indexHtml, /class="card-section ranged-section"[\s\S]*class="equipment-input ranged-input"/);
+    assert.match(indexHtml, /class="card-section armor-section"[\s\S]*class="equipment-input armor-input"/);
+    assert.match(indexHtml, /class="card-section items-section"[\s\S]*class="equipment-input items-input"/);
 });
 
 test('equipment autocompletes are wired per category', () => {
