@@ -24,6 +24,13 @@ test('skill rename updates print summaries and glossary immediately', () => {
 test('glossary description edits update print text immediately', () => {
     assert.match(
         appJs,
-        /const printEl = input\.parentElement\?\.\s*querySelector\('\.legend-item-desc'\);[\s\S]*if \(printEl\) printEl\.textContent = input\.value;/,
+        /const resizeDescription = setupAutoResizingTextarea\(input\);[\s\S]*const printEl = input\.parentElement\?\.\s*querySelector\('\.legend-item-desc'\);[\s\S]*if \(printEl\) printEl\.textContent = input\.value;[\s\S]*resizeDescription\(\);/,
+    );
+});
+
+test('glossary description textareas auto-resize while preserving manual minimum height', () => {
+    assert.match(
+        appJs,
+        /function setupAutoResizingTextarea\(textarea\) \{[\s\S]*let manualMinHeight = minHeight;[\s\S]*lastAutoHeight = Math\.max\(textarea\.scrollHeight,\s*manualMinHeight\);[\s\S]*textarea\.addEventListener\('mouseup', rememberManualHeight\);[\s\S]*textarea\.addEventListener\('touchend', rememberManualHeight\);[\s\S]*setTimeout\(resize,\s*0\);[\s\S]*return resize;/,
     );
 });
