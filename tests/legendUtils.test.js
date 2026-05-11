@@ -88,6 +88,14 @@ test('createEquipmentEntry preserves catalog category for known equipment', () =
     });
 });
 
+test('createEquipmentEntry applies fallback category for custom equipment', () => {
+    assert.deepEqual(createEquipmentEntry('Custom Spear', masterData.equipment, 'melee_weapons'), {
+        name: 'Custom Spear',
+        cost: 0,
+        originCategory: 'melee_weapons'
+    });
+});
+
 test('renameEquipmentEntry keeps inferred category when renaming known equipment', () => {
     assert.deepEqual(
         renameEquipmentEntry({ name: 'Sword', cost: 10 }, 'Jagged Sword', masterData.equipment),

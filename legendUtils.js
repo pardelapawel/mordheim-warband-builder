@@ -20,12 +20,12 @@
         return item?.originCategory || getEquipmentCatalogEntry(item?.name, equipmentCatalog)?.originCategory || '';
     }
 
-    function createEquipmentEntry(name, equipmentCatalog) {
+    function createEquipmentEntry(name, equipmentCatalog, fallbackOriginCategory = '') {
         const found = getEquipmentCatalogEntry(name, equipmentCatalog);
         return {
             name,
             cost: found ? found.cost : 0,
-            originCategory: found?.originCategory || ''
+            originCategory: found?.originCategory || fallbackOriginCategory
         };
     }
 
