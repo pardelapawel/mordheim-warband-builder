@@ -308,6 +308,31 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
+function setupAutoResizingTextarea(textarea) {
+    const minHeight = textarea.offsetHeight;
+    let manualMinHeight = minHeight;
+    let lastAutoHeight = minHeight;
+
+    const resize = () => {
+        textarea.style.height = 'auto';
+        lastAutoHeight = Math.max(textarea.scrollHeight, manualMinHeight);
+        textarea.style.height = `${lastAutoHeight}px`;
+    };
+
+    const rememberManualHeight = () => {
+        const currentHeight = textarea.offsetHeight;
+        if (Math.abs(currentHeight - lastAutoHeight) > 1) {
+            manualMinHeight = Math.max(minHeight, currentHeight);
+        }
+    };
+
+    textarea.addEventListener('mouseup', rememberManualHeight);
+    textarea.addEventListener('touchend', rememberManualHeight);
+
+    setTimeout(resize, 0);
+    return resize;
+}
+
 function updateCardPrintSummaries(cardEl, fighter) {
     const { buildPrintSectionSummaries } = globalThis.PrintUtils || {};
     if (typeof buildPrintSectionSummaries !== 'function') {
@@ -376,11 +401,13 @@ function updateLegend() {
     sidebar.classList.add('active');
 
     sidebar.querySelectorAll('.legend-item-desc-edit').forEach(input => {
+        const resizeDescription = setupAutoResizingTextarea(input);
         input.oninput = () => {
             const termKey = normalizeLegendTerm(input.dataset.termKey);
             glossaryState.descriptions[termKey] = input.value;
             const printEl = input.parentElement?.querySelector('.legend-item-desc');
             if (printEl) printEl.textContent = input.value;
+            resizeDescription();
             saveToCache();
         };
     });
