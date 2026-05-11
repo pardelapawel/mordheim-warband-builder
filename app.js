@@ -557,6 +557,17 @@ function createFighterCard(data, index) {
         };
     });
 
+    // Experience
+    const expInput = cardEl.querySelector('.stat-exp');
+    if (expInput) {
+        expInput.value = data.exp || 0;
+        expInput.onchange = (e) => {
+            currentWarband.fighters[index].exp = parseInt(e.target.value) || 0;
+            updateWarbandRating();
+            saveToCache();
+        };
+    }
+
     // Helper to get which list element an equipment item belongs to
     const getEqListEl = (item) => {
         const cat = getEquipmentCategory(item, masterData.equipment);
@@ -845,6 +856,7 @@ function applyFighterType(index, base) {
     fighter.is_large = base.is_large || false;
     fighter.spell_list = base.spell_list || null;
     fighter.exp_start = base.exp_start || 0;
+    fighter.exp = base.exp_start || 0;
 
     // Map stats from either base.stats or direct base properties
     const s = base.stats || base;
@@ -876,6 +888,34 @@ function updateTotalCost() {
     if (compactFighters) compactFighters.textContent = currentWarband.fighters.length;
     const compactName = document.getElementById('compact-warband-name');
     if (compactName) compactName.textContent = document.getElementById('warband-name').value || currentWarband.name;
+
+    updateWarbandRating();
+}
+
+function updateWarbandRating() {
+    const isDrachenfels = currentWarband.ruleSetId === 'Drachenfels';
+    const ratingEl = document.getElementById('compact-rating');
+    if (!ratingEl) return;
+
+    ratingEl.hidden = !isDrachenfels;
+    if (!isDrachenfels) return;
+
+    const { calculateWarbandRating } = globalThis.WarbandUtils || {};
+    if (typeof calculateWarbandRating !== 'function') return;
+
+    const { normalCount, bigCount, totalExp, total } = calculateWarbandRating(currentWarband.fighters);
+
+    const breakdownEl = document.getElementById('compact-rating-breakdown');
+    if (breakdownEl) {
+        const parts = [];
+        if (normalCount > 0) parts.push(`${normalCount} fighters`);
+        if (bigCount > 0) parts.push(`${bigCount} big`);
+        if (totalExp > 0) parts.push(`${totalExp} exp`);
+        breakdownEl.textContent = parts.join(' + ');
+    }
+
+    const totalEl = document.getElementById('compact-rating-total');
+    if (totalEl) totalEl.textContent = total;
 }
 
 function checkValidation(fighter) {
@@ -896,6 +936,7 @@ function addFighter() {
     const newFighter = {
         typeId: "", type: "New Hero", customName: "", baseCost: 0,
         race: "Człowiek", // Default race
+        exp: 0, is_large: false,
         stats: { m: 0, ws: 0, bs: 0, s: 0, t: 0, w: 0, i: 0, a: 0, ld: 0 },
         equipment: [], skills: [], requirements: null
     };
