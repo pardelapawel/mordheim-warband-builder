@@ -601,6 +601,18 @@ function createFighterCard(data, index) {
     };
 
     if (expTrack) {
+        // Label row: number markers at every 5th position (5, 10, 15, 20, 25, 30)
+        const labelRow = document.createElement('div');
+        labelRow.className = 'exp-track-labels';
+        [5, 10, 15, 20, 25, 30].forEach(n => {
+            const lbl = document.createElement('span');
+            lbl.className = 'exp-track-label';
+            lbl.textContent = n;
+            lbl.style.gridColumn = n;
+            labelRow.appendChild(lbl);
+        });
+        expTrack.parentElement.insertBefore(labelRow, expTrack);
+
         for (let n = 1; n <= EXP_MAX; n++) {
             const box = document.createElement('span');
             box.className = 'exp-box';
