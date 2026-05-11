@@ -771,9 +771,23 @@ input[type=number] {
     border-top: 1px solid var(--border-color);
 }
 
+.exp-track-labels {
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    gap: 2px;
+    margin-bottom: 1px;
+}
+
+.exp-track-label {
+    font-size: 0.45rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1;
+}
+
 .exp-track {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
     gap: 2px;
 }
 
@@ -1225,6 +1239,19 @@ input[type=number] {
         margin-top: auto !important;
         padding-top: 2px !important;
         border-top: 0.5pt solid black !important;
+    }
+
+    .exp-track-labels {
+        gap: 1px !important;
+    }
+
+    .exp-track-label {
+        font-size: 0.4rem !important;
+        color: black !important;
+    }
+
+    .exp-track {
+        gap: 1px !important;
     }
 
     .exp-box {
