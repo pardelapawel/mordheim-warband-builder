@@ -19,7 +19,7 @@ let currentWarband = {
     glossary: { descriptions: {}, deletedTerms: [] }
 };
 
-let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills' }
+let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills', equipmentSelector?: string }
 
 // Initialize app
 async function init() {
@@ -410,7 +410,9 @@ function restoreFocus() {
     const cards = document.querySelectorAll('.fighter-card');
     const targetCard = cards[lastFocusedInput.cardIndex];
     if (targetCard) {
-        const selector = lastFocusedInput.type === 'equipment' ? '.equipment-input' : '.skills-input';
+        const selector = lastFocusedInput.type === 'equipment'
+            ? (lastFocusedInput.equipmentSelector || '.equipment-input')
+            : '.skills-input';
         const input = targetCard.querySelector(selector);
         if (input) input.focus();
     }
@@ -726,17 +728,24 @@ function createFighterCard(data, index) {
     updateCardPrintSummaries(cardEl, data);
 
     // Add Logic and dynamic datalists
-    const eqInput = cardEl.querySelector('.equipment-input');
+    const meleeInput = cardEl.querySelector('.melee-input');
+    const rangedInput = cardEl.querySelector('.ranged-input');
+    const armorInput = cardEl.querySelector('.armor-input');
+    const itemsInput = cardEl.querySelector('.items-input');
     const skillInput = cardEl.querySelector('.skills-input');
 
-    const handleAdd = (type, input) => {
+    const handleAdd = (type, input, equipmentCategory = '') => {
         const val = input.value.trim();
         if (!val) return;
 
-        lastFocusedInput = { cardIndex: index, type: type };
+        lastFocusedInput = {
+            cardIndex: index,
+            type: type,
+            equipmentSelector: equipmentCategory ? `.${input.classList[1]}` : undefined
+        };
 
         if (type === 'equipment') {
-            currentWarband.fighters[index].equipment.push(createEquipmentEntry(val, masterData.equipment));
+            currentWarband.fighters[index].equipment.push(createEquipmentEntry(val, masterData.equipment, equipmentCategory));
         } else {
             currentWarband.fighters[index].skills.push({ name: val });
         }
@@ -746,7 +755,8 @@ function createFighterCard(data, index) {
     };
 
     // Custom autocomplete to replace broken native mobile datalists
-    const setupAutocomplete = (input, type) => {
+    const setupAutocomplete = (input, type, equipmentCategory = '') => {
+        if (!input) return;
         let container = input.parentElement;
         let listEl = document.createElement('ul');
         listEl.className = 'autocomplete-list';
@@ -755,7 +765,9 @@ function createFighterCard(data, index) {
         const updateList = () => {
             let val = input.value.toLowerCase();
             let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
-            let listData = type === 'equipment' ? masterData.equipment : [...masterData.skills, ...spellLists, ...masterData.spells];
+            let listData = type === 'equipment'
+                ? masterData.equipment.filter(item => !equipmentCategory || item.originCategory === equipmentCategory)
+                : [...masterData.skills, ...spellLists, ...masterData.spells];
 
             // If empty, show all. If typed, filter.
             let matches = listData;
@@ -777,7 +789,7 @@ function createFighterCard(data, index) {
                 item.onclick = () => {
                     input.value = match.name;
                     listEl.style.display = 'none';
-                    handleAdd(type, input);
+                    handleAdd(type, input, equipmentCategory);
                 };
                 listEl.appendChild(item);
             });
@@ -786,7 +798,11 @@ function createFighterCard(data, index) {
 
         input.addEventListener('input', updateList);
         input.addEventListener('focus', () => {
-            lastFocusedInput = { cardIndex: index, type: type };
+            lastFocusedInput = {
+                cardIndex: index,
+                type: type,
+                equipmentSelector: equipmentCategory ? `.${input.classList[1]}` : undefined
+            };
             updateList();
         });
         input.addEventListener('blur', () => {
@@ -796,12 +812,15 @@ function createFighterCard(data, index) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 listEl.style.display = 'none';
-                handleAdd(type, input);
+                handleAdd(type, input, equipmentCategory);
             }
         });
     };
 
-    setupAutocomplete(eqInput, 'equipment');
+    setupAutocomplete(meleeInput, 'equipment', 'melee_weapons');
+    setupAutocomplete(rangedInput, 'equipment', 'ranged_weapons');
+    setupAutocomplete(armorInput, 'equipment', 'armor');
+    setupAutocomplete(itemsInput, 'equipment', 'items');
     setupAutocomplete(skillInput, 'skills');
 
     // Remove Card
