@@ -105,6 +105,25 @@ h4 {
     font-size: 1rem;
 }
 
+.compact-rating-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rating-breakdown {
+    transition: opacity 0.2s ease;
+}
+
+.sticky-summary-bar.is-pinned .rating-breakdown {
+    display: none;
+}
+
+.stat-exp-col label {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
 .header-content {
     display: flex;
     justify-content: space-between;
