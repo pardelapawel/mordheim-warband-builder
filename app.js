@@ -609,7 +609,7 @@ function createFighterCard(data, index) {
             const lbl = document.createElement('span');
             lbl.className = 'exp-track-label';
             lbl.textContent = n;
-            lbl.style.gridColumn = `${n - 4} / ${n + 1}`;
+            lbl.style.gridColumn = n;
             labelRow.appendChild(lbl);
         });
         expTrack.parentElement.insertBefore(labelRow, expTrack);
