@@ -51,10 +51,66 @@ const NameGenerator = (() => {
             suffixes: ["bash", "mash", "gull", "dakka", "skull", "gut", "fist", "gob"],
             chanceOfTitle: 0.1
         },
+        skaven: {
+            prefixes: ["Queek", "Snik", "Gnaw", "Skrab", "Ratch", "Clatch", "Skrik", "Frenk", "Skarl", "Gnit"],
+            mid: ["el", "ik", "ar", "et", "it"],
+            suffixes: ["claw", "gnaw", "tail", "pox", "bite", "fang", "rot", "sneek", "blight", "warp"],
+            chanceOfTitle: 0
+        },
+        halfling: {
+            prefixes: ["Pip", "Merry", "Ned", "Tom", "Will", "Bram", "Fin", "Odo", "Sam", "Bert"],
+            mid: ["by", "wick", "well", "ford", "field"],
+            suffixes: ["son", "wick", "hill", "dale", "brook", "burrow", "ton", "field", "bottom", "mead"],
+            lastPrefixes: ["of the ", "from "],
+            chanceOfTitle: 0,
+            chanceOfLastPrefix: 0.4
+        },
+        beastmen: {
+            prefixes: ["Khar", "Grak", "Brak", "Morg", "Rakh", "Drak", "Ghor", "Kraal", "Bhor", "Roth"],
+            mid: ["ak", "or", "ul", "ag", "ok"],
+            suffixes: ["gore", "tusk", "horn", "skull", "blood", "blade", "rend", "beast", "maw", "fang"],
+            chanceOfTitle: 0
+        },
+        possessed: {
+            prefixes: ["Mal", "Kha", "Xan", "Var", "Dre", "Kor", "Skir", "Neth", "Vor", "Thrak"],
+            mid: ["os", "ax", "ul", "ix", "ar"],
+            suffixes: ["bane", "doom", "ruin", "pyre", "taint", "curse", "wrath", "void", "shade", "fiend"],
+            chanceOfTitle: 0
+        },
         monster: {
             prefixes: ["Grawl", "Snarl", "Rend", "Gnash", "Blight", "Plague", "Gore"],
             mid: ["o", "a", "u"],
             suffixes: ["maw", "claw", "wing", "tail", "beast", "fiend", "spawn"],
+            chanceOfTitle: 0
+        },
+        wolf: {
+            prefixes: ["Grey", "Shadow", "Iron", "Night", "Black", "Ice", "Death", "Storm", "Bone", "Frost"],
+            mid: ["o", "a"],
+            suffixes: ["fang", "claw", "howl", "runner", "stalker", "pelt", "bite", "maw", "hide", "tooth"],
+            chanceOfTitle: 0
+        },
+        bear: {
+            prefixes: ["Stone", "Iron", "Brown", "Cave", "Frost", "Blood", "Dark", "Grey", "Winter", "Scar"],
+            mid: ["o", "a"],
+            suffixes: ["paw", "hide", "growl", "claw", "bulk", "crest", "roar", "gut", "maw", "tooth"],
+            chanceOfTitle: 0
+        },
+        hound: {
+            prefixes: ["Black", "Red", "Shadow", "Grey", "Scar", "Grim", "Sharp", "Keen", "Dire", "Hell"],
+            mid: ["o", "a"],
+            suffixes: ["fang", "jaw", "bite", "tooth", "hunter", "bane", "killer", "nose", "claw", "ear"],
+            chanceOfTitle: 0
+        },
+        rat: {
+            prefixes: ["Snivel", "Gnaw", "Twitch", "Scurry", "Plague", "Rot", "Scab", "Nibble", "Pox", "Mange"],
+            mid: ["y", "i", "e"],
+            suffixes: ["tooth", "tail", "nose", "claw", "hide", "gnaw", "squeak", "bite", "eye", "ear"],
+            chanceOfTitle: 0
+        },
+        squig: {
+            prefixes: ["Boing", "Gnash", "Nibble", "Chomp", "Bounce", "Snap", "Gobble", "Crunch", "Munch", "Leap"],
+            mid: ["y", "i", "a"],
+            suffixes: ["fang", "maw", "tooth", "bite", "jaw", "gnaw", "chomp", "snap", "gob", "skull"],
             chanceOfTitle: 0
         }
     };
@@ -85,9 +141,14 @@ const NameGenerator = (() => {
         let set = data.human; // Default
         let syllables = 2;
 
-        // Context Mapping
+        // Context Mapping — order matters: more specific checks come first
         if (race.includes("krasnolud") || race.includes("dwarf")) set = data.dwarf;
-        else if (race.includes("mroczny elf") || race.includes("dark elf")) set = data.dark_elf;
+        else if (race.includes("skaven")) set = data.skaven;
+        else if (race.includes("niziołek") || race.includes("halfling")) set = data.halfling;
+        else if (race.includes("zwierzoczłek") || race.includes("beastmen") || race.includes("beastman")) set = data.beastmen;
+        else if (race.includes("opętany") || race.includes("possessed")) set = data.possessed;
+        else if (race.includes("zielonoskóry") || race.includes("greenskin") || race.includes("ork") || race.includes("orc")) set = data.orc;
+        else if (nameTemplate.includes("mroczny elf") || nameTemplate.includes("dark elf")) set = data.dark_elf;
         else if (race.includes("elf")) set = data.elf;
         else if (race.includes("nieumarły") || race.includes("undead")) {
             if (type.includes("lider") || type.includes("leader") || nameTemplate.includes("wampir") || nameTemplate.includes("vampire")) {
@@ -96,9 +157,22 @@ const NameGenerator = (() => {
                 set = data.undead_dreg;
             }
         }
-        else if (race.includes("ork") || race.includes("orc")) set = data.orc;
-        else if (race.includes("zwierzę") || race.includes("beast") || race.includes("potwór") || race.includes("monster")) set = data.monster;
-        
+        else if (race.includes("ogr") || race.includes("ogre")) set = data.monster;
+        else if (race.includes("zwierzę") || race.includes("beast") || race.includes("potwór") || race.includes("monster") || race.includes("animal")) set = data.monster;
+
+        // Animal-specific overrides: identify individual creature types by nameTemplate
+        if (nameTemplate.includes("wilkor") || nameTemplate.includes("wilk") || nameTemplate.includes("dire wolf") || nameTemplate.includes("wolf")) {
+            set = data.wolf;
+        } else if (nameTemplate.includes("niedźwiedź") || nameTemplate.includes("bear")) {
+            set = data.bear;
+        } else if (nameTemplate.includes("pies") || nameTemplate.includes("hound") || nameTemplate.includes("warhound")) {
+            set = data.hound;
+        } else if (nameTemplate.includes("szczur") || nameTemplate.includes("rat") || nameTemplate.includes("szczuroogr") || nameTemplate.includes("rat ogre")) {
+            set = data.rat;
+        } else if (nameTemplate.includes("zębacz") || nameTemplate.includes("squig")) {
+            set = data.squig;
+        }
+
         // Special types
         if (nameTemplate.includes("siostra") || nameTemplate.includes("sister")) {
            const titles = ["Sister", "Mother", "Abbess", "Novice", "Matriarch"];
@@ -113,6 +187,13 @@ const NameGenerator = (() => {
         
         if (set === data.undead_noble) {
             finalName = getRandom(set.titles) + " " + constructName(set, 2) + getRandom(set.suffixes);
+        } else if (set === data.halfling) {
+            let mainName = constructName(set, 1);
+            if (Math.random() < (set.chanceOfLastPrefix || 0)) {
+                finalName = mainName + " " + getRandom(set.lastPrefixes) + constructName(set, 1);
+            } else {
+                finalName = mainName + " " + constructName(set, 1);
+            }
         } else {
             if (set.titles && Math.random() < (set.chanceOfTitle || 0)) {
                 finalName += getRandom(set.titles) + " ";
