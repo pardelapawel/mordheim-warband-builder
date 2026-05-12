@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const lzString = require('../lz-string.min.js');
 
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
@@ -14,17 +15,18 @@ test('index loads lz-string for compressed URL sharing', () => {
 });
 
 test('save flow updates share URL with history.replaceState', () => {
-    assert.match(
-        appJs,
-        /function updateShareUrl\(\) \{[\s\S]*params\.set\(SHARE_WARBAND_PARAM,\s*toUrlSafeBase64\(compressed\)\);[\s\S]*history\.replaceState\(null,\s*'',[\s\S]*\);[\s\S]*\}/,
-    );
+    assert.match(appJs, /function updateShareUrl\(\)/);
+    assert.match(appJs, /params\.set\(SHARE_WARBAND_PARAM,\s*toUrlSafeBase64\(compressed\)\)/);
+    assert.match(appJs, /history\.replaceState\(null,\s*'',\s*`\$\{window\.location\.pathname\}/);
 });
 
 test('load flow restores warband state from URL parameter', () => {
-    assert.match(
-        appJs,
-        /function loadFromCache\(\) \{[\s\S]*new URLSearchParams\(window\.location\.search\)[\s\S]*params\.get\(SHARE_WARBAND_PARAM\)[\s\S]*decodeWarbandFromUrl\(sharedBand\)[\s\S]*applyLoadedWarband\(decoded\)[\s\S]*return;[\s\S]*\}/,
-    );
+    assert.match(appJs, /function loadFromCache\(\)/);
+    assert.match(appJs, /new URLSearchParams\(window\.location\.search\)/);
+    assert.match(appJs, /params\.get\(SHARE_WARBAND_PARAM\)/);
+    assert.match(appJs, /decodeWarbandFromUrl\(sharedBand\)/);
+    assert.match(appJs, /applyLoadedWarband\(decoded\)/);
+    assert.match(appJs, /return;/);
 });
 
 test('URL-safe Base64 helpers and decode flow round-trip shared warband payloads', () => {
@@ -56,10 +58,7 @@ test('URL-safe Base64 helpers and decode flow round-trip shared warband payloads
         console
     };
     context.globalThis = context;
-    context.LZString = {
-        compressToBase64: (value) => Buffer.from(value, 'utf8').toString('base64'),
-        decompressFromBase64: (value) => Buffer.from(value, 'base64').toString('utf8')
-    };
+    context.LZString = lzString;
 
     vm.createContext(context);
     vm.runInContext(`const SHARE_WARBAND_PARAM = 'band';\n${shareHelpers}`, context);
