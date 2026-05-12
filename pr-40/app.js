@@ -1048,12 +1048,14 @@ function updateShareUrl() {
 function applyLoadedWarband(parsed) {
     if (!parsed || typeof parsed !== 'object') return;
 
+    const migrated = { ...parsed };
+
     // Migration: map old IDs to names
-    if (parsed.ruleSetId === 'dragon_rock') parsed.ruleSetId = 'Dragon Rock';
-    if (parsed.ruleSetId === 'smocza_turnia') parsed.ruleSetId = 'Drachenfels';
+    if (migrated.ruleSetId === 'dragon_rock') migrated.ruleSetId = 'Dragon Rock';
+    if (migrated.ruleSetId === 'smocza_turnia') migrated.ruleSetId = 'Drachenfels';
 
     // Deep merge to ensure structure
-    currentWarband = { ...currentWarband, ...parsed };
+    currentWarband = { ...currentWarband, ...migrated };
     ensureGlossaryState();
 }
 
@@ -1096,7 +1098,7 @@ function renderSavedList() {
         li.className = 'saved-item';
         li.style.display = 'flex'; li.style.justifyContent = 'space-between'; li.style.padding = '5px 0'; li.style.borderBottom = '1px solid var(--border-color)';
         li.innerHTML = `<span style="cursor:pointer">${s.name}</span><span class="delete-save-btn" style="color:var(--danger); cursor:pointer">&times;</span>`;
-        li.querySelector('span').onclick = () => { currentWarband = JSON.parse(JSON.stringify(s)); renderWarband(); saveToCache(); };
+        li.querySelector('span').onclick = () => { currentWarband = JSON.parse(JSON.stringify(s)); renderWarband(); updateShareUrl(); };
         li.querySelector('.delete-save-btn').onclick = (e) => { e.stopPropagation(); saved.splice(idx, 1); localStorage.setItem('mordheim_saves', JSON.stringify(saved)); renderSavedList(); };
         list.appendChild(li);
     });
