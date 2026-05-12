@@ -773,7 +773,7 @@ input[type=number] {
 
 .exp-track-labels {
     display: grid;
-    grid-template-columns: repeat(30, 1fr);
+    grid-template-columns: repeat(30, 9px);
     gap: 2px;
     margin-bottom: 1px;
 }
@@ -787,7 +787,7 @@ input[type=number] {
 
 .exp-track {
     display: grid;
-    grid-template-columns: repeat(30, 1fr);
+    grid-template-columns: repeat(30, 9px);
     gap: 2px;
 }
 
@@ -800,7 +800,6 @@ input[type=number] {
     flex-shrink: 0;
     transition: background 0.1s;
     border-radius: 1px;
-    justify-self: center;
 }
 
 .exp-box.filled {
@@ -1244,6 +1243,7 @@ input[type=number] {
 
     .exp-track-labels {
         gap: 1px !important;
+        grid-template-columns: repeat(30, 6px) !important;
     }
 
     .exp-track-label {
@@ -1253,6 +1253,7 @@ input[type=number] {
 
     .exp-track {
         gap: 1px !important;
+        grid-template-columns: repeat(30, 6px) !important;
     }
 
     .exp-box {
