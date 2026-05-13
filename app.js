@@ -589,10 +589,57 @@ function createFighterCard(data, index) {
 
     // Experience
     const expInput = cardEl.querySelector('.stat-exp');
+    const expTrack = cardEl.querySelector('.exp-track');
+    const EXP_MILESTONES = new Set([2, 4, 6, 8, 11, 14, 17, 20, 24, 28, 32, 36, 41, 46, 51, 57, 63, 69, 76, 83, 90]);
+    const EXP_MAX = 90;
+
+    const updateExpTrack = (exp) => {
+        const filled = Math.min(Math.max(parseInt(exp) || 0, 0), EXP_MAX);
+        expTrack.querySelectorAll('.exp-box').forEach(box => {
+            const n = parseInt(box.dataset.exp);
+            box.classList.toggle('filled', n <= filled);
+        });
+    };
+
+    if (expTrack) {
+        // Label row: number markers at every 5th position (5, 10, 15, 20, 25, 30)
+        const labelRow = document.createElement('div');
+        labelRow.className = 'exp-track-labels';
+        [5, 10, 15, 20, 25, 30].forEach(n => {
+            const lbl = document.createElement('span');
+            lbl.className = 'exp-track-label';
+            lbl.textContent = n;
+            lbl.style.gridColumn = n;
+            labelRow.appendChild(lbl);
+        });
+        expTrack.parentElement.insertBefore(labelRow, expTrack);
+
+        for (let n = 1; n <= EXP_MAX; n++) {
+            const box = document.createElement('span');
+            box.className = 'exp-box';
+            if (EXP_MILESTONES.has(n)) box.classList.add('milestone');
+            box.dataset.exp = n;
+            box.title = `Exp ${n}`;
+            box.addEventListener('click', () => {
+                const currentExp = currentWarband.fighters[index].exp || 0;
+                const newExp = currentExp === n ? n - 1 : n;
+                currentWarband.fighters[index].exp = newExp;
+                if (expInput) expInput.value = newExp;
+                updateExpTrack(newExp);
+                updateWarbandRating();
+                saveToCache();
+            });
+            expTrack.appendChild(box);
+        }
+        updateExpTrack(data.exp || 0);
+    }
+
     if (expInput) {
         expInput.value = data.exp || 0;
         expInput.onchange = (e) => {
-            currentWarband.fighters[index].exp = parseInt(e.target.value) || 0;
+            const newExp = parseInt(e.target.value) || 0;
+            currentWarband.fighters[index].exp = newExp;
+            updateExpTrack(newExp);
             updateWarbandRating();
             saveToCache();
         };

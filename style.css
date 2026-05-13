@@ -531,7 +531,8 @@ h4 {
 .fighter-card.folded .card-section,
 .fighter-card.folded .combobox-container,
 .fighter-card.folded .validation-warnings,
-.fighter-card.folded .type-selection {
+.fighter-card.folded .type-selection,
+.fighter-card.folded .exp-track-section {
     display: none;
 }
 
@@ -761,6 +762,68 @@ input[type=number]::-webkit-outer-spin-button {
 
 input[type=number] {
     -moz-appearance: textfield;
+}
+
+/* Experience Track */
+.exp-track-section {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.exp-track-labels {
+    display: grid;
+    grid-template-columns: repeat(30, minmax(0, 1fr));
+    gap: 2px 1px;
+    margin-bottom: 1px;
+}
+
+.exp-track-label {
+    font-size: 0.45rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1;
+}
+
+.exp-track {
+    display: grid;
+    grid-template-columns: repeat(30, minmax(0, 1fr));
+    gap: 2px 1px;
+}
+
+.exp-box {
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.1s;
+    border-radius: 1px;
+}
+
+@supports (aspect-ratio: 1 / 1) {
+    .exp-box {
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+.exp-box.filled {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.exp-box.milestone {
+    border-color: var(--text-primary);
+    border-width: 2px;
+}
+
+.exp-box.milestone.filled {
+    border-color: var(--accent-color);
+    filter: brightness(0.8);
 }
 
 .card-section {
@@ -1091,7 +1154,8 @@ input[type=number] {
     .fighter-card.folded .card-section,
     .fighter-card.folded .combobox-container,
     .fighter-card.folded .validation-warnings,
-    .fighter-card.folded .type-selection {
+    .fighter-card.folded .type-selection,
+    .fighter-card.folded .exp-track-section {
         display: block !important;
     }
 
@@ -1178,6 +1242,43 @@ input[type=number] {
         width: 100% !important;
         display: flex !important;
         justify-content: center !important;
+    }
+
+    .exp-track-section {
+        margin-top: auto !important;
+        padding-top: 2px !important;
+        border-top: 0.5pt solid black !important;
+    }
+
+    .exp-track-labels {
+        gap: 1px !important;
+        grid-template-columns: repeat(30, minmax(0, 1fr)) !important;
+    }
+
+    .exp-track-label {
+        font-size: 0.4rem !important;
+        color: black !important;
+    }
+
+    .exp-track {
+        gap: 1px !important;
+        grid-template-columns: repeat(30, minmax(0, 1fr)) !important;
+    }
+
+    .exp-box {
+        border-color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .exp-box.filled {
+        background: black !important;
+        border-color: black !important;
+    }
+
+    .exp-box.milestone {
+        border-color: black !important;
+        border-width: 2px !important;
     }
 }
 
