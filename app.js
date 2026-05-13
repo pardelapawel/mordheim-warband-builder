@@ -20,6 +20,7 @@ let currentWarband = {
 };
 
 let lastFocusedInput = null; // { cardIndex: number, type: 'equipment' | 'skills', equipmentSelector?: string }
+const SHARE_WARBAND_PARAM = 'band';
 
 // Initialize app
 async function init() {
@@ -1002,6 +1003,62 @@ function copyFighter(index) {
     saveToCache();
 }
 
+function toUrlSafeBase64(base64) {
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function fromUrlSafeBase64(urlSafeBase64) {
+    const base64 = urlSafeBase64.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = (4 - (base64.length % 4)) % 4;
+    return base64 + '='.repeat(padding);
+}
+
+function decodeWarbandFromUrl(rawValue) {
+    const { decompressFromBase64 } = globalThis.LZString || {};
+    if (typeof decompressFromBase64 !== 'function' || !rawValue) return null;
+
+    try {
+        const json = decompressFromBase64(fromUrlSafeBase64(rawValue));
+        if (!json) return null;
+        return WarbandUtils.deserializeWarband(json);
+    } catch (e) {
+        console.warn("Could not decode shared warband from URL", e);
+        return null;
+    }
+}
+
+function updateShareUrl() {
+    const { compressToBase64 } = globalThis.LZString || {};
+    if (typeof compressToBase64 !== 'function') return;
+
+    try {
+        const json = WarbandUtils.serializeWarband(currentWarband);
+        const compressed = compressToBase64(json);
+        if (!compressed) return;
+
+        const params = new URLSearchParams(window.location.search);
+        params.set(SHARE_WARBAND_PARAM, toUrlSafeBase64(compressed));
+        const query = params.toString();
+        history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+    } catch (e) {
+        console.warn("Could not update share URL", e);
+    }
+}
+
+function applyLoadedWarband(parsed) {
+    if (!parsed || typeof parsed !== 'object') return;
+
+    const migrated = { ...parsed };
+
+    // Migration: map old IDs to names
+    if (migrated.ruleSetId === 'dragon_rock') migrated.ruleSetId = 'Dragon Rock';
+    if (migrated.ruleSetId === 'smocza_turnia') migrated.ruleSetId = 'Drachenfels';
+
+    // Deep merge to ensure structure
+    currentWarband = { ...currentWarband, ...migrated };
+    ensureGlossaryState();
+}
+
 function saveToCache() {
     currentWarband.name = document.getElementById('warband-name').value;
     localStorage.setItem('mordheim_current', JSON.stringify(currentWarband));
@@ -1011,20 +1068,24 @@ function saveToCache() {
     if (idx > -1) saved[idx] = currentWarband;
     else saved.push(JSON.parse(JSON.stringify(currentWarband)));
     localStorage.setItem('mordheim_saves', JSON.stringify(saved));
+    updateShareUrl();
     renderSavedList();
 }
 
 function loadFromCache() {
+    const params = new URLSearchParams(window.location.search);
+    const sharedBand = params.get(SHARE_WARBAND_PARAM);
+    if (sharedBand) {
+        const decoded = decodeWarbandFromUrl(sharedBand);
+        if (decoded) {
+            applyLoadedWarband(decoded);
+            return;
+        }
+    }
+
     const saved = localStorage.getItem('mordheim_current');
     if (saved) {
-        const parsed = JSON.parse(saved);
-
-        // Migration: map old IDs to names
-        if (parsed.ruleSetId === 'dragon_rock') parsed.ruleSetId = 'Dragon Rock';
-        if (parsed.ruleSetId === 'smocza_turnia') parsed.ruleSetId = 'Drachenfels';
-
-        // Deep merge to ensure structure
-        currentWarband = { ...currentWarband, ...parsed };
+        applyLoadedWarband(JSON.parse(saved));
     }
 }
 
@@ -1037,7 +1098,7 @@ function renderSavedList() {
         li.className = 'saved-item';
         li.style.display = 'flex'; li.style.justifyContent = 'space-between'; li.style.padding = '5px 0'; li.style.borderBottom = '1px solid var(--border-color)';
         li.innerHTML = `<span style="cursor:pointer">${s.name}</span><span class="delete-save-btn" style="color:var(--danger); cursor:pointer">&times;</span>`;
-        li.querySelector('span').onclick = () => { currentWarband = JSON.parse(JSON.stringify(s)); renderWarband(); };
+        li.querySelector('span').onclick = () => { currentWarband = JSON.parse(JSON.stringify(s)); renderWarband(); updateShareUrl(); };
         li.querySelector('.delete-save-btn').onclick = (e) => { e.stopPropagation(); saved.splice(idx, 1); localStorage.setItem('mordheim_saves', JSON.stringify(saved)); renderSavedList(); };
         list.appendChild(li);
     });
