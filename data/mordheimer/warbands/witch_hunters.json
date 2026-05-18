@@ -1,0 +1,90 @@
+{
+  "warband_name": "Witch Hunters",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 12,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "witch_hunter_captain" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon"],
+    "missile": ["Crossbow", "Pistol"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"]
+  },
+  "equipment_list_flagellant": {
+    "hand_to_hand": ["Flail", "Morning star", "Double-handed weapon"],
+    "missile": [],
+    "armour": []
+  },
+  "equipment_list_zealot": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
+    "missile": ["Bow", "Short Bow"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Witch Hunter Captain",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Burn the Witch!"],
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Witch Hunter",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 3,
+      "cost": 25,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Burn the Witch!"],
+      "skills": ["Combat", "Shooting", "Academic", "Speed"]
+    },
+    {
+      "name": "Warrior-Priest",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "skills": ["Combat", "Academic", "Strength", "Prayers of Sigmar"]
+    },
+    {
+      "name": "Flagellant",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 5,
+      "cost": 40,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 4, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 10 },
+      "equipment_list_override": "flagellant",
+      "validations": ["noRanged", "neverLeader"],
+      "rules": ["Fanatical"]
+    },
+    {
+      "name": "Zealot",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 20,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "zealot"
+    },
+    {
+      "name": "War Hound",
+      "type": "Henchman",
+      "race": "Animal",
+      "max_quantity": 5,
+      "cost": 15,
+      "stats": { "m": 6, "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 5 },
+      "validations": ["noEquipment", "noExperience"]
+    }
+  ]
+}

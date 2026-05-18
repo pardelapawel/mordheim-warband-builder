@@ -1,0 +1,96 @@
+{
+  "warband_name": "Orc Mob",
+  "source": "Town Cryer #6",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 20,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "orc_boss" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Spear", "Halberd", "Double-handed weapon", "Morning star"],
+    "missile": ["Bow", "Crossbow"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "equipment_list_goblin": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Sword", "Spear", "Ball & Chain"],
+    "missile": ["Short Bow"],
+    "armour": ["Shield", "Helmet"],
+    "miscellaneous": ["Squig Prodder", "Mad Cap Mushrooms"]
+  },
+  "fighters": [
+    {
+      "name": "Orc Boss",
+      "type": "Leader",
+      "race": "Orc",
+      "max_quantity": 1,
+      "cost": 80,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 4, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader"],
+      "skills": ["Combat", "Shooting", "Strength", "Speed", "Orc Special"]
+    },
+    {
+      "name": "Orc Shaman",
+      "type": "Wizard",
+      "race": "Orc",
+      "max_quantity": 1,
+      "cost": 40,
+      "exp_start": 10,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "validations": ["noArmor"],
+      "skills": ["Strength", "Orc Special", "Waaaagh! Magic"]
+    },
+    {
+      "name": "Orc Big 'Un",
+      "type": "Hero",
+      "race": "Orc",
+      "max_quantity": 2,
+      "cost": 40,
+      "exp_start": 15,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Shooting", "Strength", "Orc Special"]
+    },
+    {
+      "name": "Orc Boy",
+      "type": "Henchman",
+      "race": "Orc",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 7 },
+      "rules": ["Animosity"]
+    },
+    {
+      "name": "Goblin Warrior",
+      "type": "Henchman",
+      "race": "Goblin",
+      "max_quantity": null,
+      "cost": 15,
+      "stats": { "m": 4, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 5 },
+      "equipment_list_override": "goblin",
+      "rules": ["Animosity", "Not Orcs", "Runts"]
+    },
+    {
+      "name": "Cave Squig",
+      "type": "Henchman",
+      "race": "Animal",
+      "max_quantity": 5,
+      "cost": 15,
+      "stats": { "m": "2D6", "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 5 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Not Orcs", "Minderz"]
+    },
+    {
+      "name": "Troll",
+      "type": "Henchman",
+      "race": "Troll",
+      "max_quantity": 1,
+      "cost": 200,
+      "stats": { "m": 6, "ws": 3, "bs": 1, "s": 5, "t": 4, "w": 3, "i": 1, "a": 3, "ld": 4 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Cause Fear", "Stupidity", "Regeneration", "Always Hungry", "Vomit Attack", "Large Target"]
+    }
+  ]
+}

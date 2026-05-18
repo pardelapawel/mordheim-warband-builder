@@ -7,6 +7,7 @@ let masterData = {
     fighters: [],
     equipment: [],
     skills: [],
+    skillsByCategory: {},
     spells: [],
     spellsByList: {}
 };
@@ -118,7 +119,15 @@ async function applyRuleSet(id, shouldRender = true) {
             });
         }
 
-        masterData.skills = flatten(sk);
+        masterData.skills = [];
+        masterData.skillsByCategory = sk; // Keep structured for context-aware selection
+        for (const [cat, items] of Object.entries(sk)) {
+            items.forEach(i => {
+                i.originCategory = cat;
+                masterData.skills.push(i);
+            });
+        }
+
         masterData.spells = flatten(sp);
         masterData.spellsByList = sp; // Keep structured for context-aware selection
 
@@ -173,11 +182,13 @@ async function applyWarbandType(id, shouldRender = true) {
             const resp = await fetch(`data/${folderName}/warbands/${wb.file}`);
             const data = await resp.json();
             masterData.fighters = data.fighters;
+            masterData.activeWarbandTypeData = data; // Store active warband metadata (validations, etc)
         } catch (e) {
             console.error("Error loading warband type data", e);
         }
     } else {
         masterData.fighters = [];
+        masterData.activeWarbandTypeData = null;
     }
 
     if (shouldRender) renderWarband();
@@ -282,6 +293,7 @@ function renderWarband() {
 
     updateTotalCost();
     updateLegend();
+    runValidations();
     restoreFocus();
 
     window.scrollTo(0, scrollPos);
@@ -719,10 +731,53 @@ function createFighterCard(data, index) {
             skill.name.toLowerCase().includes('magia') ||
             skill.name.toLowerCase().includes('modlitwy');
 
+        // Suboptions picker support (e.g. for spells and mutations)
+        let suboptionsType = 'spell';
+        let suboptionsList = [];
+
+        // 1. Check if name matches a spell list key (fuzzy mapping)
+        const spellListKey = Object.keys(masterData.spellsByList || {}).find(listKey => {
+            const k1 = listKey.toLowerCase();
+            const k2 = skill.name.toLowerCase();
+            return k1.includes(k2) || k2.includes(k1) ||
+                   (k1.includes('necrom') && k2.includes('necrom')) ||
+                   (k1.includes('sigmar') && k2.includes('sigmar')) ||
+                   (k1.includes('rat') && k2.includes('rat')) ||
+                   (k1.includes('taal') && k2.includes('taal')) ||
+                   (k1.includes('waaa') && k2.includes('waaa'));
+        });
+
+        if (spellListKey) {
+            suboptionsList = masterData.spellsByList[spellListKey];
+            suboptionsType = 'spell';
+        } else {
+            // 2. Check if name matches a skill category key (e.g. Mutations, Blessings of Nurgle) (fuzzy mapping)
+            const skillCatKey = Object.keys(masterData.skillsByCategory || {}).find(catKey => {
+                const k1 = catKey.toLowerCase();
+                const k2 = skill.name.toLowerCase();
+                return ['mutations', 'blessings of nurgle', 'dwarf special', 'orc special', 'skaven special', 'troll slayer', 'sisters of sigmar'].includes(k1) &&
+                       (k1.includes(k2) || k2.includes(k1) ||
+                        (k1.includes('mutat') && k2.includes('mutat')) ||
+                        (k1.includes('nurgle') && k2.includes('nurgle')));
+            });
+            if (skillCatKey) {
+                suboptionsList = masterData.skillsByCategory[skillCatKey];
+                suboptionsType = 'skill';
+            } else if (isSpellList) {
+                // Fallback to active fighter's spell list
+                suboptionsList = data.spell_list && masterData.spellsByList[data.spell_list]
+                    ? masterData.spellsByList[data.spell_list]
+                    : masterData.spells;
+                suboptionsType = 'spell';
+            }
+        }
+
+        const hasSuboptions = suboptionsList && suboptionsList.length > 0;
+
         row.innerHTML = `
             <div class="item-content">
                 <textarea class="item-name-edit skill-name" rows="1">${skill.name}</textarea>
-                ${isSpellList ? '<span class="add-spell-btn no-print" title="Pick Spell">➕</span>' : ''}
+                ${hasSuboptions ? '<span class="add-spell-btn no-print" title="Pick Option">➕</span>' : ''}
             </div>
             <span class="item-delete no-print">&times;</span>
         `;
@@ -738,44 +793,40 @@ function createFighterCard(data, index) {
         };
         setTimeout(resize, 0);
 
-        if (isSpellList) {
+        if (hasSuboptions) {
             const addBtn = row.querySelector('.add-spell-btn');
             addBtn.onclick = () => {
-                let spells = [];
-                // First check if the skill name itself implies a specific spell list
-                const matchingList = Object.keys(masterData.spellsByList).find(listKey => 
-                    skill.name.toLowerCase().includes(listKey.toLowerCase())
-                );
-
-                if (matchingList) {
-                    spells = masterData.spellsByList[matchingList];
-                } else if (data.spell_list && masterData.spellsByList[data.spell_list]) {
-                    spells = masterData.spellsByList[data.spell_list];
-                } else {
-                    spells = masterData.spells; // fallback to all spells
-                }
-
-                if (spells.length === 0) {
-                    alert("No spells available in database.");
-                    return;
-                }
+                if (row.querySelector('.inline-spell-picker')) return;
 
                 const select = document.createElement('select');
                 select.className = 'inline-spell-picker no-print';
-                select.innerHTML = '<option value="">-- Pick Spell --</option>';
-                spells.forEach(s => {
+                select.innerHTML = '<option value="">-- Pick Option --</option>';
+                suboptionsList.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.name;
-                    opt.textContent = `${s.name} (${s.difficulty})`;
+                    if (suboptionsType === 'spell') {
+                        opt.textContent = `${s.name} (${s.difficulty})`;
+                    } else {
+                        opt.textContent = s.cost ? `${s.name} (${s.cost} gc)` : s.name;
+                    }
                     select.appendChild(opt);
                 });
 
                 select.onchange = () => {
                     if (select.value) {
                         const current = nameEdit.value;
-                        const suffix = ` (${select.value})`;
+                        const selectedOption = suboptionsList.find(s => s.name === select.value);
+                        let suffix = ` (${select.value})`;
+
+                        if (suboptionsType === 'skill' && selectedOption && selectedOption.cost) {
+                            suffix = ` (${select.value} - ${selectedOption.cost} gc)`;
+                        }
+
                         nameEdit.value = current.includes('(') ? current.replace(/\(.*\)/, suffix) : current + suffix;
                         currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+                        updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+                        updateTotalCost();
+                        cardEl.querySelector('.fighter-total-cost').textContent = calculateFighterCost(currentWarband.fighters[index]);
                         saveToCache();
                         updateLegend();
                     }
@@ -914,9 +965,8 @@ function createFighterCard(data, index) {
     const totalCardCost = calculateFighterCost(data);
     cardEl.querySelector('.fighter-total-cost').textContent = totalCardCost;
 
-    const warnings = checkValidation(data);
     const warningEl = cardEl.querySelector('.validation-warnings');
-    warningEl.innerHTML = warnings.map(w => `<div>⚠ ${w}</div>`).join('');
+    if (warningEl) warningEl.innerHTML = '';
 
     return wrapper;
 }
@@ -936,6 +986,30 @@ function applyFighterType(index, base) {
     const startingSkills = (base.rules || []).map(r => ({ name: r }));
     if (base.spell_list) {
         startingSkills.push({ name: `${base.spell_list}` });
+    }
+
+    // Automatically add accessible spell lists or mutations/blessings to starting skills
+    if (base.skills) {
+        base.skills.forEach(cat => {
+            const catLower = cat.toLowerCase();
+            const isSpellList = Object.keys(masterData.spellsByList || {}).some(listKey => {
+                const kLower = listKey.toLowerCase();
+                return catLower.includes(kLower) || kLower.includes(catLower) ||
+                       (catLower.includes('necrom') && kLower.includes('necrom')) ||
+                       (catLower.includes('sigmar') && kLower.includes('sigmar')) ||
+                       (catLower.includes('rat') && kLower.includes('rat')) ||
+                       (catLower.includes('taal') && kLower.includes('taal')) ||
+                       (catLower.includes('waaa') && kLower.includes('waaa'));
+            });
+            const isMutationList = catLower.includes('mutation') || catLower.includes('mutacje') || catLower.includes('nurgle');
+
+            if (isSpellList || isMutationList) {
+                // Ensure it is not already in startingSkills
+                if (!startingSkills.some(s => s.name.toLowerCase() === cat.toLowerCase())) {
+                    startingSkills.push({ name: cat });
+                }
+            }
+        });
     }
     fighter.skills = startingSkills;
 
@@ -960,11 +1034,18 @@ function applyFighterType(index, base) {
         i: s.i || 0, a: s.a || 0, ld: s.ld || 0
     };
     fighter.requirements = base.requirements || null;
+    fighter.validations = base.validations || null;
 }
 
 function calculateFighterCost(fighter) {
     let cost = parseInt(fighter.baseCost) || 0;
     fighter.equipment.forEach(item => cost += (parseInt(item.cost) || 0));
+    (fighter.skills || []).forEach(s => {
+        const match = s.name.match(/\((\+|-)?(\d+)\s*gc\)/i) || s.name.match(/-\s*(\d+)\s*gc\)/i);
+        if (match) {
+            cost += parseInt(match[match.length - 1]) || 0;
+        }
+    });
     return cost;
 }
 
@@ -1012,17 +1093,143 @@ function updateWarbandRating() {
     if (totalEl) totalEl.textContent = total;
 }
 
-function checkValidation(fighter) {
-    const warnings = [];
-    const eqTags = fighter.equipment.flatMap(e => {
-        const found = masterData.equipment.find(m => m.name === e.name);
-        return found ? (found.tags || []) : [];
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function runValidations() {
+    const sidebar = document.getElementById('validation-sidebar');
+    if (!sidebar) return;
+
+    // Clear previous card marks
+    document.querySelectorAll('.fighter-card').forEach(card => {
+        card.classList.remove('has-validation-error');
+        const badge = card.querySelector('.validation-badge');
+        if (badge) badge.remove();
+        const warnings = card.querySelector('.validation-warnings');
+        if (warnings) warnings.innerHTML = '';
     });
-    if (fighter.requirements) {
-        if (fighter.requirements.noArmorIfWizard && eqTags.includes('armor')) warnings.push("Wizards cannot wear armor.");
-        if (fighter.requirements.noBlackPowder && eqTags.includes('black-powder')) warnings.push("Elves cannot use black-powder.");
+
+    const errors = ValidationSystem.validateWarband(currentWarband, masterData);
+
+    // Mark cards that triggered validation
+    errors.forEach(err => {
+        if (err.level === 'fighter' && err.fighterIndex !== undefined) {
+            const cards = document.querySelectorAll('.fighter-card');
+            const card = cards[err.fighterIndex];
+            if (card) {
+                card.classList.add('has-validation-error');
+                
+                // Add a pulse badge in the header if it doesn't exist
+                let header = card.querySelector('.card-header');
+                let badge = card.querySelector('.validation-badge');
+                if (header && !badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'validation-badge material-symbols-outlined no-print';
+                    badge.textContent = 'warning';
+                    badge.title = 'This warrior has validation warnings.';
+                    header.appendChild(badge);
+                }
+                
+                // Show specific warnings list inside the card as well
+                const warningEl = card.querySelector('.validation-warnings');
+                if (warningEl) {
+                    const div = document.createElement('div');
+                    div.className = 'validation-warning-item';
+                    div.innerHTML = `<span>⚠ ${escapeHtml(err.message)}</span>`;
+                    
+                    if (err.hasFix) {
+                        const fixBtn = document.createElement('button');
+                        fixBtn.className = 'inline-fix-btn no-print';
+                        fixBtn.textContent = err.fixLabel || 'Fix';
+                        fixBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            err.fix();
+                        };
+                        div.appendChild(fixBtn);
+                    }
+                    warningEl.appendChild(div);
+                }
+            }
+        }
+    });
+
+    // Render HTML in the validation sidebar
+    let html = '<h2 class="validation-title">Warband Validation</h2>';
+    
+    if (errors.length === 0) {
+        html += `
+            <div class="validation-success">
+                <span class="material-symbols-outlined success-icon">check_circle</span>
+                <p class="success-title">Fully Valid!</p>
+                <p class="success-desc">All warband validation rules are perfectly met.</p>
+            </div>
+        `;
+        sidebar.classList.remove('active');
+    } else {
+        html += `
+            <div class="validation-summary-badge">
+                <span class="material-symbols-outlined">warning</span>
+                <span>${errors.length} issue${errors.length > 1 ? 's' : ''} detected</span>
+            </div>
+            <div class="validation-errors-list">
+        `;
+        
+        errors.forEach((err, idx) => {
+            html += `
+                <div class="validation-error-card" data-error-idx="${idx}">
+                    <div class="validation-error-header">
+                        <span class="material-symbols-outlined error-icon">warning</span>
+                        <span class="error-message">${escapeHtml(err.message)}</span>
+                    </div>
+                    <div class="validation-error-actions">
+                        ${err.hasFix ? `<button class="fix-btn no-print" data-error-idx="${idx}">${escapeHtml(err.fixLabel || 'Fix')}</button>` : ''}
+                        ${err.level === 'fighter' ? `<button class="view-btn no-print" data-fighter-idx="${err.fighterIndex}">View Warrior</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+        sidebar.classList.add('active');
     }
-    return warnings;
+
+    sidebar.innerHTML = html;
+    
+    // Bind click events for sidebar
+    sidebar.querySelectorAll('.fix-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const idx = parseInt(btn.dataset.errorIdx);
+            if (errors[idx] && errors[idx].hasFix) {
+                errors[idx].fix();
+            }
+        };
+    });
+    
+    sidebar.querySelectorAll('.view-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const fighterIdx = parseInt(btn.dataset.fighterIdx);
+            const cards = document.querySelectorAll('.card-wrapper');
+            const target = cards[fighterIdx];
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Briefly flash the card
+                const card = target.querySelector('.fighter-card');
+                if (card) {
+                    card.classList.add('flash-highlight');
+                    setTimeout(() => card.classList.remove('flash-highlight'), 1500);
+                }
+            }
+        };
+    });
 }
 
 // State Management

@@ -1,0 +1,84 @@
+{
+  "warband_name": "Cult of the Possessed",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "magister" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
+    "missile": ["Bow", "Short Bow"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "equipment_list_darksouls": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Flail"],
+    "missile": [],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Magister",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 70,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader"],
+      "skills": ["Combat", "Academic", "Speed", "Chaos Rituals"]
+    },
+    {
+      "name": "The Possessed",
+      "type": "Hero",
+      "race": "Possessed",
+      "max_quantity": 2,
+      "cost": 90,
+      "exp_start": 8,
+      "stats": { "m": 5, "ws": 4, "bs": 0, "s": 4, "t": 4, "w": 2, "i": 4, "a": 2, "ld": 7 },
+      "validations": ["noEquipment"],
+      "rules": ["Cause Fear"],
+      "skills": ["Combat", "Strength", "Speed", "Mutations"]
+    },
+    {
+      "name": "Mutant",
+      "type": "Hero",
+      "race": "Mutant",
+      "max_quantity": 2,
+      "cost": 25,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Speed", "Mutations"]
+    },
+    {
+      "name": "Darksoul",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 5,
+      "cost": 35,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 4, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "equipment_list_override": "darksouls",
+      "rules": ["Crazed"]
+    },
+    {
+      "name": "Beastman Gor",
+      "type": "Henchman",
+      "race": "Beastman",
+      "max_quantity": 3,
+      "cost": 45,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 2, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "darksouls"
+    },
+    {
+      "name": "Brethren",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "warband_name": "Beastmen Raiders",
+  "source": "Empire in Flames",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "beastmen_chieftain" }
+  ],
+  "special_rules": [
+    "Animals: May never hire any Hired Swords unless specifically stated."
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Battle Axe", "Sword", "Halberd", "Double-handed weapon"],
+    "missile": [],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "equipment_list_ungor": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Battle Axe", "Spear"],
+    "missile": [],
+    "armour": ["Shield"]
+  },
+  "special_skills": ["Shaggy Hide", "Mutant", "Fearless", "Horned One", "Bellowing Roar", "Manhater"],
+  "fighters": [
+    {
+      "name": "Beastmen Chieftain",
+      "type": "Leader",
+      "race": "Beastman",
+      "max_quantity": 1,
+      "cost": 65,
+      "exp_start": 20,
+      "stats": { "m": 5, "ws": 4, "bs": 3, "s": 4, "t": 4, "w": 1, "i": 4, "a": 1, "ld": 7 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader"],
+      "skills": ["Combat", "Strength", "Speed", "Special"]
+    },
+    {
+      "name": "Beastmen Shaman",
+      "type": "Wizard",
+      "race": "Beastman",
+      "max_quantity": 1,
+      "cost": 45,
+      "exp_start": 11,
+      "stats": { "m": 5, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "validations": ["noArmor"],
+      "rules": ["Wizard"],
+      "skills": ["Combat", "Speed", "Special", "Chaos Rituals"]
+    },
+    {
+      "name": "Bestigor",
+      "type": "Hero",
+      "race": "Beastman",
+      "max_quantity": 2,
+      "cost": 45,
+      "exp_start": 8,
+      "stats": { "m": 5, "ws": 4, "bs": 3, "s": 4, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength", "Special"]
+    },
+    {
+      "name": "Centigor",
+      "type": "Hero",
+      "race": "Beastman",
+      "max_quantity": 1,
+      "cost": 80,
+      "exp_start": 8,
+      "stats": { "m": 8, "ws": 4, "bs": 3, "s": 4, "t": 4, "w": 1, "i": 2, "a": "1(2)", "ld": 7 },
+      "rules": ["Drunken", "Woodland Dwelling", "Trample"],
+      "skills": ["Combat", "Strength", "Special"]
+    },
+    {
+      "name": "Ungor",
+      "type": "Henchman",
+      "race": "Beastman",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 5, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "equipment_list_override": "ungor",
+      "rules": ["Lowest of the Low"]
+    },
+    {
+      "name": "Gor",
+      "type": "Henchman",
+      "race": "Beastman",
+      "max_quantity": 5,
+      "cost": 35,
+      "stats": { "m": 5, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 6 }
+    },
+    {
+      "name": "Warhound of Chaos",
+      "type": "Animal",
+      "race": "Animal",
+      "max_quantity": 5,
+      "cost": 15,
+      "stats": { "m": 7, "ws": 4, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 5 },
+      "validations": ["noEquipment", "noExperience"]
+    },
+    {
+      "name": "Minotaur",
+      "type": "Animal",
+      "race": "Beastman",
+      "max_quantity": 1,
+      "cost": 200,
+      "stats": { "m": 6, "ws": 4, "bs": 3, "s": 4, "t": 4, "w": 3, "i": 4, "a": 3, "ld": 8 },
+      "is_large": true,
+      "rules": ["Cause Fear", "Bloodgreed", "Large Target"],
+      "validations": ["neverHero"]
+    }
+  ]
+}

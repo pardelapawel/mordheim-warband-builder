@@ -1,0 +1,103 @@
+{
+  "warband_name": "Ostlander Mercenaries",
+  "source": "Town Cryer #11",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "elder" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Spear", "Double-handed weapon"],
+    "missile": ["Bow", "Pistol"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "equipment_list_ruffian": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon"],
+    "missile": [],
+    "armour": ["Light armour"]
+  },
+  "equipment_list_jaeger": {
+    "hand_to_hand": ["Dagger", "Axe", "Sword", "Spear"],
+    "missile": ["Pistol", "Double-barrelled Pistol", "Bow", "Blunderbuss", "Handgun", "Hunting Rifle", "Double-barrelled Hunting Rifle"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "equipment_list_ogre": {
+    "hand_to_hand": ["Club", "Axe", "Sword", "Double-handed weapon"],
+    "missile": [],
+    "armour": ["Light armour"]
+  },
+  "fighters": [
+    {
+      "name": "Elder",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Blood Oath"],
+      "skills": ["Combat", "Shooting", "Strength", "Speed", "Ostlander Special"]
+    },
+    {
+      "name": "Blood-Brother",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 35,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength", "Ostlander Special"]
+    },
+    {
+      "name": "Priest of Taal",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 45,
+      "exp_start": 12,
+      "stats": { "m": 4, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "validations": ["noHeavyArmor"],
+      "skills": ["Combat", "Academic", "Strength", "Speed", "Ostlander Special", "Prayers of Taal"]
+    },
+    {
+      "name": "Kin",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    },
+    {
+      "name": "Jaeger",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 7,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "jaeger"
+    },
+    {
+      "name": "Ruffian",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 5,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 2, "a": 1, "ld": 7 },
+      "equipment_list_override": "ruffian",
+      "rules": ["Drunk", "No Respect"]
+    },
+    {
+      "name": "Ogre",
+      "type": "Henchman",
+      "race": "Ogre",
+      "max_quantity": 1,
+      "cost": 160,
+      "stats": { "m": 6, "ws": 3, "bs": 2, "s": 4, "t": 4, "w": 3, "i": 3, "a": 2, "ld": 7 },
+      "equipment_list_override": "ogre",
+      "rules": ["Cause Fear", "Large Target", "Slow witted"]
+    }
+  ]
+}

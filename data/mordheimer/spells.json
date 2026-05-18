@@ -1,0 +1,194 @@
+{
+  "Necromantic Magic": [
+    {
+      "name": "Lifestealer",
+      "difficulty": 10,
+      "description": "Choose a single model within 6\". The target suffers a wound (no save allowed) and the Necromancer gains an extra wound for the duration of the battle (may exceed maximum)."
+    },
+    {
+      "name": "Re-Animation",
+      "difficulty": 5,
+      "description": "One Zombie that went out of action last phase returns within 6\" of Necromancer (not in base contact)."
+    },
+    {
+      "name": "Death Vision",
+      "difficulty": 6,
+      "description": "Necromancer causes Fear for the duration of the battle."
+    },
+    {
+      "name": "Spell of Doom",
+      "difficulty": 9,
+      "description": "Choose model within 12\". Target must roll equal to or less than Strength or suffer an Injury roll."
+    },
+    {
+      "name": "Call of Vanhel",
+      "difficulty": 6,
+      "description": "Single Zombie or Dire Wolf within 6\" may move again (can charge)."
+    },
+    {
+      "name": "Spell of Awakening",
+      "difficulty": "Auto",
+      "description": "If an enemy Hero is killed, raise him as a Zombie. Retains stats/weapons/armor but no equipment/skills. Cannot run."
+    }
+  ],
+  "Prayers of Sigmar": [
+    {
+      "name": "The Hammer of Sigmar",
+      "difficulty": 7,
+      "description": "Wielder gains +2 Strength and causes double damage. Test each shooting phase to use."
+    },
+    {
+      "name": "Hearts of Steel",
+      "difficulty": 8,
+      "description": "Allies within 8\" are immune to Fear/All Alone. Warband gets +1 to Rout tests. Lasts until caster is down/stunned/OOA."
+    },
+    {
+      "name": "Soulfire",
+      "difficulty": 9,
+      "description": "Enemies within 4\" suffer S3 hit (no save). Undead/Possessed suffer S5 hit."
+    },
+    {
+      "name": "Shield of Faith",
+      "difficulty": 6,
+      "description": "Priest is immune to spells. Roll 1-2 in recovery to see if it disappears."
+    },
+    {
+      "name": "Healing Hand",
+      "difficulty": 5,
+      "description": "One model within 2\" is restored to full wounds. Stunned/Knocked down models within 2\" stand up."
+    },
+    {
+      "name": "Armour of Righteousness",
+      "difficulty": 9,
+      "description": "Priest gets 2+ armor save and causes Fear. Lasts until next shooting phase."
+    }
+  ],
+  "Waaaagh! Magic": [
+    {
+      "name": "Led'z go",
+      "difficulty": 9,
+      "description": "Orcs/Goblins within 4\" strike first. Lasts until caster is down/stunned/OOA."
+    },
+    {
+      "name": "Oi! Gerroff!",
+      "difficulty": 7,
+      "description": "Range 8\". Pushes enemy D6\" away. Collision causes S3 hit."
+    },
+    {
+      "name": "Zzap!",
+      "difficulty": 9,
+      "description": "Range 12\". D3 S4 hits on closest enemy, no save."
+    },
+    {
+      "name": "Fooled Ya!",
+      "difficulty": 6,
+      "description": "No enemy may charge Shaman next turn. If in combat, move 4\" away."
+    },
+    {
+      "name": "Clubba",
+      "difficulty": 7,
+      "description": "Counts as club with +2 Strength and +1 Attack. Lasts until Shaman suffers a wound."
+    },
+    {
+      "name": "Fire of Gork",
+      "difficulty": 8,
+      "description": "Range 12\". Two bolts causing D3 S3 hits each."
+    }
+  ],
+  "Magic of the Horned Rat": [
+    {
+      "name": "Warpfire",
+      "difficulty": 8,
+      "description": "Range 8\". D3 S4 hits on target, S3 hit on models within 2\"."
+    },
+    {
+      "name": "Children of the Horned Rat",
+      "difficulty": "Auto",
+      "description": "Before game, once per battle. Summons D3 Giant Rats within 6\". Disappear after battle."
+    },
+    {
+      "name": "Gnawdoom",
+      "difficulty": 7,
+      "description": "Range 8\". 2D6 S1 hits on single model."
+    },
+    {
+      "name": "Black Fury",
+      "difficulty": 8,
+      "description": "Charge enemy within 12\" (ignore terrain/models). Gain +2 Attacks and +1 Strength for this turn."
+    },
+    {
+      "name": "Eye of the Warp",
+      "difficulty": 8,
+      "description": "Models in base contact must pass Leadership test or suffer S3 hit and run 2D6\" away."
+    },
+    {
+      "name": "Sorcerer's Curse",
+      "difficulty": 6,
+      "description": "Range 12\". Target must re-roll successful armour saves and to hit rolls for the next phase."
+    }
+  ],
+  "Chaos Rituals": [
+    {
+      "name": "Vision of Torment",
+      "difficulty": 10,
+      "description": "Range 6\". Closest enemy is stunned (or knocked down if immune)."
+    },
+    {
+      "name": "Eye of God",
+      "difficulty": 7,
+      "description": "Once per battle. Roll D6 for model within 6\": 1: OOA ; 2-5: +1 to one stat ; 6: +1 to all stats."
+    },
+    {
+      "name": "Dark Blood",
+      "difficulty": 8,
+      "description": "Range 8\". D3 S5 hits. Caster must roll on Injury table (OOA counts as stunned)."
+    },
+    {
+      "name": "Lure of Chaos",
+      "difficulty": 9,
+      "description": "Range 12\". Compare Ld + D6. If caster wins, gain control of model until it passes Ld test in recovery."
+    },
+    {
+      "name": "Wings of Darkness",
+      "difficulty": 7,
+      "description": "Move anywhere within 12\" (counts as charging if engaging)."
+    },
+    {
+      "name": "Word of Pain",
+      "difficulty": 7,
+      "description": "All models within 3\" suffer S3 hit (no armour saves)."
+    }
+  ],
+  "Prayers of Taal": [
+    {
+      "name": "Stag’s Leap",
+      "difficulty": 7,
+      "description": "Move anywhere within 9\" (counts as charging if engaging). +1 Strength on first round."
+    },
+    {
+      "name": "Blessed Ale",
+      "difficulty": 5,
+      "description": "Heal model within 2\". Nearby living enemies lose 1 Attack."
+    },
+    {
+      "name": "Bear's Paw",
+      "difficulty": 7,
+      "description": "Target within 6\" gains +2 Strength until Priest's next turn."
+    },
+    {
+      "name": "Earthshudder",
+      "difficulty": 9,
+      "description": "Building within 4\" collapses. Models on/touching it suffer hits."
+    },
+    {
+      "name": "Tanglefoot",
+      "difficulty": 8,
+      "description": "1/2 speed for all within 12\" (except Jaeger/Horned Hunters)."
+    },
+    {
+      "name": "Summon Squirrels",
+      "difficulty": 7,
+      "description": "Target within 12\" suffers 2D6 S1 hits (no armour saves)."
+    }
+  ]
+}
