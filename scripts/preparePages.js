@@ -9,9 +9,11 @@ const DEPLOY_FILES = [
     'app.js',
     'headerScroll.js',
     'legendUtils.js',
+    'lz-string.min.js',
     'warbandUtils.js',
     'nameGenerator.js',
     'printUtils.js',
+    'validation.js',
     'data.json'
 ];
 

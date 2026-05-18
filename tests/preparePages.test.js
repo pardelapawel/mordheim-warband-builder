@@ -92,3 +92,17 @@ test('preparePages includes legendUtils runtime asset', () => {
 
     assert.equal(fs.existsSync(path.join(outDir, 'legendUtils.js')), true);
 });
+
+test('preparePages includes every local script referenced by index.html', async () => {
+    const indexHtml = await fs.promises.readFile(path.join(rootDir, 'index.html'), 'utf8');
+    const scriptSources = Array.from(indexHtml.matchAll(/<script\s+src="([^"]+)"><\/script>/g), match => match[1])
+        .filter(src => !src.startsWith('http'));
+
+    for (const src of scriptSources) {
+        assert.equal(
+            DEPLOY_FILES.includes(src),
+            true,
+            `${src} should be listed in DEPLOY_FILES so GitHub Pages gets the runtime asset`
+        );
+    }
+});
