@@ -1321,6 +1321,281 @@ input[type=number] {
     text-decoration: underline;
 }
 
+/* Validation Bottom Container styles */
+.validation-bottom-container {
+    max-width: 1800px;
+    margin: 3rem auto 1rem auto;
+    padding: 0 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.validation-sidebar {
+    width: 100%;
+    padding: 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    display: none; /* Hidden by default */
+    box-sizing: border-box;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.validation-sidebar.active {
+    display: block;
+}
+
+.validation-title {
+    font-family: 'Metamorphous', cursive;
+    color: var(--accent-color);
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.5rem;
+}
+
+/* Success State */
+.validation-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: rgba(46, 204, 113, 0.05);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    border-radius: 1rem;
+    animation: success-pulse 3s infinite;
+}
+
+.success-icon {
+    font-size: 3rem;
+    color: #2ecc71;
+    margin-bottom: 0.8rem;
+}
+
+.success-title {
+    font-family: 'MedievalSharp', cursive;
+    font-size: 1.1rem;
+    color: #2ecc71;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.success-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+@keyframes success-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.1);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
+}
+
+/* Error State */
+.validation-summary-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.6rem 1.2rem;
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+    border-radius: 0.8rem;
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+}
+
+.validation-errors-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.validation-error-card {
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid #e74c3c;
+    border-radius: 0.8rem;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.validation-error-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.validation-error-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.validation-error-header .error-icon {
+    color: #e74c3c;
+    font-size: 1.3rem;
+    margin-top: 1px;
+}
+
+.validation-error-header .error-message {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.validation-error-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.validation-error-actions button {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Metamorphous', cursive;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.validation-error-actions .fix-btn {
+    background: #e74c3c;
+    color: white;
+    border: 1px solid #e74c3c;
+    flex: 1;
+    white-space: nowrap;
+}
+
+.validation-error-actions .fix-btn:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+}
+
+.validation-error-actions .view-btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    flex: 1;
+    white-space: nowrap;
+}
+
+.validation-error-actions .view-btn:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Card Validation Warning Marks */
+.fighter-card.has-validation-error {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.15) !important;
+}
+
+.validation-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #ff4d4d;
+    font-size: 20px;
+    z-index: 5;
+    animation: alert-pulse 2s infinite;
+}
+
+@keyframes alert-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}
+
+/* Specific Warnings List Inside Card */
+.validation-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0.5rem 0;
+    padding: 0;
+}
+
+.validation-warning-item {
+    font-size: 0.75rem;
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.05);
+    border: 1px dashed rgba(255, 77, 77, 0.2);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.inline-fix-btn {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    cursor: pointer;
+    font-family: 'Metamorphous', cursive;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.inline-fix-btn:hover {
+    background: #d93838;
+}
+
+/* Card Smooth Scroll Focus Highlight */
+.fighter-card.flash-highlight {
+    animation: flash-border 1.5s ease-out;
+}
+
+@keyframes flash-border {
+    0% {
+        box-shadow: 0 0 30px var(--accent-color);
+        border-color: var(--accent-color) !important;
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border-color: var(--border-color) !important;
+        transform: scale(1);
+    }
+}
+
 /* Responsive UI adjustments */
 @media screen and (max-width: 1200px) {
     .main-layout {
@@ -1334,6 +1609,10 @@ input[type=number] {
         order: 2;
         margin-top: 2rem !important;
         max-height: none !important;
+    }
+
+    .validation-bottom-container {
+        padding: 0 1rem !important;
     }
 
     .card-grid {

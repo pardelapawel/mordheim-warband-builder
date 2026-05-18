@@ -49,14 +49,23 @@
 
             (fighter.skills || []).forEach(skill => {
                 const skillName = String(skill.name || '').trim();
-                const skillKey = normalizeLegendTerm(skillName);
-                if (skillKey && !termsByKey.has(skillKey)) termsByKey.set(skillKey, skillName);
-
-                const spellMatch = skillName.match(/\((.*?)\)/);
+                
+                const spellMatch = skillName.match(/^(.*?)\((.*?)\)/);
                 if (spellMatch) {
-                    const spellName = String(spellMatch[1] || '').trim();
+                    // Base skill/spell-list name
+                    const baseName = String(spellMatch[1] || '').trim();
+                    const baseKey = normalizeLegendTerm(baseName);
+                    if (baseKey && !termsByKey.has(baseKey)) termsByKey.set(baseKey, baseName);
+
+                    // Suboption name
+                    let spellName = String(spellMatch[2] || '').trim();
+                    // Strip " - XX gc" cost suffix if present
+                    spellName = spellName.replace(/\s*-\s*\d+\s*gc/i, '').trim();
                     const spellKey = normalizeLegendTerm(spellName);
                     if (spellKey && !termsByKey.has(spellKey)) termsByKey.set(spellKey, spellName);
+                } else {
+                    const skillKey = normalizeLegendTerm(skillName);
+                    if (skillKey && !termsByKey.has(skillKey)) termsByKey.set(skillKey, skillName);
                 }
             });
         });

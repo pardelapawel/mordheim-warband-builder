@@ -1,0 +1,379 @@
+{
+  "Combat": [
+    {
+      "name": "Strike to Injure",
+      "description": "The warrior can land their blows with uncanny accuracy. Add +1 to all injury rolls caused by the model in hand-to-hand combat."
+    },
+    {
+      "name": "Combat Master",
+      "description": "If the warrior fights against more than one enemy, they gain +1 extra Attack. Immune to 'All Alone' tests."
+    },
+    {
+      "name": "Step Aside",
+      "description": "Each time the warrior suffers a wound in hand-to-hand combat, they may make an additional saving throw of 5+ (taken after armor saves)."
+    },
+    {
+      "name": "Web of Steel",
+      "description": "The model gains +1 to all their rolls on the Critical Hit table in hand-to-hand combat."
+    }
+  ],
+  "Rules": [
+    {
+      "name": "Leader",
+      "description": "Any warrior within 6\" may use the Leader's Leadership characteristic for tests."
+    },
+    {
+      "name": "Cause Fear",
+      "description": "Enemy must pass a Leadership test to charge this model or if they are charged by it."
+    },
+    {
+      "name": "Immune to Psychology",
+      "description": "Model automatically passes any Leadership tests based on psychology (Fear, Panic, etc.)."
+    },
+    {
+      "name": "Immune to Poison",
+      "description": "Model is not affected by poisons."
+    },
+    {
+      "name": "No Pain",
+      "description": "Model ignores 'Stunned' results, treat them as 'Knocked Down' instead."
+    },
+    {
+      "name": "May not Run",
+      "description": "Model may not perform a run move."
+    },
+    {
+      "name": "Fanatical",
+      "description": "Model automatically passes all Leadership tests. May never be the warband leader."
+    },
+    {
+      "name": "Hard to Kill",
+      "description": "Dwarfs can only be taken out of action on a roll of 6 instead of 5-6 when rolling on the Injury chart."
+    },
+    {
+      "name": "Hard Head",
+      "description": "Dwarfs ignore the special rules for maces, clubs, etc. They are not easy to knock out!"
+    },
+    {
+      "name": "Armour Proficiency",
+      "description": "Dwarfs never suffer movement penalties for wearing armour."
+    },
+    {
+      "name": "Hate Orcs and Goblins",
+      "description": "Dwarfs hate Orcs and Goblins."
+    },
+    {
+      "name": "Grudgebearers",
+      "description": "A Dwarf warband may never include any kind of Elven Hired Sword or Dramatis Personae."
+    },
+    {
+      "name": "Incomparable Miners",
+      "description": "When checking for wyrdstone at the end of a game, add +1 to the number of pieces found for a Dwarf warband."
+    },
+    {
+      "name": "Deathwish",
+      "description": "Troll Slayers are completely immune to all psychology and never need to test if fighting alone."
+    },
+    {
+      "name": "Perfect Killer",
+      "description": "Extra -1 modifier to any armour save the enemy has to take (shooting and close combat)."
+    },
+    {
+      "name": "Burn the Witch!",
+      "description": "Hates all models who can cast spells."
+    },
+    {
+      "name": "Charge Attack",
+      "description": "+1 Attack when charging."
+    },
+    {
+      "name": "Stupidity",
+      "description": "Must pass Leadership test or act randomly. Immune if hero within 6\"."
+    },
+    {
+      "name": "Large Target",
+      "description": "+1 to hit when shooting at this model. Can be picked as target even if not closest."
+    },
+    {
+      "name": "Blessed Sight",
+      "description": "Re-roll any failed characteristic tests, to hit rolls (melee/ranged). Exploration: roll 2D6 and pick one."
+    },
+    {
+      "name": "Crazed",
+      "description": "Automatically pass any Leadership tests."
+    },
+    {
+      "name": "Expert Swordsmen",
+      "description": "Re-roll any failed hits when charging if armed with normal swords."
+    },
+    {
+      "name": "Military Discipline",
+      "description": "Fighters may use Captain's Leadership if within 12\" (instead of 6\")."
+    },
+    {
+      "name": "Martial Training",
+      "description": "All Marksmen add +1 to their Ballistic Skill."
+    },
+    {
+      "name": "Animosity",
+      "description": "Roll D6 at start of turn (Henchmen). On 1, roll another D6: 1: 'I 'Erd Dat!' (Charge/shoot friend) ; 2-5: Do nothing ; 6: Move twice."
+    },
+    {
+      "name": "Not Orcs",
+      "description": "Goblins/Squigs only count as half a model for Rout tests."
+    },
+    {
+      "name": "Regeneration",
+      "description": "4+ save to ignore wound. Not against fire/fire-magic."
+    },
+    {
+      "name": "Vomit Attack",
+      "description": "Single S5 attack, automatically hits, ignores armour saves."
+    },
+    {
+      "name": "Always Hungry",
+      "description": "Upkeep 15 gc (or sacrifice 2 Goblins/Squigs) after every game."
+    },
+    {
+      "name": "Inheritance",
+      "description": "Purchase one starting item at half cost. If lost, must replace at 150% or -1 to all tests."
+    },
+    {
+      "name": "Bear Handler",
+      "description": "Bear automatically passes Stupidity tests if within 6\" of Tamer."
+    },
+    {
+      "name": "Gun-Rest",
+      "description": "+1 to hit with handgun if model did not move (must have halberd)."
+    },
+    {
+      "name": "Bear Hug",
+      "description": "If 2 hits, may do Strength test (D6+S). If win/tie, automatic wound (no armor save)."
+    },
+    {
+      "name": "Fiercely Loyal",
+      "description": "Tamer ignores 'Sold to Pits', 'Robbed', 'Captured' injuries if bear lives."
+    },
+    {
+      "name": "Hate Chaos",
+      "description": "Hates all Chaos warbands (Possessed, Beastmen, Skaven, etc.)."
+    },
+    {
+      "name": "Bull Rush",
+      "description": "On charge, may attempt to knock down opponent instead of attacking. +1 to hit, no wound roll."
+    },
+    {
+      "name": "Foul Odour",
+      "description": "Living enemies are at -1 to hit in melee. Fire attacks against user are at +1 Strength."
+    },
+    {
+      "name": "Taunt",
+      "description": "Range: LOS. Target must pass Ld test or move to engage user in next turn."
+    },
+    {
+      "name": "Animal friendship",
+      "description": "Animals never attack user. Wardogs do not count against model limit."
+    },
+    {
+      "name": "Blood Oath",
+      "description": "Re-roll a single Rout test once per game (Leader only)."
+    },
+    {
+      "name": "Self-Sufficient",
+      "description": "Cannot hire any Mercenaries except for Ogres."
+    },
+    {
+      "name": "Drunk",
+      "description": "Automatically pass all Leadership tests. May never be leader."
+    },
+    {
+      "name": "Slow witted",
+      "description": "Gains advances at half the normal rate (requires twice the experience)."
+    }
+  ],
+  "Dwarf Special": [
+    {
+      "name": "Master of Blades",
+      "description": "Successful parry if beats or matches opponent's roll. If using two parry weapons, can parry two attacks. Re-roll failed parries with two Dwarf axes."
+    },
+    {
+      "name": "Extra Tough",
+      "description": "May re-roll once on the Hero's Serious Injury chart (must accept second roll)."
+    },
+    {
+      "name": "Resource Hunter",
+      "description": "When rolling on Exploration chart, may modify one dice roll by +1/-1."
+    },
+    {
+      "name": "True Grit",
+      "description": "When rolling on Injury table, 1-3 is knocked down, 4-5 is stunned, 6 is out of action."
+    },
+    {
+      "name": "Thick Skull",
+      "description": "3+ save to avoid being stunned (2+ with helmet). Replaces normal helmet rule."
+    }
+  ],
+  "Troll Slayer": [
+    {
+      "name": "Ferocious Charge",
+      "description": "Double attacks on charge turn, but with -1 to hit penalty."
+    },
+    {
+      "name": "Monster Slayer",
+      "description": "Always wounds on 4+ regardless of Toughness (unless Strength makes it better)."
+    },
+    {
+      "name": "Berserker",
+      "description": "Add +1 to close combat 'to hit' rolls during the turn in which he charges."
+    }
+  ],
+  "Orc Special": [
+    {
+      "name": "'ard ead",
+      "description": "3+ save to avoid being stunned (2+ with helmet). Treated as knocked down instead."
+    },
+    {
+      "name": "waaagh!",
+      "description": "Add +D3\" to charge range."
+    },
+    {
+      "name": "'ere we go!",
+      "description": "Ignore fear tests when charging."
+    },
+    {
+      "name": "da cunnin' plan",
+      "description": "Re-roll failed Rout tests (Boss only, if not OOA)."
+    },
+    {
+      "name": "well 'ard",
+      "description": "+1 to any armour saves."
+    },
+    {
+      "name": "'eadbasher",
+      "description": "Knocked down results caused in melee count as stunned instead."
+    }
+  ],
+  "Skaven Special": [
+    {
+      "name": "Black Hunger",
+      "description": "Add +1 Attack and +D3\" move for the turn, but suffer D3 S3 hits at the end."
+    },
+    {
+      "name": "Tail Fighting",
+      "description": "Wield shield, knife, or sword with tail. Gain extra attack or +1 armor save."
+    },
+    {
+      "name": "Wall Runner",
+      "description": "No Initiative test needed for climbing."
+    },
+    {
+      "name": "Infiltration",
+      "description": "Placed after opposing warband, anywhere out of sight and >12\" from enemy."
+    },
+    {
+      "name": "Art of Silent Death",
+      "description": "Fight with bare paws (+1 attack). Critical hit on 5-6 to wound. Used with Fighting Claws: +2 attacks."
+    }
+  ],
+  "Mutations": [
+    {
+      "name": "Daemon Soul",
+      "cost": 20,
+      "description": "4+ save against the effects of spells or prayers."
+    },
+    {
+      "name": "Great Claw",
+      "cost": 50,
+      "description": "+1 Attack with +1 Strength bonus. May carry no weapons in this arm."
+    },
+    {
+      "name": "Cloven Hoofs",
+      "cost": 40,
+      "description": "+1 Movement."
+    },
+    {
+      "name": "Tentacle",
+      "cost": 35,
+      "description": "Reduce opponent's attacks by -1 (min 1). May not carry weapons in this arm."
+    },
+    {
+      "name": "Blackblood",
+      "cost": 30,
+      "description": "If model loses a wound in melee, anyone in base contact suffers S3 hit."
+    },
+    {
+      "name": "Spines",
+      "cost": 35,
+      "description": "Anyone in base contact suffers S1 hit at the start of each melee phase."
+    },
+    {
+      "name": "Scorpion Tail",
+      "cost": 40,
+      "description": "Extra S5 attack in melee (S2 if target immune to poison)."
+    },
+    {
+      "name": "Extra Arm",
+      "cost": 40,
+      "description": "+1 Attack (can use weapon, shield or buckler)."
+    },
+    {
+      "name": "Hideous",
+      "cost": 40,
+      "description": "Model causes fear."
+    }
+  ],
+  "Blessings of Nurgle": [
+    {
+      "name": "Stream of Corruption",
+      "cost": 25,
+      "description": "Shooting attack, range 6\", S3, no armor saves."
+    },
+    {
+      "name": "Nurgle's Rot",
+      "cost": 50,
+      "description": "Immune to poison. Passed on 6 to wound in melee. Target must pass T test or lose 1 Toughness permanently."
+    },
+    {
+      "name": "Cloud of Flies",
+      "cost": 25,
+      "description": "Melee opponent suffers -1 to hit."
+    },
+    {
+      "name": "Bloated Foulness",
+      "cost": 40,
+      "description": "+1 Wound, +1 Toughness, -1 Movement."
+    },
+    {
+      "name": "Mark of Nurgle",
+      "cost": 35,
+      "description": "+1 Wound, immune to all poisons."
+    },
+    {
+      "name": "Hideous",
+      "cost": 40,
+      "description": "Causes fear."
+    }
+  ],
+  "Sisters of Sigmar": [
+    {
+      "name": "Sign of Sigmar",
+      "description": "Possessed or Undead opponents lose their first attack in the first round (min 1)."
+    },
+    {
+      "name": "Protection of Sigmar",
+      "description": "Any spell affecting her is nullified on 4+."
+    },
+    {
+      "name": "Utter Determination",
+      "description": "May re-roll any failed Rout tests (Matriarch only)."
+    },
+    {
+      "name": "Righteous Fury",
+      "description": "Hates all Skaven, Undead, Possessed, Beastmen, Dark Elves."
+    },
+    {
+      "name": "Absolute Faith",
+      "description": "Re-roll any fear tests. Does not have to test if fighting alone against several opponents."
+    }
+  ]
+}

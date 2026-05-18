@@ -1,0 +1,80 @@
+{
+  "warband_name": "The Undead",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "vampire" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear", "Halberd"],
+    "missile": ["Bow", "Short Bow"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Vampire",
+      "type": "Leader",
+      "race": "Undead",
+      "max_quantity": 1,
+      "cost": 110,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 4, "bs": 4, "s": 4, "t": 4, "w": 2, "i": 5, "a": 2, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Cause Fear", "Immune to Psychology", "Immune to Poison", "No Pain"],
+      "skills": ["Combat", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Necromancer",
+      "type": "Wizard",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Academic", "Speed", "Necromantic Magic"]
+    },
+    {
+      "name": "Dreg",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 3,
+      "cost": 20,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength"]
+    },
+    {
+      "name": "Ghoul",
+      "type": "Henchman",
+      "race": "Undead Mutant",
+      "max_quantity": null,
+      "cost": 40,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 4, "w": 1, "i": 3, "a": 2, "ld": 5 },
+      "validations": ["noEquipment"],
+      "rules": ["Cause Fear"]
+    },
+    {
+      "name": "Dire Wolf",
+      "type": "Henchman",
+      "race": "Undead Animal",
+      "max_quantity": 5,
+      "cost": 50,
+      "stats": { "m": 9, "ws": 3, "bs": 0, "s": 4, "t": 3, "w": 1, "i": 2, "a": 1, "ld": 4 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Cause Fear", "Immune to Psychology", "Immune to Poison", "No Pain", "Charge Attack", "May not Run"]
+    },
+    {
+      "name": "Zombie",
+      "type": "Henchman",
+      "race": "Undead",
+      "max_quantity": null,
+      "cost": 15,
+      "stats": { "m": 4, "ws": 2, "bs": 0, "s": 3, "t": 3, "w": 1, "i": 1, "a": 1, "ld": 5 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Cause Fear", "May not Run", "Immune to Psychology", "Immune to Poison", "No Pain"]
+    }
+  ]
+}

@@ -78,7 +78,7 @@ test('generate uses undead_dreg set for Ghoul (undead non-vampire)', () => {
 });
 
 test('generate uses skaven name set for Skaven race fighters', () => {
-    const names = generateMany({ name: 'Black Rat', race: 'Skaven', type: 'Hero' }, 30);
+    const names = generateMany({ name: 'Black Skaven', race: 'Skaven', type: 'Hero' }, 30);
     const skavenPrefixes = ["Queek", "Snik", "Gnaw", "Skrab", "Ratch", "Clatch", "Skrik", "Frenk", "Skarl", "Gnit"];
     const hasSkavenPrefix = names.some(n => skavenPrefixes.some(p => n.startsWith(p)));
     assert.ok(hasSkavenPrefix, 'Skaven fighter should produce names from the skaven name set');
