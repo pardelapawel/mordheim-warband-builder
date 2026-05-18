@@ -31,6 +31,35 @@
         return 'melee_weapons';
     }
 
+    function normalizeItemName(name) {
+        return String(name || '').trim().toLowerCase();
+    }
+
+    function getMordheimerFreeDagger(masterData, warband) {
+        if (warband?.ruleSetId !== 'Mordheimer') return null;
+
+        return (masterData?.equipment || []).find(item => {
+            const name = normalizeItemName(item.name);
+            const special = normalizeItemName(item.special);
+            return name === 'dagger' || special.includes('1st free for every warrior');
+        }) || null;
+    }
+
+    function fighterNeedsFreeDagger(fighter) {
+        return !(fighter?.validations || []).includes('noEquipment');
+    }
+
+    function getFighterDaggerIndexes(fighter, daggerName) {
+        const normalizedDaggerName = normalizeItemName(daggerName);
+
+        return (fighter?.equipment || []).reduce((indexes, item, index) => {
+            if (normalizeItemName(item.name) === normalizedDaggerName) {
+                indexes.push(index);
+            }
+            return indexes;
+        }, []);
+    }
+
     // Database of validation rules
     const ValidationRules = {
         // --- Warband-level validations ---
@@ -88,12 +117,6 @@
                             newFighter.skills.push({ name: template.spell_list });
                         }
                         
-                        // Free Dagger rule
-                        const noDaggerRaces = ["Zwierzę", "Ogr", "Animal", "Ogre", "Zwierzę jaskiniowe", "Undead Animal"];
-                        if (!noDaggerRaces.includes(newFighter.race)) {
-                            newFighter.equipment.push({ name: "Dagger", cost: 0 });
-                        }
-
                         warband.fighters.unshift(newFighter); // Place Leader at top
                         return true;
                     }
@@ -371,8 +394,58 @@
             }
         }
 
+        const freeDagger = getMordheimerFreeDagger(masterData, warband);
+
         // 3. Iterate through fighters and run fighter-level, equipment-level, and skill-level validations
         (warband.fighters || []).forEach((fighter, fIdx) => {
+            if (freeDagger && fighterNeedsFreeDagger(fighter)) {
+                const daggerIndexes = getFighterDaggerIndexes(fighter, freeDagger.name);
+
+                if (daggerIndexes.length === 0) {
+                    errors.push({
+                        id: `fighter-free-dagger-required-${fIdx}`,
+                        message: `"${fighter.customName || fighter.type}" must have a ${freeDagger.name}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'freeDaggerRequired',
+                        hasFix: true,
+                        fixLabel: `Add free ${freeDagger.name}`,
+                        fix: function () {
+                            fighter.equipment = fighter.equipment || [];
+                            fighter.equipment.unshift({
+                                name: freeDagger.name,
+                                cost: 0,
+                                originCategory: freeDagger.originCategory || 'melee_weapons'
+                            });
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                } else {
+                    const firstDagger = fighter.equipment[daggerIndexes[0]];
+                    if ((parseInt(firstDagger.cost) || 0) !== 0) {
+                        errors.push({
+                            id: `fighter-free-dagger-cost-${fIdx}`,
+                            message: `The first ${freeDagger.name} for "${fighter.customName || fighter.type}" must cost 0 gc.`,
+                            level: 'fighter',
+                            fighterIndex: fIdx,
+                            key: 'freeDaggerCost',
+                            hasFix: true,
+                            fixLabel: `Set first ${freeDagger.name} to 0 gc`,
+                            fix: function () {
+                                fighter.equipment[daggerIndexes[0]].cost = 0;
+                                if (typeof renderWarband === 'function') {
+                                    renderWarband();
+                                    saveToCache();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
             // (a) Fighter-level validations (copied from base template rules)
             const fighterVals = fighter.validations || [];
             fighterVals.forEach((valKey, valIdx) => {

@@ -21,3 +21,10 @@ test('equipment autocompletes are wired per category', () => {
     assert.match(appJs, /setupAutocomplete\(armorInput,\s*'equipment',\s*'armor'\)/);
     assert.match(appJs, /setupAutocomplete\(itemsInput,\s*'equipment',\s*'items'\)/);
 });
+
+test('skills autocomplete includes skill category keys such as Mutations', () => {
+    assert.match(
+        appJs,
+        /Object\.keys\(masterData\.skillsByCategory(?:\s*\|\|\s*\{\})?\)\.map\(k => \(\{ name: k \}\)\)/
+    );
+});
