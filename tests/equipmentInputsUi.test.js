@@ -61,14 +61,17 @@ test('fighter template moves exp input from stats row into header cost info', ()
         indexHtml,
         /class="stats-table"[\s\S]*class="stat-col stat-exp-col"/
     );
-    assert.match(
-        indexHtml,
-        /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/
-    );
+    // ensure fighter-exp-input exists inside the .cost-info region specifically
+    assert.match(indexHtml, /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
+    // ensure change handler updates model and track
+    assert.match(appJs, /expInput\.onchange\s*=/);
+    assert.match(appJs, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(appJs, /updateExpTrack\(newExp\)/);
 });
+
