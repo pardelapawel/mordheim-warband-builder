@@ -55,3 +55,20 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-allowed\s*\{[\s\S]*font-weight:\s*700/);
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-disallowed\s*\{[\s\S]*color:\s*var\(--text-secondary\)/);
 });
+
+test('fighter template moves exp input from stats row into header cost info', () => {
+    assert.doesNotMatch(
+        indexHtml,
+        /class="stats-table"[\s\S]*class="stat-col stat-exp-col"/
+    );
+    assert.match(
+        indexHtml,
+        /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/
+    );
+});
+
+test('fighter card binds header exp input and keeps exp track sync', () => {
+    assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
+    assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
+    assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
+});

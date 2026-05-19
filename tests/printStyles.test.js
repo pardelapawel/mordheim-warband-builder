@@ -176,3 +176,15 @@ test('exp-box does not set fixed width or height in print mode', () => {
         );
     }
 });
+
+test('cost info supports base total and exp on one line in screen styles', () => {
+    const beforePrint = styleCss.split('@media print')[0];
+    assert.match(
+        beforePrint,
+        /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
+    );
+    assert.match(
+        beforePrint,
+        /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/
+    );
+});
