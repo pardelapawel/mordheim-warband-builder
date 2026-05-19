@@ -60,6 +60,47 @@
         }, []);
     }
 
+    function findFighterTemplate(activeData, fighter) {
+        const fighterKey = normalizeItemName(fighter?.typeId || fighter?.templateName || fighter?.type);
+        if (!fighterKey || !Array.isArray(activeData?.fighters)) return null;
+
+        return activeData.fighters.find(template => {
+            return normalizeItemName(template.id || template.name) === fighterKey ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.templateName) ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.type);
+        }) || null;
+    }
+
+    function getTemplateCountKey(fighter, fighterTemplate) {
+        return normalizeItemName(fighterTemplate?.id || fighterTemplate?.name || fighter?.typeId || fighter?.templateName || fighter?.type);
+    }
+
+    function getFighterEquipmentList(activeData, fighterTemplate) {
+        if (!activeData || !fighterTemplate) return null;
+
+        const listKey = fighterTemplate.equipment_list_override
+            ? `equipment_list_${fighterTemplate.equipment_list_override}`
+            : 'equipment_list';
+        const rawList = activeData[listKey];
+        if (!rawList || typeof rawList !== 'object') return null;
+
+        const allowedNames = new Set();
+        Object.values(rawList).forEach(items => {
+            (items || []).forEach(itemName => {
+                const normalizedName = normalizeItemName(itemName);
+                if (normalizedName) allowedNames.add(normalizedName);
+            });
+        });
+
+        return allowedNames;
+    }
+
+    function getEquipmentListLabel(activeData, fighterTemplate, fighter) {
+        const warbandName = String(activeData?.warband_name || '').trim();
+        const fighterName = String(fighterTemplate?.name || fighter?.templateName || fighter?.type || 'fighter').trim();
+        return warbandName ? `${warbandName} ${fighterName} equipment list` : `${fighterName} equipment list`;
+    }
+
     // Database of validation rules
     const ValidationRules = {
         // --- Warband-level validations ---
@@ -395,9 +436,59 @@
         }
 
         const freeDagger = getMordheimerFreeDagger(masterData, warband);
+        const fighterCountByTemplate = new Map();
+
+        (warband.fighters || []).forEach(fighter => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            if (!countKey) return;
+            fighterCountByTemplate.set(countKey, (fighterCountByTemplate.get(countKey) || 0) + 1);
+        });
+        const fighterOccurrenceByTemplate = new Map();
 
         // 3. Iterate through fighters and run fighter-level, equipment-level, and skill-level validations
         (warband.fighters || []).forEach((fighter, fIdx) => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            const occurrence = countKey ? ((fighterOccurrenceByTemplate.get(countKey) || 0) + 1) : 0;
+
+            if (countKey) {
+                fighterOccurrenceByTemplate.set(countKey, occurrence);
+            }
+
+            if (fighterTemplate && typeof fighterTemplate.max_quantity === 'number' && fighterTemplate.max_quantity > 0) {
+                const totalCount = fighterCountByTemplate.get(countKey) || 0;
+                const hasExplicitOnePerWarband = (fighter.validations || []).includes('onePerWarband') ||
+                    (fighterTemplate.validations || []).includes('onePerWarband');
+
+                if (!(fighterTemplate.max_quantity === 1 && hasExplicitOnePerWarband) &&
+                    totalCount > fighterTemplate.max_quantity &&
+                    occurrence > fighterTemplate.max_quantity) {
+                    const limitMessage = fighterTemplate.max_quantity === 1
+                        ? `Only one "${fighterTemplate.name}" is allowed in the warband.`
+                        : `Only ${fighterTemplate.max_quantity} "${fighterTemplate.name}" fighters are allowed in the warband.`;
+
+                    errors.push({
+                        id: `fighter-max-quantity-${fIdx}`,
+                        message: limitMessage,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'maxQuantity',
+                        hasFix: true,
+                        fixLabel: 'Delete extra card',
+                        fix: function () {
+                            const fighterIndex = warband.fighters.indexOf(fighter);
+                            if (fighterIndex === -1) return;
+                            warband.fighters.splice(fighterIndex, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+            }
+
             if (freeDagger && fighterNeedsFreeDagger(fighter)) {
                 const daggerIndexes = getFighterDaggerIndexes(fighter, freeDagger.name);
 
@@ -444,6 +535,31 @@
                         });
                     }
                 }
+            }
+
+            const allowedEquipment = getFighterEquipmentList(activeData, fighterTemplate);
+            if (allowedEquipment && allowedEquipment.size > 0) {
+                (fighter.equipment || []).forEach((item, itemIdx) => {
+                    if (allowedEquipment.has(normalizeItemName(item.name))) return;
+
+                    errors.push({
+                        id: `fighter-eq-list-${fIdx}-${itemIdx}`,
+                        message: `"${item.name}" is not in the ${getEquipmentListLabel(activeData, fighterTemplate, fighter)}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'equipmentList',
+                        item: item,
+                        hasFix: true,
+                        fixLabel: `Remove ${item.name}`,
+                        fix: function () {
+                            fighter.equipment.splice(itemIdx, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                });
             }
 
             // (a) Fighter-level validations (copied from base template rules)

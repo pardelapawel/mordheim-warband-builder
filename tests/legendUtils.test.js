@@ -80,6 +80,21 @@ test('buildLegendGroups keeps spell list entries in Skills group', () => {
     assert.equal(items.length, 0);
 });
 
+test('buildLegendGroups keeps unknown fighter rules in Skills group', () => {
+    const groups = buildLegendGroups({
+        fighters: [{ equipment: [], skills: [{ name: 'Set Traps' }] }],
+        masterData,
+        glossaryState: { descriptions: {}, deletedTerms: [] }
+    });
+    const skills = groups.find(group => group.name === 'Skills').items;
+    const items = groups.find(group => group.name === 'Items').items;
+
+    assert.deepEqual(skills, [
+        { key: 'set traps', name: 'Set Traps', difficulty: '', description: '' }
+    ]);
+    assert.equal(items.length, 0);
+});
+
 test('createEquipmentEntry preserves catalog category for known equipment', () => {
     assert.deepEqual(createEquipmentEntry('Sword', masterData.equipment), {
         name: 'Sword',

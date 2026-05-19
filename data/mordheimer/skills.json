@@ -189,6 +189,74 @@
     {
       "name": "Slow witted",
       "description": "Gains advances at half the normal rate (requires twice the experience)."
+    },
+    {
+      "name": "Set Traps",
+      "description": "A fighter may set a trap by spending a turn doing nothing else. Place a marker in base contact; when another model moves within 2\", it triggers on 3+ and causes a S4 hit."
+    },
+    {
+      "name": "Promotion: If promoted to hero, may not choose Strength skills",
+      "description": "A Halfling promoted to hero through 'The lad's got talent' may not choose Strength skills as one of their two skill lists."
+    },
+    {
+      "name": "Wizard",
+      "description": "This fighter is a wizard and may use the spell list specified on its warband entry."
+    },
+    {
+      "name": "Drunken",
+      "description": "Roll 1D6 at the start of each turn: on 1 the fighter suffers stupidity, on 2-5 nothing happens, and on 6 the fighter gains frenzy for that turn. While affected by either stupidity or frenzy, they are immune to psychology."
+    },
+    {
+      "name": "Woodland Dwelling",
+      "description": "This fighter suffers no movement penalties for moving through wooded areas."
+    },
+    {
+      "name": "Trample",
+      "description": "This counts as an additional attack made with hooves and sheer size; it does not benefit from weapon bonuses or penalties."
+    },
+    {
+      "name": "Lowest of the Low",
+      "description": "This fighter may never acquire a position of authority. If it rolls 'That lad's got talent', the result must be re-rolled."
+    },
+    {
+      "name": "Bloodgreed",
+      "description": "If this fighter puts all of its enemies out of action in hand-to-hand combat, it becomes frenzied on a D6 roll of 4+."
+    },
+    {
+      "name": "Unnatural Strength",
+      "description": "This fighter starts the game with the Strongman skill from the Strength skill list in the Mordheim rulebook."
+    },
+    {
+      "name": "Nurgle's Blessings",
+      "description": "This fighter must start the game with one or more Blessings of Nurgle."
+    },
+    {
+      "name": "Daemonic Aura",
+      "description": "Daemons have a 5+ armour save. It is modified by Strength as normal and negated by magic weapons and spells. Their attacks are also considered magical."
+    },
+    {
+      "name": "Daemonic Instability",
+      "description": "If taken out of action, this Daemon is banished and destroyed on a D6 roll of 1-3 instead of rolling for injury. If the warband routs, it must immediately pass a Leadership test or be destroyed."
+    },
+    {
+      "name": "Expert Weaponsmith",
+      "description": "Missile weapons bought from the warband's basic equipment lists gain +3\" range for pistols and +6\" range for crossbows and handguns while this fighter is in the warband."
+    },
+    {
+      "name": "Runts",
+      "description": "This fighter may gain experience, but if it rolls 'That Lad's got talent' it is immediately killed by its Orc overlords and removed from the roster."
+    },
+    {
+      "name": "Minderz",
+      "description": "Each Cave Squig must stay within 6\" of a Goblin Warrior. If not, it goes wild and moves 2D6\" in a random direction each Movement phase, engaging any model it contacts."
+    },
+    {
+      "name": "Fearsome",
+      "description": "A Trained Bear causes fear."
+    },
+    {
+      "name": "No Respect",
+      "description": "This fighter may never become the warband leader."
     }
   ],
   "Dwarf Special": [

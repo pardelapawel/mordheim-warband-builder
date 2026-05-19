@@ -69,6 +69,7 @@
     { "name": "Szlachta Nocy", "description": "W bandzie dowodzonej przez niego modele Sługusów stają się 0-5" },
     { "name": "Perfekcyjny zabójca", "description": "Model ma dodatkowe -1 do Pancerza przeciwnika (zarówno w walce wręcz jak i strzeleckiej)" },
     { "name": "Rat King", "description": "W bandzie dowodzonej przez niego modele Czarnoszczurów stają się 0-4" },
+    { "name": "Król Szczurów", "description": "W bandzie dowodzonej przez niego modele Czarnoszczurów stają się 0-4" },
     { "name": "Szefo", "description": "W bandzie dowodzonej przez niego modele Orków i Goblinów stają się 0-5" },
     { "name": "Czempion Chaosu", "description": "W bandzie dowodzonej przez niego modele Gladiatorów (mordheimowych maruderów) stają się 0-5" },
     { "name": "Mutacje", "description": "Model musi zacząć grę z jedną lub więcej mutacji" },

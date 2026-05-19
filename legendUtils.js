@@ -73,6 +73,22 @@
         return Array.from(termsByKey.values());
     }
 
+    function extractSkillTermKeys(fighters) {
+        const keys = new Set();
+
+        (fighters || []).forEach(fighter => {
+            (fighter.skills || []).forEach(skill => {
+                const skillName = String(skill.name || '').trim();
+                const spellMatch = skillName.match(/^(.*?)\((.*?)\)/);
+                const baseName = spellMatch ? String(spellMatch[1] || '').trim() : skillName;
+                const baseKey = normalizeLegendTerm(baseName);
+                if (baseKey) keys.add(baseKey);
+            });
+        });
+
+        return keys;
+    }
+
     function buildLegendGroups({ fighters, masterData, glossaryState }) {
         const categories = [
             { name: 'Melee Weapons', icon: 'swords', order: 1, items: [] },
@@ -88,6 +104,7 @@
         const deletedTerms = new Set((glossaryState?.deletedTerms || []).map(normalizeLegendTerm));
         const addedNames = new Set();
         const usedTerms = extractUsedTerms(fighters);
+        const skillTermKeys = extractSkillTermKeys(fighters);
         const equipmentCatalog = masterData?.equipment || [];
         const skillCatalog = masterData?.skills || [];
         const spellCatalog = masterData?.spells || [];
@@ -125,7 +142,7 @@
 
             if (!found) {
                 found = { name: term };
-                categoryName = 'Items';
+                categoryName = skillTermKeys.has(termKey) ? 'Skills' : 'Items';
             }
 
             const normalizedName = normalizeLegendTerm(found.name);
