@@ -72,3 +72,28 @@ test('buildPrintSectionSummaries infers categories from catalog when equipment l
         skills: 'Step Aside'
     });
 });
+
+test('buildPrintSectionSummaries keeps legacy combined equipment names in the right section after catalog split', () => {
+    const summaries = buildPrintSectionSummaries({
+        type: 'Mercenary',
+        equipment: [
+            { name: 'Mace, Hammer or Club' },
+            { name: 'Throwing Stars/Knives' }
+        ],
+        skills: []
+    }, [
+        { name: 'Mace', originCategory: 'melee_weapons' },
+        { name: 'Hammer', originCategory: 'melee_weapons' },
+        { name: 'Club', originCategory: 'melee_weapons' },
+        { name: 'Throwing Stars', originCategory: 'ranged_weapons' },
+        { name: 'Throwing Knives', originCategory: 'ranged_weapons' }
+    ]);
+
+    assert.deepEqual(summaries, {
+        melee: 'Mace, Hammer or Club',
+        ranged: 'Throwing Stars/Knives',
+        armor: '-',
+        items: '-',
+        skills: '-'
+    });
+});

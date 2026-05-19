@@ -9,7 +9,8 @@ let masterData = {
     skills: [],
     skillsByCategory: {},
     spells: [],
-    spellsByList: {}
+    spellsByList: {},
+    spellListDescriptions: {}
 };
 
 let currentWarband = {
@@ -128,8 +129,13 @@ async function applyRuleSet(id, shouldRender = true) {
             });
         }
 
-        masterData.spells = flatten(sp);
-        masterData.spellsByList = sp; // Keep structured for context-aware selection
+        const spellLists = Object.fromEntries(
+            Object.entries(sp).filter(([, value]) => Array.isArray(value))
+        );
+
+        masterData.spells = flatten(spellLists);
+        masterData.spellsByList = spellLists; // Keep structured for context-aware selection
+        masterData.spellListDescriptions = sp.__listDescriptions || {};
 
         populateGlobalDatalists();
     } catch (e) {
@@ -164,7 +170,7 @@ function populateGlobalDatalists() {
         eqDatalist.appendChild(opt);
     });
     const skillNames = new Set();
-    [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k }))].forEach(skill => {
+    masterData.skills.forEach(skill => {
         const normalizedName = String(skill.name || '').trim().toLowerCase();
         if (!normalizedName || skillNames.has(normalizedName)) return;
         skillNames.add(normalizedName);
@@ -886,6 +892,27 @@ function createFighterCard(data, index) {
         saveToCache();
     };
 
+    const normalizeAutocompleteName = (name) => String(name || '').trim().toLowerCase();
+    const fighterTemplate = masterData.fighters.find(f => {
+        const fighterId = data.typeId || data.templateName || data.type;
+        return (f.id || f.name) === fighterId ||
+            normalizeAutocompleteName(f.name) === normalizeAutocompleteName(data.templateName || data.type);
+    }) || null;
+    const allowedEquipmentNames = new Set();
+
+    if (fighterTemplate) {
+        const listKey = fighterTemplate.equipment_list_override ? `equipment_list_${fighterTemplate.equipment_list_override}` : 'equipment_list';
+        const rawList = masterData.activeWarbandTypeData?.[listKey];
+        if (rawList && typeof rawList === 'object') {
+            Object.values(rawList).forEach(items => {
+                (items || []).forEach(itemName => {
+                    const normalizedName = normalizeAutocompleteName(itemName);
+                    if (normalizedName) allowedEquipmentNames.add(normalizedName);
+                });
+            });
+        }
+    }
+
     // Custom autocomplete to replace broken native mobile datalists
     const setupAutocomplete = (input, type, equipmentCategory = '') => {
         if (!input) return;
@@ -899,7 +926,7 @@ function createFighterCard(data, index) {
             let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
             let listData = type === 'equipment'
                 ? masterData.equipment.filter(item => !equipmentCategory || item.originCategory === equipmentCategory)
-                : [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k })), ...spellLists, ...masterData.spells];
+                : [...masterData.skills, ...spellLists, ...masterData.spells];
             let seenNames = new Set();
             listData = listData.filter(item => {
                 const normalizedName = String(item.name || '').trim().toLowerCase();
@@ -914,6 +941,15 @@ function createFighterCard(data, index) {
                 matches = listData.filter(i => i.name.toLowerCase().includes(val));
             }
 
+            if (type === 'equipment' && allowedEquipmentNames.size > 0) {
+                matches = [...matches].sort((a, b) => {
+                    const allowedA = allowedEquipmentNames.has(normalizeAutocompleteName(a.name)) ? 0 : 1;
+                    const allowedB = allowedEquipmentNames.has(normalizeAutocompleteName(b.name)) ? 0 : 1;
+                    if (allowedA !== allowedB) return allowedA - allowedB;
+                    return a.name.localeCompare(b.name);
+                });
+            }
+
             listEl.innerHTML = '';
             if (matches.length === 0) {
                 listEl.style.display = 'none';
@@ -923,6 +959,13 @@ function createFighterCard(data, index) {
             matches.forEach(match => {
                 let item = document.createElement('li');
                 item.textContent = match.name;
+                if (type === 'equipment' && allowedEquipmentNames.size > 0) {
+                    if (allowedEquipmentNames.has(normalizeAutocompleteName(match.name))) {
+                        item.classList.add('autocomplete-option-allowed');
+                    } else {
+                        item.classList.add('autocomplete-option-disallowed');
+                    }
+                }
                 // mousedown prevents input blur before click 
                 item.addEventListener('mousedown', (e) => e.preventDefault());
                 item.onclick = () => {
@@ -1014,9 +1057,7 @@ function applyFighterType(index, base) {
                        (catLower.includes('taal') && kLower.includes('taal')) ||
                        (catLower.includes('waaa') && kLower.includes('waaa'));
             });
-            const isMutationList = catLower.includes('mutation') || catLower.includes('mutacje') || catLower.includes('nurgle');
-
-            if (isSpellList || isMutationList) {
+            if (isSpellList) {
                 // Ensure it is not already in startingSkills
                 if (!startingSkills.some(s => s.name.toLowerCase() === cat.toLowerCase())) {
                     startingSkills.push({ name: cat });
@@ -1131,12 +1172,21 @@ function runValidations() {
     });
 
     const errors = ValidationSystem.validateWarband(currentWarband, masterData);
+    const severityOrder = { error: 0, warning: 1, tip: 2 };
+    const orderedErrors = [...errors].sort((a, b) => {
+        const severityDiff = severityOrder[(a.severity || 'error')] - severityOrder[(b.severity || 'error')];
+        if (severityDiff !== 0) return severityDiff;
+
+        const fighterIndexA = a.fighterIndex !== undefined ? a.fighterIndex : Number.MAX_SAFE_INTEGER;
+        const fighterIndexB = b.fighterIndex !== undefined ? b.fighterIndex : Number.MAX_SAFE_INTEGER;
+        return fighterIndexA - fighterIndexB;
+    });
     const errorCount = errors.filter(err => (err.severity || 'error') === 'error').length;
     const warningCount = errors.filter(err => (err.severity || 'error') === 'warning').length;
     const tipCount = errors.filter(err => (err.severity || 'error') === 'tip').length;
 
     // Mark cards that triggered validation
-    errors.forEach(err => {
+    orderedErrors.forEach(err => {
         if (err.level === 'fighter' && err.fighterIndex !== undefined) {
             const cards = document.querySelectorAll('.fighter-card');
             const card = cards[err.fighterIndex];
@@ -1206,7 +1256,7 @@ function runValidations() {
             <div class="validation-errors-list">
         `;
         
-        errors.forEach((err, idx) => {
+        orderedErrors.forEach((err, idx) => {
             const severity = err.severity || 'error';
             const icon = severity === 'tip' ? 'lightbulb' : 'warning';
             html += `
@@ -1234,8 +1284,8 @@ function runValidations() {
         btn.onclick = (e) => {
             e.stopPropagation();
             const idx = parseInt(btn.dataset.errorIdx);
-            if (errors[idx] && errors[idx].hasFix) {
-                errors[idx].fix();
+            if (orderedErrors[idx] && orderedErrors[idx].hasFix) {
+                orderedErrors[idx].fix();
             }
         };
     });

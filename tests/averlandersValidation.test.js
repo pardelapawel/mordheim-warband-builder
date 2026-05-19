@@ -104,6 +104,7 @@ test('validateWarband reports equipment outside the Mountainguard equipment list
 
     const error = errors.find(entry => entry.key === 'equipmentList' && entry.fighterIndex === 0);
     assert.ok(error);
+    assert.equal(error.severity, 'warning');
     assert.match(error.message, /Blunderbuss/i);
     assert.match(error.message, /Mountainguard equipment list/i);
 });
@@ -119,6 +120,35 @@ test('validateWarband allows weapons from a fighter equipment list override', ()
             ]
         },
         createAverlandersMasterData()
+    );
+
+    assert.equal(errors.some(error => error.key === 'equipmentList'), false);
+});
+
+test('validateWarband still accepts legacy combined equipment names after catalog split', () => {
+    const masterData = createAverlandersMasterData();
+    masterData.activeWarbandTypeData.equipment_list.hand_to_hand = ['Dagger', 'Mace', 'Hammer', 'Club'];
+    masterData.equipment = [
+        { name: 'Dagger', originCategory: 'melee_weapons' },
+        { name: 'Mace', originCategory: 'melee_weapons' },
+        { name: 'Hammer', originCategory: 'melee_weapons' },
+        { name: 'Club', originCategory: 'melee_weapons' },
+        { name: 'Bow', originCategory: 'ranged_weapons' },
+        { name: 'Long bow', originCategory: 'ranged_weapons' },
+        { name: 'Helmet', originCategory: 'armor' },
+        { name: 'Blunderbuss', originCategory: 'ranged_weapons' }
+    ];
+
+    const errors = validateWarband(
+        {
+            ruleSetId: 'Mordheimer',
+            fighters: [
+                createFighter('Mountainguard', {
+                    equipment: [{ name: 'Mace, Hammer or Club', cost: 3 }]
+                })
+            ]
+        },
+        masterData
     );
 
     assert.equal(errors.some(error => error.key === 'equipmentList'), false);

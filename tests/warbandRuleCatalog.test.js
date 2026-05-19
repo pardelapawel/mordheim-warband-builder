@@ -29,6 +29,7 @@ function collectNamesByRuleSet(ruleSet) {
     });
 
     Object.entries(spells).forEach(([spellListName, entries]) => {
+        if (!Array.isArray(entries)) return;
         names.add(normalizeName(spellListName));
         (entries || []).forEach(entry => names.add(normalizeName(entry.name)));
     });

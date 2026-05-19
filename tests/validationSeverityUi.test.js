@@ -43,3 +43,17 @@ test('validation fix buttons define distinct colors for error warning and tip st
     assert.match(styleCss, /\.fix-btn\.validation-warning/);
     assert.match(styleCss, /\.fix-btn\.validation-tip/);
 });
+
+test('validation badge is positioned on the left side of the card header', () => {
+    assert.match(styleCss, /\.validation-badge\s*\{[\s\S]*left:\s*10px;/);
+    assert.doesNotMatch(styleCss, /\.validation-badge\s*\{[\s\S]*right:\s*10px;/);
+});
+
+test('validation entries are sorted by severity and then by fighter card order', () => {
+    assert.match(appJs, /const severityOrder = \{ error: 0, warning: 1, tip: 2 \}/);
+    assert.match(appJs, /const orderedErrors = \[\.\.\.errors\]\.sort\(\(a, b\) => \{/);
+    assert.match(appJs, /const severityDiff = severityOrder\[\(a\.severity \|\| 'error'\)\] - severityOrder\[\(b\.severity \|\| 'error'\)\]/);
+    assert.match(appJs, /const fighterIndexA = a\.fighterIndex !== undefined \? a\.fighterIndex : Number\.MAX_SAFE_INTEGER/);
+    assert.match(appJs, /const fighterIndexB = b\.fighterIndex !== undefined \? b\.fighterIndex : Number\.MAX_SAFE_INTEGER/);
+    assert.match(appJs, /return fighterIndexA - fighterIndexB/);
+});

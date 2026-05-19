@@ -15,6 +15,9 @@ const masterData = {
     spells: [
         { name: 'Fireball', difficulty: '8+', description: 'Deals fire damage' }
     ],
+    spellListDescriptions: {
+        'Prayers of Taal': 'Nature prayers used by the Priest of Taal.'
+    },
     spellsByList: {
         'Prayers of Taal': [
             { name: "Taal's Blessing", difficulty: 'X', description: 'Taal prayer' }
@@ -75,7 +78,7 @@ test('buildLegendGroups keeps spell list entries in Skills group', () => {
     const items = groups.find(group => group.name === 'Items').items;
 
     assert.deepEqual(skills, [
-        { key: 'prayers of taal', name: 'Prayers of Taal', difficulty: '', description: '' }
+        { key: 'prayers of taal', name: 'Prayers of Taal', difficulty: '', description: 'Nature prayers used by the Priest of Taal.' }
     ]);
     assert.equal(items.length, 0);
 });
@@ -91,6 +94,29 @@ test('buildLegendGroups keeps unknown fighter rules in Skills group', () => {
 
     assert.deepEqual(skills, [
         { key: 'set traps', name: 'Set Traps', difficulty: '', description: '' }
+    ]);
+    assert.equal(items.length, 0);
+});
+
+test('buildLegendGroups maps legacy combined equipment names to the split catalog category', () => {
+    const groups = buildLegendGroups({
+        fighters: [{ equipment: [{ name: 'Mace, Hammer or Club' }], skills: [] }],
+        masterData: {
+            ...masterData,
+            equipment: [
+                ...masterData.equipment,
+                { name: 'Mace', originCategory: 'melee_weapons', description: 'Concussion', cost: 3 },
+                { name: 'Hammer', originCategory: 'melee_weapons', description: 'Concussion', cost: 3 },
+                { name: 'Club', originCategory: 'melee_weapons', description: 'Concussion', cost: 3 }
+            ]
+        },
+        glossaryState: { descriptions: {}, deletedTerms: [] }
+    });
+    const melee = groups.find(group => group.name === 'Melee Weapons').items;
+    const items = groups.find(group => group.name === 'Items').items;
+
+    assert.deepEqual(melee, [
+        { key: 'mace, hammer or club', name: 'Mace, Hammer or Club', difficulty: '', description: 'Concussion' }
     ]);
     assert.equal(items.length, 0);
 });

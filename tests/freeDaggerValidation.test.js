@@ -27,7 +27,7 @@ function createFighter(overrides = {}) {
     };
 }
 
-test('Mordheimer validates that eligible fighters have a dagger', () => {
+test('Mordheimer offers an optional free dagger tip for eligible fighters', () => {
     const errors = validateWarband(
         {
             ruleSetId: 'Mordheimer',
@@ -36,7 +36,11 @@ test('Mordheimer validates that eligible fighters have a dagger', () => {
         createMasterData()
     );
 
-    assert.ok(errors.some(error => error.key === 'freeDaggerRequired' && error.fighterIndex === 0));
+    assert.ok(errors.some(error =>
+        error.key === 'freeDaggerRequired' &&
+        error.fighterIndex === 0 &&
+        error.message === '"Warrior" can have a free Dagger.'
+    ));
 });
 
 test('Mordheimer treats missing free dagger as a tip instead of an error', () => {

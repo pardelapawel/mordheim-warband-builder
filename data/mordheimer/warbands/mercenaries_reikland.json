@@ -9,12 +9,12 @@
     { "type": "exactlyOne", "fighter": "mercenary_captain" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
     "missile": ["Crossbow", "Pistol", "Duelling Pistol", "Bow"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"]
   },
   "equipment_list_marksman": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword"],
     "missile": ["Crossbow", "Pistol", "Bow", "Long bow", "Blunderbuss", "Handgun", "Hunting Rifle"],
     "armour": ["Light armour", "Shield", "Helmet"]
   },

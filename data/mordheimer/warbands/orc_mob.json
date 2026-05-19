@@ -9,12 +9,12 @@
     { "type": "exactlyOne", "fighter": "orc_boss" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Spear", "Halberd", "Double-handed weapon", "Morning star"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Spear", "Halberd", "Double-handed weapon", "Morning star"],
     "missile": ["Bow", "Crossbow"],
     "armour": ["Light armour", "Shield", "Helmet"]
   },
   "equipment_list_goblin": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Sword", "Spear", "Ball & Chain"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Sword", "Spear", "Ball & Chain"],
     "missile": ["Short Bow"],
     "armour": ["Shield", "Helmet"],
     "miscellaneous": ["Squig Prodder", "Mad Cap Mushrooms"]

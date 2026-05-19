@@ -10,11 +10,11 @@
   ],
   "equipment_list": {
     "hand_to_hand": ["Dagger", "Sword", "Flail", "Spear", "Halberd", "Weeping Blades", "Fighting Claws"],
-    "missile": ["Sling", "Throwing Stars/Knives", "Blowpipe", "Warplock Pistol"],
+    "missile": ["Sling", "Throwing Stars", "Throwing Knives", "Blowpipe", "Warplock Pistol"],
     "armour": ["Light armour", "Buckler", "Helmet"]
   },
   "equipment_list_henchmen": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Sword", "Spear"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Sword", "Spear"],
     "missile": ["Sling"],
     "armour": ["Light armour", "Shield", "Helmet"]
   },

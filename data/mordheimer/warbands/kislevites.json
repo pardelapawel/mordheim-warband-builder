@@ -9,13 +9,13 @@
     { "type": "exactlyOne", "fighter": "druzhina_captain" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
     "missile": ["Throwing knives", "Short Bow", "Bow", "Crossbow", "Pistol", "Duelling Pistol"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"],
     "miscellaneous": ["Bear-Claw Necklace", "Vodka"]
   },
   "equipment_list_streltsi": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
     "missile": ["Bow", "Crossbow", "Pistol", "Duelling Pistol", "Handgun"],
     "armour": ["Light armour", "Shield", "Helmet"]
   },

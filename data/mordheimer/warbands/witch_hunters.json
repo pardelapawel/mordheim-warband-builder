@@ -9,7 +9,7 @@
     { "type": "exactlyOne", "fighter": "witch_hunter_captain" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon"],
     "missile": ["Crossbow", "Pistol"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"]
   },
@@ -19,7 +19,7 @@
     "armour": []
   },
   "equipment_list_zealot": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
     "missile": ["Bow", "Short Bow"],
     "armour": ["Light armour", "Shield", "Helmet"]
   },
