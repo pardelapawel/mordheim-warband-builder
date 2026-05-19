@@ -62,7 +62,7 @@ test('fighter template moves exp input from stats row into header cost info', ()
         /class="stats-table"[\s\S]*(class="stat-col stat-exp-col"|class="stat-exp"|class="fighter-exp-input")/
     );
     // ensure fighter-exp-input exists inside the .cost-info region specifically
-    assert.match(indexHtml, /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/);
+    assert.match(indexHtml, /class="[^"]*\bcost-info\b[^"]*"[\s\S]*class="[^"]*\bfighter-exp-input\b[^"]*"/);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
@@ -75,5 +75,8 @@ test('fighter card binds header exp input and keeps exp track sync', () => {
     const onchangeBody = onchangeMatch[1];
     assert.match(onchangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
     assert.match(onchangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
+    // also ensure handler updates overall rating and persists changes
+    assert.match(onchangeBody, /updateWarbandRating\s*\(/);
+    assert.match(onchangeBody, /saveToCache\s*\(/);
 });
 
