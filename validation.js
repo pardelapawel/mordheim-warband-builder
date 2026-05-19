@@ -60,6 +60,10 @@
         }, []);
     }
 
+    function getValidationSeverity(error) {
+        return error?.severity || 'error';
+    }
+
     function findFighterTemplate(activeData, fighter) {
         const fighterKey = normalizeItemName(fighter?.typeId || fighter?.templateName || fighter?.type);
         if (!fighterKey || !Array.isArray(activeData?.fighters)) return null;
@@ -499,6 +503,7 @@
                         level: 'fighter',
                         fighterIndex: fIdx,
                         key: 'freeDaggerRequired',
+                        severity: 'tip',
                         hasFix: true,
                         fixLabel: `Add free ${freeDagger.name}`,
                         fix: function () {
@@ -523,6 +528,7 @@
                             level: 'fighter',
                             fighterIndex: fIdx,
                             key: 'freeDaggerCost',
+                            severity: 'tip',
                             hasFix: true,
                             fixLabel: `Set first ${freeDagger.name} to 0 gc`,
                             fix: function () {
@@ -714,6 +720,7 @@
 
     return {
         ValidationRules,
-        validateWarband
+        validateWarband,
+        getValidationSeverity
     };
 }));

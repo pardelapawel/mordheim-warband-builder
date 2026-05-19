@@ -31,14 +31,37 @@ function extractMediaPrintBlock(css) {
     return null;
 }
 
-test('print mode forces folded card sections visible', () => {
+test('print mode restores folded card content using expanded-card layout rules', () => {
     assert.match(
         styleCss,
-        /@media print[\s\S]*\.fighter-card\.folded \.stats-table[\s\S]*display:\s*grid !important;/,
+        /@media print[\s\S]*\.fighter-card\.folded \.stats-table[\s\S]*display:\s*flex !important;/,
     );
     assert.match(
         styleCss,
-        /@media print[\s\S]*\.fighter-card\.folded \.card-section,[\s\S]*\.fighter-card\.folded \.combobox-container,[\s\S]*\.fighter-card\.folded \.validation-warnings,[\s\S]*\.fighter-card\.folded \.type-selection[\s\S]*display:\s*block !important;/,
+        /@media print[\s\S]*\.fighter-card\.folded \.card-section,[\s\S]*\.fighter-card\.folded \.exp-track-section[\s\S]*display:\s*block !important;/,
+    );
+    assert.doesNotMatch(
+        styleCss,
+        /@media print[\s\S]*\.fighter-card\.folded \.combobox-container[\s\S]*display:\s*flex !important;/,
+    );
+    assert.doesNotMatch(
+        styleCss,
+        /@media print[\s\S]*\.fighter-card\.folded \.type-selection[\s\S]*display:\s*block !important;/,
+    );
+});
+
+test('print mode hides validation UI completely', () => {
+    assert.match(
+        styleCss,
+        /@media print[\s\S]*\.validation-sidebar[\s\S]*display:\s*none !important;/,
+    );
+    assert.match(
+        styleCss,
+        /@media print[\s\S]*\.validation-warnings[\s\S]*display:\s*none !important;/,
+    );
+    assert.match(
+        styleCss,
+        /@media print[\s\S]*\.validation-badge[\s\S]*display:\s*none !important;/,
     );
 });
 

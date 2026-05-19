@@ -1123,6 +1123,7 @@ function runValidations() {
     // Clear previous card marks
     document.querySelectorAll('.fighter-card').forEach(card => {
         card.classList.remove('has-validation-error');
+        card.classList.remove('has-validation-warning');
         const badge = card.querySelector('.validation-badge');
         if (badge) badge.remove();
         const warnings = card.querySelector('.validation-warnings');
@@ -1130,6 +1131,9 @@ function runValidations() {
     });
 
     const errors = ValidationSystem.validateWarband(currentWarband, masterData);
+    const errorCount = errors.filter(err => (err.severity || 'error') === 'error').length;
+    const warningCount = errors.filter(err => (err.severity || 'error') === 'warning').length;
+    const tipCount = errors.filter(err => (err.severity || 'error') === 'tip').length;
 
     // Mark cards that triggered validation
     errors.forEach(err => {
@@ -1137,16 +1141,21 @@ function runValidations() {
             const cards = document.querySelectorAll('.fighter-card');
             const card = cards[err.fighterIndex];
             if (card) {
-                card.classList.add('has-validation-error');
+                const severity = err.severity || 'error';
+                if (severity === 'error') {
+                    card.classList.add('has-validation-error');
+                } else if (severity === 'warning') {
+                    card.classList.add('has-validation-warning');
+                }
                 
                 // Add a pulse badge in the header if it doesn't exist
                 let header = card.querySelector('.card-header');
                 let badge = card.querySelector('.validation-badge');
                 if (header && !badge) {
                     badge = document.createElement('span');
-                    badge.className = 'validation-badge material-symbols-outlined no-print';
-                    badge.textContent = 'warning';
-                    badge.title = 'This warrior has validation warnings.';
+                    badge.className = `validation-badge material-symbols-outlined no-print validation-${severity}`;
+                    badge.textContent = severity === 'tip' ? 'lightbulb' : 'warning';
+                    badge.title = `This warrior has validation ${severity}s.`;
                     header.appendChild(badge);
                 }
                 
@@ -1154,12 +1163,13 @@ function runValidations() {
                 const warningEl = card.querySelector('.validation-warnings');
                 if (warningEl) {
                     const div = document.createElement('div');
-                    div.className = 'validation-warning-item';
-                    div.innerHTML = `<span>⚠ ${escapeHtml(err.message)}</span>`;
+                    const icon = severity === 'tip' ? '💡' : '⚠';
+                    div.className = `validation-warning-item validation-${severity}`;
+                    div.innerHTML = `<span>${icon} ${escapeHtml(err.message)}</span>`;
                     
                     if (err.hasFix) {
                         const fixBtn = document.createElement('button');
-                        fixBtn.className = 'inline-fix-btn no-print';
+                        fixBtn.className = `inline-fix-btn no-print validation-${severity}`;
                         fixBtn.textContent = err.fixLabel || 'Fix';
                         fixBtn.onclick = (e) => {
                             e.stopPropagation();
@@ -1189,20 +1199,24 @@ function runValidations() {
         html += `
             <div class="validation-summary-badge">
                 <span class="material-symbols-outlined">warning</span>
-                <span>${errors.length} issue${errors.length > 1 ? 's' : ''} detected</span>
+                <span>${errorCount} error${errorCount === 1 ? '' : 's'}</span>
+                <span>${warningCount} warning${warningCount === 1 ? '' : 's'}</span>
+                <span>${tipCount} tip${tipCount === 1 ? '' : 's'}</span>
             </div>
             <div class="validation-errors-list">
         `;
         
         errors.forEach((err, idx) => {
+            const severity = err.severity || 'error';
+            const icon = severity === 'tip' ? 'lightbulb' : 'warning';
             html += `
-                <div class="validation-error-card" data-error-idx="${idx}">
+                <div class="validation-error-card validation-${severity}" data-error-idx="${idx}">
                     <div class="validation-error-header">
-                        <span class="material-symbols-outlined error-icon">warning</span>
+                        <span class="material-symbols-outlined error-icon">${icon}</span>
                         <span class="error-message">${escapeHtml(err.message)}</span>
                     </div>
                     <div class="validation-error-actions">
-                        ${err.hasFix ? `<button class="fix-btn no-print" data-error-idx="${idx}">${escapeHtml(err.fixLabel || 'Fix')}</button>` : ''}
+                        ${err.hasFix ? `<button class="fix-btn no-print validation-${severity}" data-error-idx="${idx}">${escapeHtml(err.fixLabel || 'Fix')}</button>` : ''}
                         ${err.level === 'fighter' ? `<button class="view-btn no-print" data-fighter-idx="${err.fighterIndex}">View Warrior</button>` : ''}
                     </div>
                 </div>

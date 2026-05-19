@@ -39,6 +39,22 @@ test('Mordheimer validates that eligible fighters have a dagger', () => {
     assert.ok(errors.some(error => error.key === 'freeDaggerRequired' && error.fighterIndex === 0));
 });
 
+test('Mordheimer treats missing free dagger as a tip instead of an error', () => {
+    const errors = validateWarband(
+        {
+            ruleSetId: 'Mordheimer',
+            fighters: [createFighter()]
+        },
+        createMasterData()
+    );
+
+    assert.ok(errors.some(error =>
+        error.key === 'freeDaggerRequired' &&
+        error.fighterIndex === 0 &&
+        error.severity === 'tip'
+    ));
+});
+
 test('Mordheimer validates that the first dagger costs 0 gc', () => {
     const errors = validateWarband(
         {
@@ -49,6 +65,22 @@ test('Mordheimer validates that the first dagger costs 0 gc', () => {
     );
 
     assert.ok(errors.some(error => error.key === 'freeDaggerCost' && error.fighterIndex === 0));
+});
+
+test('Mordheimer treats wrong free dagger cost as a tip instead of an error', () => {
+    const errors = validateWarband(
+        {
+            ruleSetId: 'Mordheimer',
+            fighters: [createFighter({ equipment: [{ name: 'Dagger', cost: 2 }] })]
+        },
+        createMasterData()
+    );
+
+    assert.ok(errors.some(error =>
+        error.key === 'freeDaggerCost' &&
+        error.fighterIndex === 0 &&
+        error.severity === 'tip'
+    ));
 });
 
 test('Mordheimer skips free dagger validation for fighters that cannot carry equipment', () => {
