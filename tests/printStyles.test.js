@@ -183,17 +183,17 @@ test('cost info supports base total and exp on one line in screen styles', () =>
         beforePrint,
         /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
     );
-    // ensure flex is a row layout (or at minimum not column)
-    const costInfoRuleMatch = beforePrint.match(/\.cost-info\s*\{([\s\S]*?)\}/);
-    if (costInfoRuleMatch) {
-        const rules = costInfoRuleMatch[1];
-        assert.doesNotMatch(rules, /flex-direction:\s*column/);
-        // require explicit row (or row-reverse) inside the .cost-info rule block so stacked column layouts do not pass
-        assert.match(rules, /flex-direction:\s*(row|row-reverse)/);
-    } else {
-        // fallback: require explicit row direction if block not found as single rule
-        assert.match(beforePrint, /\.cost-info\s*\{[\s\S]*flex-direction:\s*(row|row-reverse)/);
+    // ensure flex is a row layout (or at minimum not column) across all .cost-info rules
+    const costInfoRuleRegex = /\.cost-info\s*\{([\s\S]*?)\}/g;
+    const costInfoMatches = [...beforePrint.matchAll(costInfoRuleRegex)].map(m => m[1]);
+    assert.ok(costInfoMatches.length > 0, 'Should have at least one .cost-info rule in screen styles');
+    // none of the .cost-info rule blocks may set column direction
+    for (const rules of costInfoMatches) {
+        assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
     }
+    // require at least one rules block explicitly sets display:flex and centers items (ensures one-line cost layout still present)
+    const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
+    assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
     // explicitly require row (or row-reverse) so stacked column layouts do not pass
     assert.match(
         beforePrint,
