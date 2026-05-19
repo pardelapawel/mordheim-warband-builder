@@ -9,6 +9,41 @@ const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
+function findMatchingClosingDiv(html, startIndex) {
+    const openTagEnd = html.indexOf('>', startIndex);
+    if (openTagEnd === -1) return null;
+    let pos = openTagEnd + 1;
+    let depth = 1;
+    while (depth > 0) {
+        const nextOpen = html.indexOf('<div', pos);
+        const nextClose = html.indexOf('</div>', pos);
+        if (nextClose === -1) return null;
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+            depth++;
+            pos = nextOpen + 4;
+        } else {
+            depth--;
+            pos = nextClose + 6;
+        }
+    }
+    return html.slice(startIndex, pos);
+}
+
+function extractArrowFunctionBody(source, assignmentPattern) {
+    const match = source.match(assignmentPattern);
+    assert.ok(match, 'Expected assignment pattern to exist');
+    let pos = match.index + match[0].length;
+    let depth = 1;
+    while (depth > 0 && pos < source.length) {
+        const char = source[pos];
+        if (char === '{') depth++;
+        if (char === '}') depth--;
+        pos++;
+    }
+    assert.equal(depth, 0, 'Expected balanced braces in extracted function body');
+    return source.slice(match.index + match[0].length, pos - 1);
+}
+
 test('fighter template has separate equipment inputs per category', () => {
     assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\bmelee-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\bmelee-input\b[^"]*"/);
     assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\branged-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\branged-input\b[^"]*"/);
@@ -61,25 +96,6 @@ test('fighter template moves exp input from stats row into header cost info', ()
     const statsTableRegex = /<div[^>]*class="[^"]*\bstats-table\b[^"]*"[^>]*>/ig;
     let m;
     const statsTables = [];
-    function findMatchingClosingDiv(html, startIndex) {
-        const openTagEnd = html.indexOf('>', startIndex);
-        if (openTagEnd === -1) return null;
-        let pos = openTagEnd + 1;
-        let depth = 1;
-        while (depth > 0) {
-            const nextOpen = html.indexOf('<div', pos);
-            const nextClose = html.indexOf('</div>', pos);
-            if (nextClose === -1) return null;
-            if (nextOpen !== -1 && nextOpen < nextClose) {
-                depth++;
-                pos = nextOpen + 4;
-            } else {
-                depth--;
-                pos = nextClose + 6;
-            }
-        }
-        return html.slice(startIndex, pos);
-    }
     while ((m = statsTableRegex.exec(indexHtml)) !== null) {
         const full = findMatchingClosingDiv(indexHtml, m.index);
         if (full) statsTables.push(full);
@@ -92,21 +108,18 @@ test('fighter template moves exp input from stats row into header cost info', ()
     const costInfoStart = indexHtml.search(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[^>]*>/i);
     assert.ok(costInfoStart !== -1, '.cost-info region should exist');
     const costInfoBlock = findMatchingClosingDiv(indexHtml, costInfoStart);
-    assert.ok(costInfoBlock && /\bfighter-exp-input\b/.test(costInfoBlock), 'fighter-exp-input should be inside .cost-info');
+    assert.ok(costInfoBlock, 'Expected full .cost-info block');
+    assert.match(costInfoBlock, /<input[^>]*class="[^"]*\bfighter-exp-input\b[^"]*"[^>]*>/i);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
+    assert.doesNotMatch(appJs, /const expInput = cardEl\.querySelector\('\.stat-exp'\)/);
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
-    // ensure change handler updates model and track inside the onchange handler specifically
-    const onchangeMatch = appJs.match(/expInput\.onchange\s*=\s*(?:function\s*\([^)]*\)\s*|\([^)]*\)\s*=>\s*)?\{([\s\S]*?)\}/);
-    assert.ok(onchangeMatch, 'expInput.onchange handler should be a block with a body');
-    const onchangeBody = onchangeMatch[1];
+    const onchangeBody = extractArrowFunctionBody(appJs, /expInput\.onchange\s*=\s*\(e\)\s*=>\s*\{/);
     assert.match(onchangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
     assert.match(onchangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
-    // also ensure handler updates overall rating and persists changes
     assert.match(onchangeBody, /updateWarbandRating\s*\(/);
     assert.match(onchangeBody, /saveToCache\s*\(/);
 });
-
