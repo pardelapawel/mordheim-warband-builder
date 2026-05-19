@@ -89,7 +89,6 @@ test('fighter template moves exp input from stats row into header cost info', ()
     }
 
     // ensure fighter-exp-input exists inside the .cost-info region specifically (robust to nested divs)
-    const costInfoStart = indexHtml.search(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[^>]*>/i);
     const cardHeaderStart = indexHtml.search(/<div[^>]*class="[^\"]*\bcard-header\b[^\"]*"[^>]*>/i);
     assert.ok(cardHeaderStart !== -1, '.card-header region should exist');
     const headerBlock = findMatchingClosingDiv(indexHtml, cardHeaderStart);
@@ -99,7 +98,7 @@ test('fighter template moves exp input from stats row into header cost info', ()
     const costInfoBlock = findMatchingClosingDiv(headerBlock, costInfoStart);
     assert.ok(costInfoBlock && /<input\b[^>]*\bclass=["'][^"']*\bfighter-exp-input\b[^"']*["'][^>]*>/i.test(costInfoBlock), 'fighter-exp-input <input> should be inside .cost-info of card header');
 });
-});
+
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
