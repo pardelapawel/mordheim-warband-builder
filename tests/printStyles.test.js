@@ -206,11 +206,39 @@ test('cost info supports base total and exp on one line in screen styles', () =>
     // require at least one rules block explicitly sets display:flex and centers items (ensures one-line cost layout still present)
     const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
     assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
-    // explicitly require row (or row-reverse) so stacked column layouts do not pass
-    assert.match(
-        beforePrint,
-        /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/
-    );
+    const groupedSelectors = ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary'];
+    ruleRegex.lastIndex = 0;
+    for (const gs of groupedSelectors) {
+        let found = false;
+        while ((m = ruleRegex.exec(beforePrint)) !== null) {
+            const selectorList = m[1].split(',').map(s => s.trim());
+            if (selectorList.some(s => s.split(/\s+/).includes(gs))) {
+                const rules = m[2];
+                if (/display:\s*inline-flex/.test(rules) && /align-items:\s*center/.test(rules)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        assert.ok(found, `Selector ${gs} should have display:inline-flex and align-items:center in some rule`);
+        ruleRegex.lastIndex = 0;
+    }
+    // require font-size:0.8rem for each selector (allows grouped or separate rules)
+    for (const gs of groupedSelectors) {
+        ruleRegex.lastIndex = 0;
+        let foundFont = false;
+        while ((m = ruleRegex.exec(beforePrint)) !== null) {
+            const selectorList = m[1].split(',').map(s => s.trim());
+            if (selectorList.some(s => s.split(/\s+/).includes(gs))) {
+                const rules = m[2];
+                if (/font-size:\s*0\.8rem/.test(rules)) {
+                    foundFont = true;
+                    break;
+                }
+            }
+        }
+        assert.ok(foundFont, `Selector ${gs} should set font-size:0.8rem`);
+    }
 });
 
 
