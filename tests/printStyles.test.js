@@ -179,12 +179,14 @@ test('exp-box does not set fixed width or height in print mode', () => {
 
 test('cost info supports base total and exp on one line in screen styles', () => {
     const beforePrint = styleCss.split('@media print')[0];
-    const costInfoRuleMatch = beforePrint.match(/\.cost-info\s*\{([\s\S]*?)\}/);
-    assert.ok(costInfoRuleMatch, 'Expected .cost-info rule in screen styles');
-    const costInfoRules = costInfoRuleMatch[1];
-    assert.match(costInfoRules, /display:\s*flex/);
-    assert.match(costInfoRules, /align-items:\s*center/);
-    assert.doesNotMatch(costInfoRules, /flex-direction:\s*column/);
+    const costInfoRuleRegex = /\.cost-info\s*\{([\s\S]*?)\}/g;
+    const costInfoMatches = [...beforePrint.matchAll(costInfoRuleRegex)].map(m => m[1]);
+    assert.ok(costInfoMatches.length > 0, 'Should have at least one .cost-info rule in screen styles');
+    for (const rules of costInfoMatches) {
+        assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
+    }
+    const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
+    assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/

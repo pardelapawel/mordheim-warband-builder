@@ -10,10 +10,10 @@ const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
 test('fighter template has separate equipment inputs per category', () => {
-    assert.match(indexHtml, /class="card-section melee-section"[\s\S]*class="equipment-input melee-input"/);
-    assert.match(indexHtml, /class="card-section ranged-section"[\s\S]*class="equipment-input ranged-input"/);
-    assert.match(indexHtml, /class="card-section armor-section"[\s\S]*class="equipment-input armor-input"/);
-    assert.match(indexHtml, /class="card-section items-section"[\s\S]*class="equipment-input items-input"/);
+    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\bmelee-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\bmelee-input\b[^"]*"/);
+    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\branged-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\branged-input\b[^"]*"/);
+    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\barmor-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\barmor-input\b[^"]*"/);
+    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\bitems-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\bitems-input\b[^"]*"/);
 });
 
 test('equipment autocompletes are wired per category', () => {
@@ -59,14 +59,14 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 test('fighter template moves exp input from stats row into header cost info', () => {
     assert.doesNotMatch(
         indexHtml,
-        /class="stats-table"[\s\S]*class="stat-exp"/
+        /class="[^"]*\bstats-table\b[^"]*"[\s\S]*(?:class="[^"]*\bstat-col\b[^"]*\bstat-exp-col\b[^"]*"|class="[^"]*\bstat-exp\b[^"]*"|class="[^"]*\bfighter-exp-input\b[^"]*")/
     );
     const costInfoRegion = indexHtml.match(
         /class="cost-info no-print"([\s\S]*?)<div class="stats-table">/
     );
     assert.ok(costInfoRegion, 'Expected cost-info region before stats-table');
-    assert.match(costInfoRegion[1], /class="fighter-exp-summary"/);
-    assert.match(costInfoRegion[1], /class="fighter-exp-input"/);
+    assert.match(costInfoRegion[1], /class="[^"]*\bfighter-exp-summary\b[^"]*"/);
+    assert.match(costInfoRegion[1], /class="[^"]*\bfighter-exp-input\b[^"]*"/);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
