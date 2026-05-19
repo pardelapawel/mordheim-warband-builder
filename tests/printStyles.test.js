@@ -179,10 +179,12 @@ test('exp-box does not set fixed width or height in print mode', () => {
 
 test('cost info supports base total and exp on one line in screen styles', () => {
     const beforePrint = styleCss.split('@media print')[0];
-    assert.match(
-        beforePrint,
-        /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
-    );
+    const costInfoRuleMatch = beforePrint.match(/\.cost-info\s*\{([\s\S]*?)\}/);
+    assert.ok(costInfoRuleMatch, 'Expected .cost-info rule in screen styles');
+    const costInfoRules = costInfoRuleMatch[1];
+    assert.match(costInfoRules, /display:\s*flex/);
+    assert.match(costInfoRules, /align-items:\s*center/);
+    assert.doesNotMatch(costInfoRules, /flex-direction:\s*column/);
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/
