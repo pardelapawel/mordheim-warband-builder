@@ -44,11 +44,23 @@ function extractArrowFunctionBody(source, assignmentPattern) {
     return source.slice(match.index + match[0].length, pos - 1);
 }
 
+function findSectionBlock(html, sectionClass) {
+    const sectionRegex = new RegExp(`<div[^>]*class="[^"]*\\bcard-section\\b[^"]*\\b${sectionClass}\\b[^"]*"[^>]*>`, 'i');
+    const match = sectionRegex.exec(html);
+    assert.ok(match, `Expected ${sectionClass} section to exist`);
+    return findMatchingClosingDiv(html, match.index);
+}
+
 test('fighter template has separate equipment inputs per category', () => {
-    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\bmelee-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\bmelee-input\b[^"]*"/);
-    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\branged-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\branged-input\b[^"]*"/);
-    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\barmor-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\barmor-input\b[^"]*"/);
-    assert.match(indexHtml, /class="[^"]*\bcard-section\b[^"]*\bitems-section\b[^"]*"[\s\S]*class="[^"]*\bequipment-input\b[^"]*\bitems-input\b[^"]*"/);
+    const meleeSection = findSectionBlock(indexHtml, 'melee-section');
+    const rangedSection = findSectionBlock(indexHtml, 'ranged-section');
+    const armorSection = findSectionBlock(indexHtml, 'armor-section');
+    const itemsSection = findSectionBlock(indexHtml, 'items-section');
+
+    assert.match(meleeSection, /class="[^"]*\bequipment-input\b[^"]*\bmelee-input\b[^"]*"/);
+    assert.match(rangedSection, /class="[^"]*\bequipment-input\b[^"]*\branged-input\b[^"]*"/);
+    assert.match(armorSection, /class="[^"]*\bequipment-input\b[^"]*\barmor-input\b[^"]*"/);
+    assert.match(itemsSection, /class="[^"]*\bequipment-input\b[^"]*\bitems-input\b[^"]*"/);
 });
 
 test('equipment autocompletes are wired per category', () => {

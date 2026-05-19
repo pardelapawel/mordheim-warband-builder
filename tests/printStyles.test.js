@@ -42,6 +42,17 @@ function extractStandaloneRuleBlock(css, selector) {
     return matches;
 }
 
+function extractRuleBlocksContainingSelector(css, selector) {
+    const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ruleRegex = new RegExp(`(^|\\n)\\s*([^\\{]*\\b${escapedSelector}\\b[^\\{]*)\\{([\\s\\S]*?)\\}`, 'g');
+    const matches = [];
+    let match;
+    while ((match = ruleRegex.exec(css)) !== null) {
+        matches.push(match[3]);
+    }
+    return matches;
+}
+
 test('print mode restores folded card content using expanded-card layout rules', () => {
     assert.match(
         styleCss,
@@ -198,8 +209,8 @@ test('cost info supports base total and exp on one line in screen styles', () =>
         assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
     }
     for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {
-        const selectorRules = extractStandaloneRuleBlock(beforePrint, selector);
-        assert.ok(selectorRules.length > 0, `Should have standalone ${selector} rule in screen styles`);
+        const selectorRules = extractRuleBlocksContainingSelector(beforePrint, selector);
+        assert.ok(selectorRules.length > 0, `Should have ${selector} rule in screen styles`);
         for (const rules of selectorRules) {
             assert.match(rules, /display:\s*inline-flex|display:\s*flex/);
             assert.match(rules, /align-items:\s*center/);
