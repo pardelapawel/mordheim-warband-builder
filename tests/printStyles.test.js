@@ -183,6 +183,15 @@ test('cost info supports base total and exp on one line in screen styles', () =>
         beforePrint,
         /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
     );
+    // ensure flex is a row layout (or at minimum not column)
+    const costInfoRuleMatch = beforePrint.match(/\.cost-info\s*\{([\s\S]*?)\}/);
+    if (costInfoRuleMatch) {
+        const rules = costInfoRuleMatch[1];
+        assert.doesNotMatch(rules, /flex-direction:\s*column/);
+    } else {
+        // fallback: require explicit row direction if block not found as single rule
+        assert.match(beforePrint, /\.cost-info\s*\{[\s\S]*flex-direction:\s*(row|row-reverse)/);
+    }
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/

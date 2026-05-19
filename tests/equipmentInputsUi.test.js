@@ -61,10 +61,10 @@ test('fighter template moves exp input from stats row into header cost info', ()
         indexHtml,
         /class="stats-table"[\s\S]*class="stat-col stat-exp-col"/
     );
-    assert.match(
-        indexHtml,
-        /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/
-    );
+    // ensure fighter-exp-input exists inside the .cost-info region specifically
+    const costInfoMatch = indexHtml.match(/<[^>]*class="cost-info no-print"[^>]*>([\s\S]*?)<\/[^>]+>/);
+    assert.ok(costInfoMatch, 'Should find a .cost-info no-print element in template');
+    assert.match(costInfoMatch[1], /class="fighter-exp-input"/);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
