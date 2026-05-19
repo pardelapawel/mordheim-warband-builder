@@ -7,6 +7,23 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
+    const LEGACY_EQUIPMENT_ALIASES = {
+        'mace, hammer or club': ['mace', 'hammer', 'club'],
+        'throwing stars/knives': ['throwing stars', 'throwing knives'],
+        'dwuręczny młot/maczuga': ['dwuręczny młot', 'dwuręczna maczuga'],
+        'dwuręczny topór/kilof/nadziak': ['dwuręczny topór', 'dwuręczny kilof', 'dwuręczny nadziak']
+    };
+
+    function normalizeEquipmentName(name) {
+        return String(name || '').trim().toLowerCase();
+    }
+
+    function getEquipmentCatalogEntry(name, equipmentCatalog) {
+        const normalizedName = normalizeEquipmentName(name);
+        const candidateKeys = [normalizedName, ...(LEGACY_EQUIPMENT_ALIASES[normalizedName] || [])];
+        return (equipmentCatalog || []).find(entry => candidateKeys.includes(normalizeEquipmentName(entry.name)));
+    }
+
     function summarizeNames(entries) {
         const names = (entries || [])
             .map(entry => typeof entry === 'string' ? entry : entry.name)
@@ -18,7 +35,7 @@
 
     function getEquipmentCategory(item, equipmentCatalog) {
         return item.originCategory ||
-            (equipmentCatalog || []).find(entry => entry.name.toLowerCase() === String(item.name || '').toLowerCase())?.originCategory ||
+            getEquipmentCatalogEntry(item.name, equipmentCatalog)?.originCategory ||
             '';
     }
 

@@ -11,9 +11,21 @@
         return String(term || '').trim().toLowerCase();
     }
 
-    function getEquipmentCatalogEntry(name, equipmentCatalog) {
+    const LEGACY_EQUIPMENT_ALIASES = {
+        'mace, hammer or club': ['mace', 'hammer', 'club'],
+        'throwing stars/knives': ['throwing stars', 'throwing knives'],
+        'dwuręczny młot/maczuga': ['dwuręczny młot', 'dwuręczna maczuga'],
+        'dwuręczny topór/kilof/nadziak': ['dwuręczny topór', 'dwuręczny kilof', 'dwuręczny nadziak']
+    };
+
+    function getEquipmentCatalogEntries(name, equipmentCatalog) {
         const termKey = normalizeLegendTerm(name);
-        return (equipmentCatalog || []).find(item => normalizeLegendTerm(item.name) === termKey);
+        const candidateKeys = [termKey, ...(LEGACY_EQUIPMENT_ALIASES[termKey] || [])];
+        return (equipmentCatalog || []).filter(item => candidateKeys.includes(normalizeLegendTerm(item.name)));
+    }
+
+    function getEquipmentCatalogEntry(name, equipmentCatalog) {
+        return getEquipmentCatalogEntries(name, equipmentCatalog)[0];
     }
 
     function getEquipmentOriginCategory(item, equipmentCatalog) {
@@ -109,6 +121,7 @@
         const skillCatalog = masterData?.skills || [];
         const spellCatalog = masterData?.spells || [];
         const spellListNames = Object.keys(masterData?.spellsByList || {});
+        const spellListDescriptions = masterData?.spellListDescriptions || {};
 
         usedTerms.forEach(term => {
             const termKey = normalizeLegendTerm(term);
@@ -118,8 +131,11 @@
             let categoryName = found ? 'Spells' : '';
 
             if (!found) {
-                found = equipmentCatalog.find(item => normalizeLegendTerm(item.name) === termKey);
-                if (found) {
+                const equipmentMatch = getEquipmentCatalogEntry(term, equipmentCatalog);
+                if (equipmentMatch) {
+                    found = normalizeLegendTerm(equipmentMatch.name) === termKey
+                        ? equipmentMatch
+                        : { ...equipmentMatch, name: term };
                     if (getEquipmentOriginCategory(found, equipmentCatalog) === 'melee_weapons') categoryName = 'Melee Weapons';
                     else if (getEquipmentOriginCategory(found, equipmentCatalog) === 'ranged_weapons') categoryName = 'Ranged Weapons';
                     else if (getEquipmentOriginCategory(found, equipmentCatalog) === 'armor') categoryName = 'Armor';
@@ -135,7 +151,10 @@
             if (!found) {
                 const matchedSpellList = spellListNames.find(name => normalizeLegendTerm(name) === termKey);
                 if (matchedSpellList) {
-                    found = { name: matchedSpellList };
+                    found = {
+                        name: matchedSpellList,
+                        description: spellListDescriptions[matchedSpellList] || ''
+                    };
                     categoryName = 'Skills';
                 }
             }

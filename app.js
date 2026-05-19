@@ -9,7 +9,8 @@ let masterData = {
     skills: [],
     skillsByCategory: {},
     spells: [],
-    spellsByList: {}
+    spellsByList: {},
+    spellListDescriptions: {}
 };
 
 let currentWarband = {
@@ -128,8 +129,13 @@ async function applyRuleSet(id, shouldRender = true) {
             });
         }
 
-        masterData.spells = flatten(sp);
-        masterData.spellsByList = sp; // Keep structured for context-aware selection
+        const spellLists = Object.fromEntries(
+            Object.entries(sp).filter(([, value]) => Array.isArray(value))
+        );
+
+        masterData.spells = flatten(spellLists);
+        masterData.spellsByList = spellLists; // Keep structured for context-aware selection
+        masterData.spellListDescriptions = sp.__listDescriptions || {};
 
         populateGlobalDatalists();
     } catch (e) {
@@ -164,7 +170,7 @@ function populateGlobalDatalists() {
         eqDatalist.appendChild(opt);
     });
     const skillNames = new Set();
-    [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k }))].forEach(skill => {
+    masterData.skills.forEach(skill => {
         const normalizedName = String(skill.name || '').trim().toLowerCase();
         if (!normalizedName || skillNames.has(normalizedName)) return;
         skillNames.add(normalizedName);
@@ -886,6 +892,27 @@ function createFighterCard(data, index) {
         saveToCache();
     };
 
+    const normalizeAutocompleteName = (name) => String(name || '').trim().toLowerCase();
+    const fighterTemplate = masterData.fighters.find(f => {
+        const fighterId = data.typeId || data.templateName || data.type;
+        return (f.id || f.name) === fighterId ||
+            normalizeAutocompleteName(f.name) === normalizeAutocompleteName(data.templateName || data.type);
+    }) || null;
+    const allowedEquipmentNames = new Set();
+
+    if (fighterTemplate) {
+        const listKey = fighterTemplate.equipment_list_override ? `equipment_list_${fighterTemplate.equipment_list_override}` : 'equipment_list';
+        const rawList = masterData.activeWarbandTypeData?.[listKey];
+        if (rawList && typeof rawList === 'object') {
+            Object.values(rawList).forEach(items => {
+                (items || []).forEach(itemName => {
+                    const normalizedName = normalizeAutocompleteName(itemName);
+                    if (normalizedName) allowedEquipmentNames.add(normalizedName);
+                });
+            });
+        }
+    }
+
     // Custom autocomplete to replace broken native mobile datalists
     const setupAutocomplete = (input, type, equipmentCategory = '') => {
         if (!input) return;
@@ -899,7 +926,7 @@ function createFighterCard(data, index) {
             let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
             let listData = type === 'equipment'
                 ? masterData.equipment.filter(item => !equipmentCategory || item.originCategory === equipmentCategory)
-                : [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k })), ...spellLists, ...masterData.spells];
+                : [...masterData.skills, ...spellLists, ...masterData.spells];
             let seenNames = new Set();
             listData = listData.filter(item => {
                 const normalizedName = String(item.name || '').trim().toLowerCase();
@@ -914,6 +941,15 @@ function createFighterCard(data, index) {
                 matches = listData.filter(i => i.name.toLowerCase().includes(val));
             }
 
+            if (type === 'equipment' && allowedEquipmentNames.size > 0) {
+                matches = [...matches].sort((a, b) => {
+                    const allowedA = allowedEquipmentNames.has(normalizeAutocompleteName(a.name)) ? 0 : 1;
+                    const allowedB = allowedEquipmentNames.has(normalizeAutocompleteName(b.name)) ? 0 : 1;
+                    if (allowedA !== allowedB) return allowedA - allowedB;
+                    return a.name.localeCompare(b.name);
+                });
+            }
+
             listEl.innerHTML = '';
             if (matches.length === 0) {
                 listEl.style.display = 'none';
@@ -923,6 +959,13 @@ function createFighterCard(data, index) {
             matches.forEach(match => {
                 let item = document.createElement('li');
                 item.textContent = match.name;
+                if (type === 'equipment' && allowedEquipmentNames.size > 0) {
+                    if (allowedEquipmentNames.has(normalizeAutocompleteName(match.name))) {
+                        item.classList.add('autocomplete-option-allowed');
+                    } else {
+                        item.classList.add('autocomplete-option-disallowed');
+                    }
+                }
                 // mousedown prevents input blur before click 
                 item.addEventListener('mousedown', (e) => e.preventDefault());
                 item.onclick = () => {
@@ -1014,9 +1057,7 @@ function applyFighterType(index, base) {
                        (catLower.includes('taal') && kLower.includes('taal')) ||
                        (catLower.includes('waaa') && kLower.includes('waaa'));
             });
-            const isMutationList = catLower.includes('mutation') || catLower.includes('mutacje') || catLower.includes('nurgle');
-
-            if (isSpellList || isMutationList) {
+            if (isSpellList) {
                 // Ensure it is not already in startingSkills
                 if (!startingSkills.some(s => s.name.toLowerCase() === cat.toLowerCase())) {
                     startingSkills.push({ name: cat });
@@ -1123,6 +1164,7 @@ function runValidations() {
     // Clear previous card marks
     document.querySelectorAll('.fighter-card').forEach(card => {
         card.classList.remove('has-validation-error');
+        card.classList.remove('has-validation-warning');
         const badge = card.querySelector('.validation-badge');
         if (badge) badge.remove();
         const warnings = card.querySelector('.validation-warnings');
@@ -1130,23 +1172,40 @@ function runValidations() {
     });
 
     const errors = ValidationSystem.validateWarband(currentWarband, masterData);
+    const severityOrder = { error: 0, warning: 1, tip: 2 };
+    const orderedErrors = [...errors].sort((a, b) => {
+        const severityDiff = severityOrder[(a.severity || 'error')] - severityOrder[(b.severity || 'error')];
+        if (severityDiff !== 0) return severityDiff;
+
+        const fighterIndexA = a.fighterIndex !== undefined ? a.fighterIndex : Number.MAX_SAFE_INTEGER;
+        const fighterIndexB = b.fighterIndex !== undefined ? b.fighterIndex : Number.MAX_SAFE_INTEGER;
+        return fighterIndexA - fighterIndexB;
+    });
+    const errorCount = errors.filter(err => (err.severity || 'error') === 'error').length;
+    const warningCount = errors.filter(err => (err.severity || 'error') === 'warning').length;
+    const tipCount = errors.filter(err => (err.severity || 'error') === 'tip').length;
 
     // Mark cards that triggered validation
-    errors.forEach(err => {
+    orderedErrors.forEach(err => {
         if (err.level === 'fighter' && err.fighterIndex !== undefined) {
             const cards = document.querySelectorAll('.fighter-card');
             const card = cards[err.fighterIndex];
             if (card) {
-                card.classList.add('has-validation-error');
+                const severity = err.severity || 'error';
+                if (severity === 'error') {
+                    card.classList.add('has-validation-error');
+                } else if (severity === 'warning') {
+                    card.classList.add('has-validation-warning');
+                }
                 
                 // Add a pulse badge in the header if it doesn't exist
                 let header = card.querySelector('.card-header');
                 let badge = card.querySelector('.validation-badge');
                 if (header && !badge) {
                     badge = document.createElement('span');
-                    badge.className = 'validation-badge material-symbols-outlined no-print';
-                    badge.textContent = 'warning';
-                    badge.title = 'This warrior has validation warnings.';
+                    badge.className = `validation-badge material-symbols-outlined no-print validation-${severity}`;
+                    badge.textContent = severity === 'tip' ? 'lightbulb' : 'warning';
+                    badge.title = `This warrior has validation ${severity}s.`;
                     header.appendChild(badge);
                 }
                 
@@ -1154,12 +1213,13 @@ function runValidations() {
                 const warningEl = card.querySelector('.validation-warnings');
                 if (warningEl) {
                     const div = document.createElement('div');
-                    div.className = 'validation-warning-item';
-                    div.innerHTML = `<span>⚠ ${escapeHtml(err.message)}</span>`;
+                    const icon = severity === 'tip' ? '💡' : '⚠';
+                    div.className = `validation-warning-item validation-${severity}`;
+                    div.innerHTML = `<span>${icon} ${escapeHtml(err.message)}</span>`;
                     
                     if (err.hasFix) {
                         const fixBtn = document.createElement('button');
-                        fixBtn.className = 'inline-fix-btn no-print';
+                        fixBtn.className = `inline-fix-btn no-print validation-${severity}`;
                         fixBtn.textContent = err.fixLabel || 'Fix';
                         fixBtn.onclick = (e) => {
                             e.stopPropagation();
@@ -1189,20 +1249,24 @@ function runValidations() {
         html += `
             <div class="validation-summary-badge">
                 <span class="material-symbols-outlined">warning</span>
-                <span>${errors.length} issue${errors.length > 1 ? 's' : ''} detected</span>
+                <span>${errorCount} error${errorCount === 1 ? '' : 's'}</span>
+                <span>${warningCount} warning${warningCount === 1 ? '' : 's'}</span>
+                <span>${tipCount} tip${tipCount === 1 ? '' : 's'}</span>
             </div>
             <div class="validation-errors-list">
         `;
         
-        errors.forEach((err, idx) => {
+        orderedErrors.forEach((err, idx) => {
+            const severity = err.severity || 'error';
+            const icon = severity === 'tip' ? 'lightbulb' : 'warning';
             html += `
-                <div class="validation-error-card" data-error-idx="${idx}">
+                <div class="validation-error-card validation-${severity}" data-error-idx="${idx}">
                     <div class="validation-error-header">
-                        <span class="material-symbols-outlined error-icon">warning</span>
+                        <span class="material-symbols-outlined error-icon">${icon}</span>
                         <span class="error-message">${escapeHtml(err.message)}</span>
                     </div>
                     <div class="validation-error-actions">
-                        ${err.hasFix ? `<button class="fix-btn no-print" data-error-idx="${idx}">${escapeHtml(err.fixLabel || 'Fix')}</button>` : ''}
+                        ${err.hasFix ? `<button class="fix-btn no-print validation-${severity}" data-error-idx="${idx}">${escapeHtml(err.fixLabel || 'Fix')}</button>` : ''}
                         ${err.level === 'fighter' ? `<button class="view-btn no-print" data-fighter-idx="${err.fighterIndex}">View Warrior</button>` : ''}
                     </div>
                 </div>
@@ -1220,8 +1284,8 @@ function runValidations() {
         btn.onclick = (e) => {
             e.stopPropagation();
             const idx = parseInt(btn.dataset.errorIdx);
-            if (errors[idx] && errors[idx].hasFix) {
-                errors[idx].fix();
+            if (orderedErrors[idx] && orderedErrors[idx].hasFix) {
+                orderedErrors[idx].fix();
             }
         };
     });

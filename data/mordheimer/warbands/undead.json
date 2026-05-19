@@ -9,7 +9,7 @@
     { "type": "exactlyOne", "fighter": "vampire" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear", "Halberd"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon", "Spear", "Halberd"],
     "missile": ["Bow", "Short Bow"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
   },

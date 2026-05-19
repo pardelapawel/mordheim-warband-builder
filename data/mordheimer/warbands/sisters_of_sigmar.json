@@ -9,7 +9,7 @@
     { "type": "exactlyOne", "fighter": "sigmarite_matriarch" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Sigmarite Warhammer", "Flail", "Steel Whip", "Double-handed weapon"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Sigmarite Warhammer", "Flail", "Steel Whip", "Double-handed weapon"],
     "missile": ["Sling"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"],
     "miscellaneous": ["Holy Tome", "Blessed Water", "Holy Relic"]

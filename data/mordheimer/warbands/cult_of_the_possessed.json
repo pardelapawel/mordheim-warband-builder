@@ -9,12 +9,12 @@
     { "type": "exactlyOne", "fighter": "magister" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon", "Spear"],
     "missile": ["Bow", "Short Bow"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
   },
   "equipment_list_darksouls": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon", "Flail"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon", "Flail"],
     "missile": [],
     "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
   },

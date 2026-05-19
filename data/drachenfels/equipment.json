@@ -42,7 +42,12 @@
       "description": "Siła: Użytkownika ; Parowanie (5+); Krytyki: sieczne"
     },
     {
-      "name": "Dwuręczny młot/maczuga",
+      "name": "Dwuręczny młot",
+      "cost": 15,
+      "description": "Siła: Użytkownika +2 (w pierwszej rundzie) / +1 (kolejne) ; Dwuręczna ; Ogłuszanie ; Parowanie (6+) ; Krytyki: obuchowe"
+    },
+    {
+      "name": "Dwuręczna maczuga",
       "cost": 15,
       "description": "Siła: Użytkownika +2 (w pierwszej rundzie) / +1 (kolejne) ; Dwuręczna ; Ogłuszanie ; Parowanie (6+) ; Krytyki: obuchowe"
     },
@@ -52,7 +57,17 @@
       "description": "Siła: Użytkownika +2 (w pierwszej rundzie) / +1 (kolejne) ; Dwuręczna ; Ogłuszanie ; Nie można parować ; Krytyki: obuchowe"
     },
     {
-      "name": "Dwuręczny topór/kilof/nadziak",
+      "name": "Dwuręczny topór",
+      "cost": 15,
+      "description": "Siła: Użytkownika +2 / +1 ; Dwuręczna ; Pancerz przeciwnika: -1 ; Parowanie (6+) ; Krytyki: sieczne"
+    },
+    {
+      "name": "Dwuręczny kilof",
+      "cost": 15,
+      "description": "Siła: Użytkownika +2 / +1 ; Dwuręczna ; Pancerz przeciwnika: -1 ; Parowanie (6+) ; Krytyki: sieczne"
+    },
+    {
+      "name": "Dwuręczny nadziak",
       "cost": 15,
       "description": "Siła: Użytkownika +2 / +1 ; Dwuręczna ; Pancerz przeciwnika: -1 ; Parowanie (6+) ; Krytyki: sieczne"
     },

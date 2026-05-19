@@ -1,4 +1,13 @@
 {
+  "__listDescriptions": {
+    "Pomniejsza Magia": "Czarodzieje, którzy nie zostali formalnie wyszkoleni w sztuce magii, potrafią rzucać jedynie stosunkowo proste zaklęcia.",
+    "Modlitwy Sigmara": "Ci, którzy mają wielką wiarę w bogów, mogą wzywać ich boską moc. Kapłani Sigmara potrafią wypraszać wiele cudów: leczenie ran, wzmacnianie ducha towarzyszy oraz odpieranie Demonów i Nieumarłych.",
+    "Magia ŁAAA!!!": "Zaklęcia ŁAAA!!! są używane przez orczych szamanów. To swoiste rytuały i wyjące modlitwy do hałaśliwych orczych bogów Gorka i Morka.",
+    "Magia Nekromancka": "Nekromancja jest magią śmierci. Daje nekromantom moc wskrzeszania umarłych i rozkazywania duchom, ale także wysysania żywotności z istot żywych.",
+    "Magia Rogatego Szczura": "Ta odmiana czarnoksięstwa jest używana przez Skaveny. To złowroga forma magii, która przyzywa moc skaveńskiego bóstwa zwanego Rogatym Szczurem.",
+    "Rytuały Chaosu": "Rytuały Chaosu wykorzystują surową moc najmroczniejszej magii, dzięki czemu doskonale nadają się do szerzenia bólu, cierpienia, zmiany i mutacji.",
+    "Modlitwy Taala": "Taal jest Bogiem Natury i żąda szacunku od wszystkich, którzy zapuszczają się w dzikie ostępy Imperium."
+  },
   "Pomniejsza Magia": [
     { "name": "Ognie U'Zhul", "difficulty": 7, "description": "Kula ognia o zasięgu 18 cali, trafia w pierwszy cel na swojej drodze, Siła 4, normalne rzuty pancerza." },
     { "name": "Lot Zimmerana", "difficulty": 7, "description": "Natychmiastowy ruch na 12 cali, w tym do kontaktu z przeciwnikiem (liczone jako szarża)." },

@@ -9,12 +9,12 @@
     { "type": "exactlyOne", "fighter": "elder" }
   ],
   "equipment_list": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Spear", "Double-handed weapon"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Spear", "Double-handed weapon"],
     "missile": ["Bow", "Pistol"],
     "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
   },
   "equipment_list_ruffian": {
-    "hand_to_hand": ["Dagger", "Mace, Hammer or Club", "Axe", "Sword", "Double-handed weapon"],
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Double-handed weapon"],
     "missile": [],
     "armour": ["Light armour"]
   },

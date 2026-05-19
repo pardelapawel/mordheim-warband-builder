@@ -7,7 +7,17 @@
       "special": "1st free for every warrior"
     },
     {
-      "name": "Mace, Hammer or Club",
+      "name": "Mace",
+      "cost": 3,
+      "description": "Strength: User ; Concussion ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Hammer",
+      "cost": 3,
+      "description": "Strength: User ; Concussion ; Criticals: bludgeoning"
+    },
+    {
+      "name": "Club",
       "cost": 3,
       "description": "Strength: User ; Concussion ; Criticals: bludgeoning"
     },
@@ -134,7 +144,12 @@
       "description": "Range: 18\" ; Strength: 3 ; Fire twice at half range"
     },
     {
-      "name": "Throwing Stars/Knives",
+      "name": "Throwing Stars",
+      "cost": 15,
+      "description": "Range: 6\" ; Strength: User ; Thrown weapon"
+    },
+    {
+      "name": "Throwing Knives",
       "cost": 15,
       "description": "Range: 6\" ; Strength: User ; Thrown weapon"
     },

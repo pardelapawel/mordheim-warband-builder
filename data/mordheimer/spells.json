@@ -1,4 +1,12 @@
 {
+  "__listDescriptions": {
+    "Necromantic Magic": "Necromancy is the magic of the dead. It grants Necromancers the power to raise the dead and command spirits, but also to destroy the vitality of the living.",
+    "Prayers of Sigmar": "Those with great faith in the gods can call upon their divine power. The priests of Sigmar can pray for many miracles: healing of wounds, strengthening the resolve of their comrades or the banishment of Daemonic creatures and the Undead.",
+    "Waaaagh! Magic": "Waaagh! spells are used by Orc Shamans. They are rituals of a sort, howling prayers to the boisterous Orc gods Gork and Mork.",
+    "Magic of the Horned Rat": "This brand of sorcery is used by the Skaven. It is a sinister form of magic which calls upon the Skaven deity, a loathsome daemonic god known as the Horned Rat.",
+    "Chaos Rituals": "Chaos rituals employ the raw power of the darkest magic, and are therefore supremely useful in bringing pain and suffering, as well as change and mutation.",
+    "Prayers of Taal": "Taal is the God of Nature and demands the respect of all those who enter the wild regions of the Empire."
+  },
   "Necromantic Magic": [
     {
       "name": "Lifestealer",

@@ -13,9 +13,16 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
+    const LEGACY_EQUIPMENT_ALIASES = {
+        'mace, hammer or club': ['mace', 'hammer', 'club'],
+        'throwing stars/knives': ['throwing stars', 'throwing knives'],
+        'dwuręczny młot/maczuga': ['dwuręczny młot', 'dwuręczna maczuga'],
+        'dwuręczny topór/kilof/nadziak': ['dwuręczny topór', 'dwuręczny kilof', 'dwuręczny nadziak']
+    };
+
     // Helper: Find item category in master registry or infer from common terms
     function getItemCategory(itemName, masterEquipment) {
-        const item = (masterEquipment || []).find(e => e.name.toLowerCase() === itemName.toLowerCase());
+        const item = getEquipmentCatalogEntry(itemName, masterEquipment);
         if (item && item.originCategory) {
             return item.originCategory;
         }
@@ -33,6 +40,26 @@
 
     function normalizeItemName(name) {
         return String(name || '').trim().toLowerCase();
+    }
+
+    function getEquipmentCatalogEntries(itemName, masterEquipment) {
+        const normalizedName = normalizeItemName(itemName);
+        const candidateKeys = [normalizedName, ...(LEGACY_EQUIPMENT_ALIASES[normalizedName] || [])];
+        return (masterEquipment || []).filter(item => candidateKeys.includes(normalizeItemName(item.name)));
+    }
+
+    function getEquipmentCatalogEntry(itemName, masterEquipment) {
+        return getEquipmentCatalogEntries(itemName, masterEquipment)[0] || null;
+    }
+
+    function isAllowedEquipmentName(allowedNames, itemName) {
+        const normalizedName = normalizeItemName(itemName);
+        if (allowedNames.has(normalizedName)) return true;
+        return (LEGACY_EQUIPMENT_ALIASES[normalizedName] || []).some(alias => allowedNames.has(alias));
+    }
+
+    function normalizeFighterIdentifier(name) {
+        return String(name || '').trim().toLowerCase().replace(/[\s_]+/g, '_');
     }
 
     function getMordheimerFreeDagger(masterData, warband) {
@@ -58,6 +85,10 @@
             }
             return indexes;
         }, []);
+    }
+
+    function getValidationSeverity(error) {
+        return error?.severity || 'error';
     }
 
     function findFighterTemplate(activeData, fighter) {
@@ -107,33 +138,36 @@
         'exactlyOne': {
             description: (param) => `Warband must contain exactly one leader of type: "${param}".`,
             fixLabel: function (warband, param) {
+                const normalizedParam = normalizeFighterIdentifier(param);
                 const count = (warband.fighters || []).filter(f => 
-                    (f.typeId && f.typeId.toLowerCase() === param.toLowerCase()) || 
-                    (f.templateName && f.templateName.toLowerCase() === param.toLowerCase()) ||
-                    (f.type && f.type.toLowerCase() === param.toLowerCase())
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
                 ).length;
                 return count === 0 ? `Add ${param}` : 'Delete duplicate card';
             },
             check: function (warband, param) {
+                const normalizedParam = normalizeFighterIdentifier(param);
                 const count = (warband.fighters || []).filter(f => 
-                    (f.typeId && f.typeId.toLowerCase() === param.toLowerCase()) || 
-                    (f.templateName && f.templateName.toLowerCase() === param.toLowerCase()) ||
-                    (f.type && f.type.toLowerCase() === param.toLowerCase())
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
                 ).length;
                 return count === 1;
             },
             fix: function (warband, param, masterData) {
+                const normalizedParam = normalizeFighterIdentifier(param);
                 const count = (warband.fighters || []).filter(f => 
-                    (f.typeId && f.typeId.toLowerCase() === param.toLowerCase()) || 
-                    (f.templateName && f.templateName.toLowerCase() === param.toLowerCase()) ||
-                    (f.type && f.type.toLowerCase() === param.toLowerCase())
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
                 ).length;
 
                 if (count === 0) {
                     // Try to find the template in masterData
                     const template = (masterData.fighters || []).find(f => 
-                        (f.id && f.id.toLowerCase() === param.toLowerCase()) || 
-                        (f.name && f.name.toLowerCase() === param.toLowerCase())
+                        normalizeFighterIdentifier(f.id) === normalizedParam ||
+                        normalizeFighterIdentifier(f.name) === normalizedParam
                     );
                     
                     if (template) {
@@ -165,9 +199,9 @@
                     // Remove duplicate leaders, leaving only the first one
                     let kept = false;
                     warband.fighters = warband.fighters.filter(f => {
-                        const isLeader = (f.typeId && f.typeId.toLowerCase() === param.toLowerCase()) || 
-                                         (f.templateName && f.templateName.toLowerCase() === param.toLowerCase()) ||
-                                         (f.type && f.type.toLowerCase() === param.toLowerCase());
+                        const isLeader = normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                                         normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                                         normalizeFighterIdentifier(f.type) === normalizedParam;
                         if (isLeader) {
                             if (!kept) {
                                 kept = true;
@@ -495,10 +529,11 @@
                 if (daggerIndexes.length === 0) {
                     errors.push({
                         id: `fighter-free-dagger-required-${fIdx}`,
-                        message: `"${fighter.customName || fighter.type}" must have a ${freeDagger.name}.`,
+                        message: `"${fighter.customName || fighter.type}" can have a free ${freeDagger.name}.`,
                         level: 'fighter',
                         fighterIndex: fIdx,
                         key: 'freeDaggerRequired',
+                        severity: 'tip',
                         hasFix: true,
                         fixLabel: `Add free ${freeDagger.name}`,
                         fix: function () {
@@ -523,6 +558,7 @@
                             level: 'fighter',
                             fighterIndex: fIdx,
                             key: 'freeDaggerCost',
+                            severity: 'tip',
                             hasFix: true,
                             fixLabel: `Set first ${freeDagger.name} to 0 gc`,
                             fix: function () {
@@ -540,7 +576,7 @@
             const allowedEquipment = getFighterEquipmentList(activeData, fighterTemplate);
             if (allowedEquipment && allowedEquipment.size > 0) {
                 (fighter.equipment || []).forEach((item, itemIdx) => {
-                    if (allowedEquipment.has(normalizeItemName(item.name))) return;
+                    if (isAllowedEquipmentName(allowedEquipment, item.name)) return;
 
                     errors.push({
                         id: `fighter-eq-list-${fIdx}-${itemIdx}`,
@@ -548,6 +584,7 @@
                         level: 'fighter',
                         fighterIndex: fIdx,
                         key: 'equipmentList',
+                        severity: 'warning',
                         item: item,
                         hasFix: true,
                         fixLabel: `Remove ${item.name}`,
@@ -591,7 +628,7 @@
 
             // (b) Requirements-level validation (hardcoded wizards/elves logic in builders)
             const eqTags = (fighter.equipment || []).flatMap(e => {
-                const found = (masterData.equipment || []).find(m => m.name.toLowerCase() === e.name.toLowerCase());
+                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
                 return found ? (found.tags || []) : [];
             });
             
@@ -608,7 +645,7 @@
                         fix: function () {
                             // Strip armor
                             fighter.equipment = fighter.equipment.filter(e => {
-                                const found = masterData.equipment.find(m => m.name.toLowerCase() === e.name.toLowerCase());
+                                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
                                 return !(found && (found.tags || []).includes('armor'));
                             });
                             if (typeof renderWarband === 'function') {
@@ -630,7 +667,7 @@
                         fix: function () {
                             // Strip black powder
                             fighter.equipment = fighter.equipment.filter(e => {
-                                const found = masterData.equipment.find(m => m.name.toLowerCase() === e.name.toLowerCase());
+                                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
                                 return !(found && (found.tags || []).includes('black-powder'));
                             });
                             if (typeof renderWarband === 'function') {
@@ -644,7 +681,7 @@
 
             // (c) Equipment validations: Check if items themselves have validation properties
             (fighter.equipment || []).forEach(e => {
-                const regItem = (masterData.equipment || []).find(m => m.name.toLowerCase() === e.name.toLowerCase());
+                const regItem = getEquipmentCatalogEntry(e.name, masterData.equipment);
                 if (regItem) {
                     const itemVals = regItem.validations || regItem.validation ? (regItem.validations || [regItem.validation]) : [];
                     itemVals.forEach((valKey, valIdx) => {
@@ -714,6 +751,7 @@
 
     return {
         ValidationRules,
-        validateWarband
+        validateWarband,
+        getValidationSeverity
     };
 }));
