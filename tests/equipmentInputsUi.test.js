@@ -70,6 +70,10 @@ test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
     // ensure change handler updates model and track inside the onchange handler specifically
-    assert.match(appJs, /expInput\.onchange\s*=[\s\S]*currentWarband\.fighters\[index\]\.exp\s*=\s*newExp[\s\S]*updateExpTrack\(newExp\)/);
+    const onchangeMatch = appJs.match(/expInput\.onchange\s*=\s*(?:function\s*\([^)]*\)\s*|\([^)]*\)\s*=>\s*)?\{([\s\S]*?)\}/);
+    assert.ok(onchangeMatch, 'expInput.onchange handler should be a block with a body');
+    const onchangeBody = onchangeMatch[1];
+    assert.match(onchangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(onchangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
 });
 
