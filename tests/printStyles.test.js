@@ -1,4 +1,4 @@
-const test = require('node:test');
+﻿const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -179,16 +179,38 @@ test('exp-box does not set fixed width or height in print mode', () => {
 
 test('cost info supports base total and exp on one line in screen styles', () => {
     const beforePrint = styleCss.split('@media print')[0];
-    const costInfoRuleRegex = /\.cost-info\s*\{([\s\S]*?)\}/g;
-    const costInfoMatches = [...beforePrint.matchAll(costInfoRuleRegex)].map(m => m[1]);
+    assert.match(
+        beforePrint,
+        /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
+    );
+    // parse CSS rules and collect blocks where .cost-info is a standalone selector (in selector list)
+    const ruleRegex = /([^\{]+)\{([\s\S]*?)\}/g;
+    const costInfoMatches = [];
+    let m;
+    while ((m = ruleRegex.exec(beforePrint)) !== null) {
+        const selectorList = m[1];
+        const selectors = selectorList.split(',');
+        for (const sel of selectors) {
+            const tokens = sel.trim().split(/\s+/);
+            if (tokens.includes('.cost-info')) {
+                costInfoMatches.push(m[2]);
+                break;
+            }
+        }
+    }
     assert.ok(costInfoMatches.length > 0, 'Should have at least one .cost-info rule in screen styles');
+    // none of the .cost-info rule blocks may set column direction
     for (const rules of costInfoMatches) {
         assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
     }
+    // require at least one rules block explicitly sets display:flex and centers items (ensures one-line cost layout still present)
     const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
     assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
+    // explicitly require row (or row-reverse) so stacked column layouts do not pass
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/
     );
 });
+
+

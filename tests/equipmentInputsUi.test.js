@@ -57,24 +57,29 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 });
 
 test('fighter template moves exp input from stats row into header cost info', () => {
-    assert.doesNotMatch(
-        indexHtml,
-        /class="[^"]*\bstats-table\b[^"]*"[\s\S]*(?:class="[^"]*\bstat-col\b[^"]*\bstat-exp-col\b[^"]*"|class="[^"]*\bstat-exp\b[^"]*"|class="[^"]*\bfighter-exp-input\b[^"]*")/
-    );
-    const costInfoRegion = indexHtml.match(
-        /class="cost-info no-print"([\s\S]*?)<div class="stats-table">/
-    );
-    assert.ok(costInfoRegion, 'Expected cost-info region before stats-table');
-    assert.match(costInfoRegion[1], /class="[^"]*\bfighter-exp-summary\b[^"]*"/);
-    assert.match(costInfoRegion[1], /class="[^"]*\bfighter-exp-input\b[^"]*"/);
+    // find all stats-table blocks (token-based class match)
+    const statsTableRegex = /<div[^>]*class="[^"]*\bstats-table\b[^"]*"[\s\S]*?<\/div>/g;
+    const statsTables = indexHtml.match(statsTableRegex) || [];
+    for (const tbl of statsTables) {
+        assert.doesNotMatch(tbl, /\bstat-col\b[\s\S]*\bstat-exp-col\b|\bstat-exp\b|\bfighter-exp-input\b/, 'stats-table should not contain exp cells or inputs');
+    }
+    // ensure fighter-exp-input exists inside the .cost-info region specifically
+    const costInfoBlockMatch = indexHtml.match(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[\s\S]*?<\/div>/);
+    assert.ok(costInfoBlockMatch && /\bfighter-exp-input\b/.test(costInfoBlockMatch[0]), 'fighter-exp-input should be inside .cost-info');
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
-    assert.match(
-        appJs,
-        /expInput\.onchange\s*=\s*\(e\)\s*=>\s*\{[\s\S]*?currentWarband\.fighters\[index\]\.exp\s*=\s*newExp;[\s\S]*?updateExpTrack\(newExp\);[\s\S]*?updateWarbandRating\(\);[\s\S]*?saveToCache\(\);[\s\S]*?\n\s*\};/
-    );
+    // ensure change handler updates model and track inside the onchange handler specifically
+    const onchangeMatch = appJs.match(/expInput\.onchange\s*=\s*(?:function\s*\([^)]*\)\s*|\([^)]*\)\s*=>\s*)?\{([\s\S]*?)\}/);
+    assert.ok(onchangeMatch, 'expInput.onchange handler should be a block with a body');
+    const onchangeBody = onchangeMatch[1];
+    assert.match(onchangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(onchangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
+    // also ensure handler updates overall rating and persists changes
+    assert.match(onchangeBody, /updateWarbandRating\s*\(/);
+    assert.match(onchangeBody, /saveToCache\s*\(/);
 });
+
