@@ -206,7 +206,22 @@ test('cost info supports base total and exp on one line in screen styles', () =>
     // require at least one rules block explicitly sets display:flex and centers items (ensures one-line cost layout still present)
     const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
     assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
-    // explicitly require row (or row-reverse) so stacked column layouts do not pass
+    // grouped check: require a grouped rule for .cost-input-container, .total-card-cost, .fighter-exp-summary using inline-flex and center alignment
+    const groupedSelectors = ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary'];
+    ruleRegex.lastIndex = 0;
+    let groupedRuleFound = false;
+    while ((m = ruleRegex.exec(beforePrint)) !== null) {
+        const selectorList = m[1].split(',').map(s => s.trim());
+        const hasAll = groupedSelectors.every(gs => selectorList.some(s => s.split(/\s+/).includes(gs)));
+        if (hasAll) {
+            const rules = m[2];
+            assert.match(rules, /display:\s*inline-flex/);
+            assert.match(rules, /align-items:\s*center/);
+            groupedRuleFound = true;
+            break;
+        }
+    }
+    assert.ok(groupedRuleFound, 'Should have a grouped rule for cost-input-container, total-card-cost and fighter-exp-summary using display:inline-flex and align-items:center');
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/

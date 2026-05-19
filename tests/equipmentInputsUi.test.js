@@ -57,15 +57,42 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 });
 
 test('fighter template moves exp input from stats row into header cost info', () => {
-    // find all stats-table blocks (token-based class match)
-    const statsTableRegex = /<div[^>]*class="[^"]*\bstats-table\b[^"]*"[\s\S]*?<\/div>/g;
-    const statsTables = indexHtml.match(statsTableRegex) || [];
+    // robustly find each <div> whose class attribute contains "stats-table" and extract the full element
+    const statsTableRegex = /<div[^>]*class="[^"]*\bstats-table\b[^"]*"[^>]*>/ig;
+    let m;
+    const statsTables = [];
+    function findMatchingClosingDiv(html, startIndex) {
+        const openTagEnd = html.indexOf('>', startIndex);
+        if (openTagEnd === -1) return null;
+        let pos = openTagEnd + 1;
+        let depth = 1;
+        while (depth > 0) {
+            const nextOpen = html.indexOf('<div', pos);
+            const nextClose = html.indexOf('</div>', pos);
+            if (nextClose === -1) return null;
+            if (nextOpen !== -1 && nextOpen < nextClose) {
+                depth++;
+                pos = nextOpen + 4;
+            } else {
+                depth--;
+                pos = nextClose + 6;
+            }
+        }
+        return html.slice(startIndex, pos);
+    }
+    while ((m = statsTableRegex.exec(indexHtml)) !== null) {
+        const full = findMatchingClosingDiv(indexHtml, m.index);
+        if (full) statsTables.push(full);
+    }
     for (const tbl of statsTables) {
         assert.doesNotMatch(tbl, /\bstat-col\b[\s\S]*\bstat-exp-col\b|\bstat-exp\b|\bfighter-exp-input\b/, 'stats-table should not contain exp cells or inputs');
     }
-    // ensure fighter-exp-input exists inside the .cost-info region specifically
-    const costInfoBlockMatch = indexHtml.match(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[\s\S]*?<\/div>/);
-    assert.ok(costInfoBlockMatch && /\bfighter-exp-input\b/.test(costInfoBlockMatch[0]), 'fighter-exp-input should be inside .cost-info');
+
+    // ensure fighter-exp-input exists inside the .cost-info region specifically (robust to nested divs)
+    const costInfoStart = indexHtml.search(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[^>]*>/i);
+    assert.ok(costInfoStart !== -1, '.cost-info region should exist');
+    const costInfoBlock = findMatchingClosingDiv(indexHtml, costInfoStart);
+    assert.ok(costInfoBlock && /\bfighter-exp-input\b/.test(costInfoBlock), 'fighter-exp-input should be inside .cost-info');
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
