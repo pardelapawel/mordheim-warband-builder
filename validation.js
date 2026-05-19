@@ -31,6 +31,76 @@
         return 'melee_weapons';
     }
 
+    function normalizeItemName(name) {
+        return String(name || '').trim().toLowerCase();
+    }
+
+    function getMordheimerFreeDagger(masterData, warband) {
+        if (warband?.ruleSetId !== 'Mordheimer') return null;
+
+        return (masterData?.equipment || []).find(item => {
+            const name = normalizeItemName(item.name);
+            const special = normalizeItemName(item.special);
+            return name === 'dagger' || special.includes('1st free for every warrior');
+        }) || null;
+    }
+
+    function fighterNeedsFreeDagger(fighter) {
+        return !(fighter?.validations || []).includes('noEquipment');
+    }
+
+    function getFighterDaggerIndexes(fighter, daggerName) {
+        const normalizedDaggerName = normalizeItemName(daggerName);
+
+        return (fighter?.equipment || []).reduce((indexes, item, index) => {
+            if (normalizeItemName(item.name) === normalizedDaggerName) {
+                indexes.push(index);
+            }
+            return indexes;
+        }, []);
+    }
+
+    function findFighterTemplate(activeData, fighter) {
+        const fighterKey = normalizeItemName(fighter?.typeId || fighter?.templateName || fighter?.type);
+        if (!fighterKey || !Array.isArray(activeData?.fighters)) return null;
+
+        return activeData.fighters.find(template => {
+            return normalizeItemName(template.id || template.name) === fighterKey ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.templateName) ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.type);
+        }) || null;
+    }
+
+    function getTemplateCountKey(fighter, fighterTemplate) {
+        return normalizeItemName(fighterTemplate?.id || fighterTemplate?.name || fighter?.typeId || fighter?.templateName || fighter?.type);
+    }
+
+    function getFighterEquipmentList(activeData, fighterTemplate) {
+        if (!activeData || !fighterTemplate) return null;
+
+        const listKey = fighterTemplate.equipment_list_override
+            ? `equipment_list_${fighterTemplate.equipment_list_override}`
+            : 'equipment_list';
+        const rawList = activeData[listKey];
+        if (!rawList || typeof rawList !== 'object') return null;
+
+        const allowedNames = new Set();
+        Object.values(rawList).forEach(items => {
+            (items || []).forEach(itemName => {
+                const normalizedName = normalizeItemName(itemName);
+                if (normalizedName) allowedNames.add(normalizedName);
+            });
+        });
+
+        return allowedNames;
+    }
+
+    function getEquipmentListLabel(activeData, fighterTemplate, fighter) {
+        const warbandName = String(activeData?.warband_name || '').trim();
+        const fighterName = String(fighterTemplate?.name || fighter?.templateName || fighter?.type || 'fighter').trim();
+        return warbandName ? `${warbandName} ${fighterName} equipment list` : `${fighterName} equipment list`;
+    }
+
     // Database of validation rules
     const ValidationRules = {
         // --- Warband-level validations ---
@@ -88,12 +158,6 @@
                             newFighter.skills.push({ name: template.spell_list });
                         }
                         
-                        // Free Dagger rule
-                        const noDaggerRaces = ["Zwierzę", "Ogr", "Animal", "Ogre", "Zwierzę jaskiniowe", "Undead Animal"];
-                        if (!noDaggerRaces.includes(newFighter.race)) {
-                            newFighter.equipment.push({ name: "Dagger", cost: 0 });
-                        }
-
                         warband.fighters.unshift(newFighter); // Place Leader at top
                         return true;
                     }
@@ -371,8 +435,133 @@
             }
         }
 
+        const freeDagger = getMordheimerFreeDagger(masterData, warband);
+        const fighterCountByTemplate = new Map();
+
+        (warband.fighters || []).forEach(fighter => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            if (!countKey) return;
+            fighterCountByTemplate.set(countKey, (fighterCountByTemplate.get(countKey) || 0) + 1);
+        });
+        const fighterOccurrenceByTemplate = new Map();
+
         // 3. Iterate through fighters and run fighter-level, equipment-level, and skill-level validations
         (warband.fighters || []).forEach((fighter, fIdx) => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            const occurrence = countKey ? ((fighterOccurrenceByTemplate.get(countKey) || 0) + 1) : 0;
+
+            if (countKey) {
+                fighterOccurrenceByTemplate.set(countKey, occurrence);
+            }
+
+            if (fighterTemplate && typeof fighterTemplate.max_quantity === 'number' && fighterTemplate.max_quantity > 0) {
+                const totalCount = fighterCountByTemplate.get(countKey) || 0;
+                const hasExplicitOnePerWarband = (fighter.validations || []).includes('onePerWarband') ||
+                    (fighterTemplate.validations || []).includes('onePerWarband');
+
+                if (!(fighterTemplate.max_quantity === 1 && hasExplicitOnePerWarband) &&
+                    totalCount > fighterTemplate.max_quantity &&
+                    occurrence > fighterTemplate.max_quantity) {
+                    const limitMessage = fighterTemplate.max_quantity === 1
+                        ? `Only one "${fighterTemplate.name}" is allowed in the warband.`
+                        : `Only ${fighterTemplate.max_quantity} "${fighterTemplate.name}" fighters are allowed in the warband.`;
+
+                    errors.push({
+                        id: `fighter-max-quantity-${fIdx}`,
+                        message: limitMessage,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'maxQuantity',
+                        hasFix: true,
+                        fixLabel: 'Delete extra card',
+                        fix: function () {
+                            const fighterIndex = warband.fighters.indexOf(fighter);
+                            if (fighterIndex === -1) return;
+                            warband.fighters.splice(fighterIndex, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+            }
+
+            if (freeDagger && fighterNeedsFreeDagger(fighter)) {
+                const daggerIndexes = getFighterDaggerIndexes(fighter, freeDagger.name);
+
+                if (daggerIndexes.length === 0) {
+                    errors.push({
+                        id: `fighter-free-dagger-required-${fIdx}`,
+                        message: `"${fighter.customName || fighter.type}" must have a ${freeDagger.name}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'freeDaggerRequired',
+                        hasFix: true,
+                        fixLabel: `Add free ${freeDagger.name}`,
+                        fix: function () {
+                            fighter.equipment = fighter.equipment || [];
+                            fighter.equipment.unshift({
+                                name: freeDagger.name,
+                                cost: 0,
+                                originCategory: freeDagger.originCategory || 'melee_weapons'
+                            });
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                } else {
+                    const firstDagger = fighter.equipment[daggerIndexes[0]];
+                    if ((parseInt(firstDagger.cost) || 0) !== 0) {
+                        errors.push({
+                            id: `fighter-free-dagger-cost-${fIdx}`,
+                            message: `The first ${freeDagger.name} for "${fighter.customName || fighter.type}" must cost 0 gc.`,
+                            level: 'fighter',
+                            fighterIndex: fIdx,
+                            key: 'freeDaggerCost',
+                            hasFix: true,
+                            fixLabel: `Set first ${freeDagger.name} to 0 gc`,
+                            fix: function () {
+                                fighter.equipment[daggerIndexes[0]].cost = 0;
+                                if (typeof renderWarband === 'function') {
+                                    renderWarband();
+                                    saveToCache();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            const allowedEquipment = getFighterEquipmentList(activeData, fighterTemplate);
+            if (allowedEquipment && allowedEquipment.size > 0) {
+                (fighter.equipment || []).forEach((item, itemIdx) => {
+                    if (allowedEquipment.has(normalizeItemName(item.name))) return;
+
+                    errors.push({
+                        id: `fighter-eq-list-${fIdx}-${itemIdx}`,
+                        message: `"${item.name}" is not in the ${getEquipmentListLabel(activeData, fighterTemplate, fighter)}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'equipmentList',
+                        item: item,
+                        hasFix: true,
+                        fixLabel: `Remove ${item.name}`,
+                        fix: function () {
+                            fighter.equipment.splice(itemIdx, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                });
+            }
+
             // (a) Fighter-level validations (copied from base template rules)
             const fighterVals = fighter.validations || [];
             fighterVals.forEach((valKey, valIdx) => {

@@ -163,7 +163,11 @@ function populateGlobalDatalists() {
         opt.value = item.name;
         eqDatalist.appendChild(opt);
     });
-    masterData.skills.forEach(skill => {
+    const skillNames = new Set();
+    [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k }))].forEach(skill => {
+        const normalizedName = String(skill.name || '').trim().toLowerCase();
+        if (!normalizedName || skillNames.has(normalizedName)) return;
+        skillNames.add(normalizedName);
         const opt = document.createElement('option');
         opt.value = skill.name;
         skillDatalist.appendChild(opt);
@@ -691,6 +695,7 @@ function createFighterCard(data, index) {
             );
             updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
             updateLegend();
+            runValidations();
             saveToCache();
             resize();
         };
@@ -700,6 +705,7 @@ function createFighterCard(data, index) {
         costEdit.oninput = () => {
             currentWarband.fighters[index].equipment[itemIdx].cost = parseInt(costEdit.value) || 0;
             updateTotalCost();
+            runValidations();
             saveToCache();
             cardEl.querySelector('.fighter-total-cost').textContent = calculateFighterCost(currentWarband.fighters[index]);
         };
@@ -893,7 +899,14 @@ function createFighterCard(data, index) {
             let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
             let listData = type === 'equipment'
                 ? masterData.equipment.filter(item => !equipmentCategory || item.originCategory === equipmentCategory)
-                : [...masterData.skills, ...spellLists, ...masterData.spells];
+                : [...masterData.skills, ...Object.keys(masterData.skillsByCategory || {}).map(k => ({ name: k })), ...spellLists, ...masterData.spells];
+            let seenNames = new Set();
+            listData = listData.filter(item => {
+                const normalizedName = String(item.name || '').trim().toLowerCase();
+                if (!normalizedName || seenNames.has(normalizedName)) return false;
+                seenNames.add(normalizedName);
+                return true;
+            });
 
             // If empty, show all. If typed, filter.
             let matches = listData;
@@ -1094,8 +1107,8 @@ function updateWarbandRating() {
 }
 
 function escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
+    if (str === null || str === undefined) return '';
+    return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
