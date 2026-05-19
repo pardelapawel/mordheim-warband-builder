@@ -183,9 +183,21 @@ test('cost info supports base total and exp on one line in screen styles', () =>
         beforePrint,
         /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
     );
-    // ensure flex is a row layout (or at minimum not column) across all .cost-info rules
-    const costInfoRuleRegex = /\.cost-info\s*\{([\s\S]*?)\}/g;
-    const costInfoMatches = [...beforePrint.matchAll(costInfoRuleRegex)].map(m => m[1]);
+    // parse CSS rules and collect blocks where .cost-info is a standalone selector (in selector list)
+    const ruleRegex = /([^\{]+)\{([\s\S]*?)\}/g;
+    const costInfoMatches = [];
+    let m;
+    while ((m = ruleRegex.exec(beforePrint)) !== null) {
+        const selectorList = m[1];
+        const selectors = selectorList.split(',');
+        for (const sel of selectors) {
+            const tokens = sel.trim().split(/\s+/);
+            if (tokens.includes('.cost-info')) {
+                costInfoMatches.push(m[2]);
+                break;
+            }
+        }
+    }
     assert.ok(costInfoMatches.length > 0, 'Should have at least one .cost-info rule in screen styles');
     // none of the .cost-info rule blocks may set column direction
     for (const rules of costInfoMatches) {

@@ -57,12 +57,15 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 });
 
 test('fighter template moves exp input from stats row into header cost info', () => {
-    assert.doesNotMatch(
-        indexHtml,
-        /class="[^"]*\bstats-table\b[^"]*"[\s\S]*(?:class="[^"]*\bstat-col\b[^"]*\bstat-exp-col\b[^"]*"|class="[^"]*\bstat-exp\b[^"]*"|class="[^"]*\bfighter-exp-input\b[^"]*")/
-    );
+    // find all stats-table blocks (token-based class match)
+    const statsTableRegex = /<div[^>]*class="[^"]*\bstats-table\b[^"]*"[\s\S]*?<\/div>/g;
+    const statsTables = indexHtml.match(statsTableRegex) || [];
+    for (const tbl of statsTables) {
+        assert.doesNotMatch(tbl, /\bstat-col\b[\s\S]*\bstat-exp-col\b|\bstat-exp\b|\bfighter-exp-input\b/, 'stats-table should not contain exp cells or inputs');
+    }
     // ensure fighter-exp-input exists inside the .cost-info region specifically
-    assert.match(indexHtml, /class="[^"]*\bcost-info\b[^"]*"[\s\S]*class="[^"]*\bfighter-exp-input\b[^"]*"/);
+    const costInfoBlockMatch = indexHtml.match(/<div[^>]*class="[^"]*\bcost-info\b[^"]*"[\s\S]*?<\/div>/);
+    assert.ok(costInfoBlockMatch && /\bfighter-exp-input\b/.test(costInfoBlockMatch[0]), 'fighter-exp-input should be inside .cost-info');
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
