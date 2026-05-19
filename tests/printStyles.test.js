@@ -192,6 +192,8 @@ test('cost info supports base total and exp on one line in screen styles', () =>
         // fallback: require explicit row direction if block not found as single rule
         assert.match(beforePrint, /\.cost-info\s*\{[\s\S]*flex-direction:\s*(row|row-reverse)/);
     }
+    // explicitly require row (or row-reverse) so stacked column layouts do not pass
+    assert.match(beforePrint, /\.cost-info[\s\S]*flex-direction:\s*(row|row-reverse)/);
     assert.match(
         beforePrint,
         /\.cost-input-container,\s*\.total-card-cost,\s*\.fighter-exp-summary[\s\S]*font-size:\s*0\.8rem/

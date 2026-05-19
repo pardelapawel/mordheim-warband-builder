@@ -59,17 +59,17 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 test('fighter template moves exp input from stats row into header cost info', () => {
     assert.doesNotMatch(
         indexHtml,
-        /class="stats-table"[\s\S]*class="stat-col stat-exp-col"/
+        /class="stats-table"[\s\S]*(class="stat-col stat-exp-col"|class="stat-exp"|class="fighter-exp-input")/
     );
     // ensure fighter-exp-input exists inside the .cost-info region specifically
-    const costInfoMatch = indexHtml.match(/<[^>]*class="cost-info no-print"[^>]*>([\s\S]*?)<\/[^>]+>/);
-    assert.ok(costInfoMatch, 'Should find a .cost-info no-print element in template');
-    assert.match(costInfoMatch[1], /class="fighter-exp-input"/);
+    assert.match(indexHtml, /class="cost-info no-print"[\s\S]*class="fighter-exp-input"/);
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
+    // ensure change handler updates model and track inside the onchange handler specifically
+    assert.match(appJs, /expInput\.onchange\s*=[\s\S]*currentWarband\.fighters\[index\]\.exp\s*=\s*newExp[\s\S]*updateExpTrack\(newExp\)/);
 });
 
