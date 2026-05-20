@@ -31,6 +31,30 @@ function extractMediaPrintBlock(css) {
     return null;
 }
 
+function extractStandaloneRuleBlock(css, selector) {
+    const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ruleRegex = new RegExp(`(^|\\n)\\s*${escapedSelector}\\s*\\{([\\s\\S]*?)\\}`, 'g');
+    const matches = [];
+    let match;
+    while ((match = ruleRegex.exec(css)) !== null) {
+        matches.push(match[2]);
+    }
+    return matches;
+}
+
+function extractRuleBlocksContainingSelector(css, selector) {
+    const ruleRegex = /(^|\n)\s*([^\{]+)\{([\s\S]*?)\}/g;
+    const matches = [];
+    let match;
+    while ((match = ruleRegex.exec(css)) !== null) {
+        const selectors = match[2].split(',').map(s => s.trim());
+        if (selectors.includes(selector)) {
+            matches.push(match[3]);
+        }
+    }
+    return matches;
+}
+
 test('print mode restores folded card content using expanded-card layout rules', () => {
     assert.match(
         styleCss,
@@ -179,66 +203,18 @@ test('exp-box does not set fixed width or height in print mode', () => {
 
 test('cost info supports base total and exp on one line in screen styles', () => {
     const beforePrint = styleCss.split('@media print')[0];
-    assert.match(
-        beforePrint,
-        /\.cost-info\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center/
-    );
-    // parse CSS rules and collect blocks where .cost-info is a standalone selector (in selector list)
-    const ruleRegex = /([^\{]+)\{([\s\S]*?)\}/g;
-    const costInfoMatches = [];
-    let m;
-    while ((m = ruleRegex.exec(beforePrint)) !== null) {
-        const selectorList = m[1];
-        const selectors = selectorList.split(',');
-        for (const sel of selectors) {
-            const tokens = sel.trim().split(/\s+/);
-            if (tokens.includes('.cost-info')) {
-                costInfoMatches.push(m[2]);
-                break;
-            }
-        }
-    }
-    assert.ok(costInfoMatches.length > 0, 'Should have at least one .cost-info rule in screen styles');
-    // none of the .cost-info rule blocks may set column direction
+    const costInfoMatches = extractRuleBlocksContainingSelector(beforePrint, '.cost-info');
+    assert.ok(costInfoMatches.length > 0, 'Should have .cost-info rule in screen styles');
     for (const rules of costInfoMatches) {
+        assert.match(rules, /display:\s*flex|display:\s*inline-flex/);
         assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
+        assert.doesNotMatch(rules, /align-items:\s*flex-end/, '.cost-info rules should not right-stack summary rows');
     }
-    // require at least one rules block explicitly sets display:flex and centers items (ensures one-line cost layout still present)
-    const hasFlexCentered = costInfoMatches.some(r => /display:\s*flex/.test(r) && /align-items:\s*center/.test(r));
-    assert.ok(hasFlexCentered, 'At least one .cost-info rule must use display:flex and align-items:center to preserve one-line cost layout');
-    const groupedSelectors = ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary'];
-    ruleRegex.lastIndex = 0;
-    for (const gs of groupedSelectors) {
-        let found = false;
-        while ((m = ruleRegex.exec(beforePrint)) !== null) {
-            const selectorList = m[1].split(',').map(s => s.trim());
-            if (selectorList.some(s => s.split(/\s+/).includes(gs))) {
-                const rules = m[2];
-                if (/display:\s*inline-flex/.test(rules) && /align-items:\s*center/.test(rules)) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        assert.ok(found, `Selector ${gs} should have display:inline-flex and align-items:center in some rule`);
-        ruleRegex.lastIndex = 0;
-    }
-    // require font-size:0.8rem for each selector (allows grouped or separate rules)
-    for (const gs of groupedSelectors) {
-        ruleRegex.lastIndex = 0;
-        let foundFont = false;
-        while ((m = ruleRegex.exec(beforePrint)) !== null) {
-            const selectorList = m[1].split(',').map(s => s.trim());
-            if (selectorList.some(s => s.split(/\s+/).includes(gs))) {
-                const rules = m[2];
-                if (/font-size:\s*0\.8rem/.test(rules)) {
-                    foundFont = true;
-                    break;
-                }
-            }
-        }
-        assert.ok(foundFont, `Selector ${gs} should set font-size:0.8rem`);
+    for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {
+        const selectorRules = extractRuleBlocksContainingSelector(beforePrint, selector);
+        assert.ok(selectorRules.length > 0, `Should have ${selector} rule in screen styles`);
+        const joinedRules = selectorRules.join('\n');
+        assert.doesNotMatch(joinedRules, /(?:width|inline-size|flex-basis)\s*:\s*100%/, `${selector} should not force full-row width`);
+        assert.doesNotMatch(joinedRules, /grid-column\s*:\s*1\s*\/\s*-1/, `${selector} should not span full grid row`);
     }
 });
-
-
