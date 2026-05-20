@@ -142,13 +142,21 @@ test('fighter template moves exp input from stats row into header cost info', ()
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
-    assert.match(appJs, /querySelector\((['"])\.fighter-exp-input\1\)/);
-    assert.doesNotMatch(appJs, /querySelector\((['"])\.stat-exp\1\)/);
+    const expTrackBlock = extractBalancedBlock(appJs, /if\s*\(\s*expTrack\s*\)\s*\{/);
+    const expTrackClickBody = extractArrowFunctionBody(
+        expTrackBlock,
+        /box\.addEventListener\(\s*(['"])click\1,\s*\(\)\s*=>\s*\{/,
+    );
+    assert.match(expTrackClickBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(expTrackClickBody, /if\s*\(\s*expInput\s*\)\s*expInput\.value\s*=\s*newExp/);
+    assert.match(expTrackClickBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
+    assert.match(expTrackClickBody, /updateWarbandRating\s*\(/);
+    assert.match(expTrackClickBody, /saveToCache\s*\(/);
+
     const expInputBlock = extractBalancedBlock(appJs, /if\s*\(\s*expInput\s*\)\s*\{/);
     assert.match(expInputBlock, /\.value\s*=\s*data\.exp\s*(?:\|\||\?\?)\s*0/);
     assert.match(expInputBlock, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
     assert.match(expInputBlock, /updateExpTrack\s*\(\s*newExp\s*\)/);
     assert.match(expInputBlock, /updateWarbandRating\s*\(/);
     assert.match(expInputBlock, /saveToCache\s*\(/);
-    assert.match(appJs, /if\s*\(\s*expInput\s*\)\s*expInput\.value\s*=\s*newExp/);
 });

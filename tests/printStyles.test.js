@@ -213,5 +213,8 @@ test('cost info supports base total and exp on one line in screen styles', () =>
     for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {
         const selectorRules = extractRuleBlocksContainingSelector(beforePrint, selector);
         assert.ok(selectorRules.length > 0, `Should have ${selector} rule in screen styles`);
+        const joinedRules = selectorRules.join('\n');
+        assert.doesNotMatch(joinedRules, /(?:width|inline-size|flex-basis)\s*:\s*100%/, `${selector} should not force full-row width`);
+        assert.doesNotMatch(joinedRules, /grid-column\s*:\s*1\s*\/\s*-1/, `${selector} should not span full grid row`);
     }
 });
