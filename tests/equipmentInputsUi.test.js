@@ -87,7 +87,23 @@ test('equipment autocompletes are wired per category', () => {
     assert.match(appJs, /setupAutocomplete\(itemsInput,\s*'equipment',\s*'items'\)/);
 });
 
-test('skills autocomplete excludes skill category keys as addable entries', () => {
+test('fighter skill helpers load before runtime modules that depend on them', () => {
+    const scriptSources = Array.from(indexHtml.matchAll(/<script\s+src="([^"]+)"><\/script>/g), match => match[1]);
+    const fighterSkillUtilsIndex = scriptSources.indexOf('fighterSkillUtils.js');
+    const printUtilsIndex = scriptSources.indexOf('printUtils.js');
+    const legendUtilsIndex = scriptSources.indexOf('legendUtils.js');
+    const validationIndex = scriptSources.indexOf('validation.js');
+
+    assert.notEqual(fighterSkillUtilsIndex, -1, 'fighterSkillUtils.js should be loaded');
+    assert.notEqual(printUtilsIndex, -1, 'printUtils.js should be loaded');
+    assert.notEqual(legendUtilsIndex, -1, 'legendUtils.js should be loaded');
+    assert.notEqual(validationIndex, -1, 'validation.js should be loaded');
+    assert.ok(fighterSkillUtilsIndex < printUtilsIndex, 'fighterSkillUtils.js should load before printUtils.js');
+    assert.ok(fighterSkillUtilsIndex < legendUtilsIndex, 'fighterSkillUtils.js should load before legendUtils.js');
+    assert.ok(fighterSkillUtilsIndex < validationIndex, 'fighterSkillUtils.js should load before validation.js');
+});
+
+test('skills autocomplete excludes generic category keys but allows explicit repeatable skill groups', () => {
     assert.doesNotMatch(
         appJs,
         /\[\.\.\.masterData\.skills,\s*\.\.\.Object\.keys\(masterData\.skillsByCategory(?:\s*\|\|\s*\{\})?\)\.map\(k => \(\{ name: k \}\)\)/
@@ -96,11 +112,41 @@ test('skills autocomplete excludes skill category keys as addable entries', () =
         appJs,
         /\[\.\.\.masterData\.skills,\s*\.\.\.Object\.keys\(masterData\.skillsByCategory(?:\s*\|\|\s*\{\})?\)\.map\(k => \(\{ name: k \}\)\),\s*\.\.\.spellLists,\s*\.\.\.masterData\.spells\]/
     );
+    assert.match(appJs, /const addableSkillGroupNames = fighterTemplate[\s\S]*FighterSkillUtils\.getTemplateAddableSkillGroupNames\(fighterTemplate,\s*masterData\)/);
+    assert.match(appJs, /\.\.\.addableSkillGroupNames\.map\(name => \(\{ label: name \}\)\)/);
+});
+
+test('skills autocomplete hides members of repeatable skill groups from direct entry', () => {
+    assert.match(appJs, /const addableSkillGroupNameSet = new Set\(addableSkillGroupNames\.map\(normalizeAutocompleteName\)\)/);
+    assert.match(appJs, /masterData\.skills\.filter\(item => !addableSkillGroupNameSet\.has\(normalizeAutocompleteName\(item\.originCategory\)\)\)/);
+});
+
+test('skills UI formats rows through structured skill helpers', () => {
+    assert.match(appJs, /FighterSkillUtils\.formatSkillEntry\(skill,\s*masterData\)/);
+    assert.match(appJs, /FighterSkillUtils\.selectGroupedSkillOption\(/);
+    assert.match(appJs, /class="item-cost-edit skill-cost-edit"/);
+    assert.match(appJs, /currentWarband\.fighters\[index\]\.skills\[skillIdx\]\.cost = parseInt\(costEdit\.value\) \|\| 0/);
+    assert.match(appJs, /cardEl\.querySelector\('\.fighter-total-cost'\)\.textContent = calculateFighterCost\(currentWarband\.fighters\[index\]\)/);
+});
+
+test('skills autocomplete adds grouped parent rows but not their child members', () => {
+    assert.match(appJs, /masterData\.skills\.filter\(item => !addableSkillGroupNameSet\.has\(normalizeAutocompleteName\(item\.originCategory\)\)\)/);
+    assert.match(appJs, /\.\.\.addableSkillGroupNames\.map\(name => \(\{ label: name \}\)\)/);
+});
+
+test('grouped skill rows keep the parent row and render a nested picker', () => {
+    assert.match(appJs, /if \(skill\.kind === 'group'\)/);
+    assert.match(appJs, /const optionsFromHelper = FighterSkillUtils\.getGroupedSkillOptions\(/);
 });
 
 test('fighter templates only auto-add spell list entries from available skill lists', () => {
-    assert.match(appJs, /FighterSkillUtils\.getTemplateStartingSkills\(base,\s*masterData\)/);
+    assert.match(appJs, /FighterSkillUtils\.getTemplateStartingSkillEntries\(base,\s*masterData\)/);
     assert.doesNotMatch(appJs, /if \(base\.skills\) \{\s*base\.skills\.forEach/);
+});
+
+test('fighter templates seed structured skill entries instead of string names', () => {
+    assert.match(appJs, /const startingSkills = FighterSkillUtils\.getTemplateStartingSkillEntries\(base,\s*masterData\)/);
+    assert.doesNotMatch(appJs, /fighter\.skills = startingSkills\.map\(skill => \(\{ name: skill\.name \}\)\)/);
 });
 
 test('equipment autocomplete sorts allowed entries before disallowed ones for the fighter', () => {
@@ -108,9 +154,9 @@ test('equipment autocomplete sorts allowed entries before disallowed ones for th
     assert.match(appJs, /const listKey = fighterTemplate\.equipment_list_override\s*\?\s*`equipment_list_\$\{fighterTemplate\.equipment_list_override\}`\s*:\s*'equipment_list'/);
     assert.match(appJs, /Object\.values\(rawList\)\.forEach\(items => \{/);
     assert.match(appJs, /matches = \[\.\.\.matches\]\.sort\(\(a, b\) => \{/);
-    assert.match(appJs, /const allowedNames = type === 'equipment' \? allowedEquipmentNames : allowedSkillNames/);
-    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.name\)\) \? 0 : 1/);
-    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedNames = type === 'equipment' \? allowedEquipmentNames : allowedSkillEntryNames/);
+    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.label \|\| a\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.label \|\| b\.name\)\) \? 0 : 1/);
     assert.match(appJs, /if \(allowedA !== allowedB\) return allowedA - allowedB/);
 });
 
@@ -123,11 +169,13 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
 
 test('skills autocomplete visually distinguishes allowed and disallowed entries for the fighter', () => {
     assert.match(appJs, /const allowedSkillNames = fighterTemplate[\s\S]*FighterSkillUtils\.getTemplateAllowedSkillNames\(fighterTemplate,\s*masterData\)[\s\S]*new Set\(\)/);
+    assert.match(appJs, /const addableSkillGroupNameSet = new Set\(addableSkillGroupNames\.map\(normalizeAutocompleteName\)\)/);
+    assert.match(appJs, /const allowedSkillEntryNames = new Set\(\[\.\.\.allowedSkillNames,\s*\.\.\.addableSkillGroupNameSet\]\)/);
     assert.match(appJs, /FighterSkillUtils\.getTemplateAllowedSkillNames\(fighterTemplate,\s*masterData\)/);
-    assert.match(appJs, /if \(\(type === 'equipment' && allowedEquipmentNames\.size > 0\) \|\| \(type === 'skills' && allowedSkillNames\.size > 0\)\)/);
-    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.name\)\) \? 0 : 1/);
-    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.name\)\) \? 0 : 1/);
-    assert.match(appJs, /if \(allowedNames\.has\(normalizeAutocompleteName\(match\.name\)\)\) \{/);
+    assert.match(appJs, /if \(\(type === 'equipment' && allowedEquipmentNames\.size > 0\) \|\| \(type === 'skills' && allowedSkillEntryNames\.size > 0\)\)/);
+    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.label \|\| a\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.label \|\| b\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /if \(allowedNames\.has\(normalizeAutocompleteName\(displayName\)\)\) \{/);
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-allowed\s*\{[\s\S]*font-weight:\s*700/);
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-disallowed\s*\{[\s\S]*color:\s*var\(--text-secondary\)/);
 });

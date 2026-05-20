@@ -1,10 +1,10 @@
 (function (root, factory) {
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./fighterSkillUtils.js'));
     } else {
-        root.PrintUtils = factory();
+        root.PrintUtils = factory(root.FighterSkillUtils);
     }
-}(typeof self !== 'undefined' ? self : this, function () {
+}(typeof self !== 'undefined' ? self : this, function (FighterSkillUtils) {
     'use strict';
 
     const LEGACY_EQUIPMENT_ALIASES = {
@@ -24,9 +24,14 @@
         return (equipmentCatalog || []).find(entry => candidateKeys.includes(normalizeEquipmentName(entry.name)));
     }
 
-    function summarizeNames(entries) {
+    function summarizeNames(entries, masterData) {
         const names = (entries || [])
-            .map(entry => typeof entry === 'string' ? entry : entry.name)
+            .map(entry => FighterSkillUtils.formatSkillEntry(
+                entry && typeof entry === 'object' && entry.name && !entry.label
+                    ? entry.name
+                    : entry,
+                masterData
+            ))
             .map(name => String(name || '').trim())
             .filter(Boolean);
 
@@ -39,7 +44,7 @@
             '';
     }
 
-    function buildPrintSectionSummaries(fighter, equipmentCatalog) {
+    function buildPrintSectionSummaries(fighter, equipmentCatalog, masterData) {
         const sections = {
             melee: [],
             ranged: [],
@@ -67,7 +72,7 @@
             ranged: summarizeNames(sections.ranged),
             armor: summarizeNames(sections.armor),
             items: summarizeNames(sections.items),
-            skills: summarizeNames(sections.skills)
+            skills: summarizeNames(sections.skills, masterData)
         };
     }
 

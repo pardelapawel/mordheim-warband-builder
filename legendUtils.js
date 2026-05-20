@@ -1,10 +1,10 @@
 (function (root, factory) {
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./fighterSkillUtils.js'));
     } else {
-        root.LegendUtils = factory();
+        root.LegendUtils = factory(root.FighterSkillUtils);
     }
-}(typeof self !== 'undefined' ? self : this, function () {
+}(typeof self !== 'undefined' ? self : this, function (FighterSkillUtils) {
     'use strict';
 
     function normalizeLegendTerm(term) {
@@ -60,7 +60,9 @@
             });
 
             (fighter.skills || []).forEach(skill => {
-                const skillName = String(skill.name || '').trim();
+                const skillName = String(FighterSkillUtils.formatSkillEntry(skill && typeof skill === 'object' && skill.name && !skill.label
+                    ? skill.name
+                    : skill) || '').trim();
                 
                 const spellMatch = skillName.match(/^(.*?)\((.*?)\)/);
                 if (spellMatch) {
@@ -90,7 +92,9 @@
 
         (fighters || []).forEach(fighter => {
             (fighter.skills || []).forEach(skill => {
-                const skillName = String(skill.name || '').trim();
+                const skillName = String(FighterSkillUtils.formatSkillEntry(skill && typeof skill === 'object' && skill.name && !skill.label
+                    ? skill.name
+                    : skill) || '').trim();
                 const spellMatch = skillName.match(/^(.*?)\((.*?)\)/);
                 const baseName = spellMatch ? String(spellMatch[1] || '').trim() : skillName;
                 const baseKey = normalizeLegendTerm(baseName);

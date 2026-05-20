@@ -68,6 +68,27 @@ test('buildLegendGroups captures spells extracted from skill suffixes', () => {
     ]);
 });
 
+test('buildLegendGroups extracts grouped parent and selected child from structured skills', () => {
+    const groups = buildLegendGroups({
+        fighters: [{
+            equipment: [],
+            skills: [{ kind: 'group', label: 'Mutations', groupKey: 'Mutations', selectedKey: 'Great Claw' }]
+        }],
+        masterData: {
+            ...masterData,
+            skills: [
+                ...masterData.skills,
+                { name: 'Great Claw', description: 'Mutation' }
+            ]
+        },
+        glossaryState: { descriptions: {}, deletedTerms: [] }
+    });
+    const skills = groups.find(group => group.name === 'Skills').items;
+
+    assert.ok(skills.some(item => item.name === 'Mutations'));
+    assert.ok(skills.some(item => item.name === 'Great Claw'));
+});
+
 test('buildLegendGroups keeps spell list entries in Skills group', () => {
     const groups = buildLegendGroups({
         fighters: [{ equipment: [], skills: [{ name: 'Prayers of Taal' }] }],

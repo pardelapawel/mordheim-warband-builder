@@ -45,6 +45,7 @@
       "stats": { "m": 5, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 6 },
       "validations": ["noArmor"],
       "rules": ["Wizard"],
+      "spell_list": "Chaos Rituals",
       "skills": ["Combat", "Speed", "Special", "Chaos Rituals"]
     },
     {

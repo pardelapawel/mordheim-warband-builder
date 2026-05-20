@@ -41,6 +41,7 @@
       "exp_start": 10,
       "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 3, "a": 1, "ld": 7 },
       "validations": ["noArmor"],
+      "spell_list": "Waaaagh! Magic",
       "skills": ["Strength", "Orc Special", "Waaaagh! Magic"]
     },
     {

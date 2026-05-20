@@ -97,3 +97,17 @@ test('buildPrintSectionSummaries keeps legacy combined equipment names in the ri
         skills: '-'
     });
 });
+
+test('buildPrintSectionSummaries formats structured grouped skills for output', () => {
+    const summaries = buildPrintSectionSummaries({
+        type: 'Possessed',
+        equipment: [],
+        skills: [{ kind: 'group', label: 'Mutations', groupKey: 'Mutations', selectedKey: 'Great Claw', cost: 50 }]
+    }, [], {
+        skillsByCategory: {
+            Mutations: [{ name: 'Great Claw', cost: 50 }]
+        }
+    });
+
+    assert.equal(summaries.skills, 'Mutations (Great Claw)');
+});

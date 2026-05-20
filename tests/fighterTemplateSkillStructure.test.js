@@ -70,3 +70,51 @@ for (const ruleSetFolder of ['mordheimer', 'drachenfels']) {
         });
     });
 }
+
+test('mordheimer casters declare their starting spell list explicitly', () => {
+    const spellsByList = loadJson(path.join(__dirname, '..', 'data', 'mordheimer', 'spells.json'));
+    const spellListNames = new Set(Object.keys(spellsByList).filter(key => key !== '__listDescriptions'));
+    const missingSpellLists = [];
+
+    getWarbandFiles('mordheimer').forEach(filePath => {
+        const warband = loadJson(filePath);
+
+        (warband.fighters || []).forEach(fighter => {
+            const matchingSpellLists = (fighter.skills || []).filter(skillCategory => spellListNames.has(skillCategory));
+            if (matchingSpellLists.length === 0) return;
+
+            assert.equal(
+                matchingSpellLists.length,
+                1,
+                `${path.basename(filePath)} fighter "${fighter.name}" should not declare multiple spell-list categories`,
+            );
+
+            if (fighter.spell_list !== matchingSpellLists[0]) {
+                missingSpellLists.push({
+                    file: path.basename(filePath),
+                    fighter: fighter.name,
+                    expected: matchingSpellLists[0],
+                    actual: fighter.spell_list || null
+                });
+            }
+        });
+    });
+
+    assert.deepEqual(missingSpellLists, []);
+});
+
+test('mordheimer fighters with required starting category picks declare them explicitly', () => {
+    const expectations = [
+        { file: 'cult_of_the_possessed.json', fighter: 'The Possessed', skillGroup: 'Mutations' },
+        { file: 'cult_of_the_possessed.json', fighter: 'Mutant', skillGroup: 'Mutations' },
+        { file: 'carnival_of_chaos.json', fighter: 'Tainted One', skillGroup: 'Blessings of Nurgle' }
+    ];
+
+    expectations.forEach(({ file, fighter, skillGroup }) => {
+        const warband = loadJson(path.join(__dirname, '..', 'data', 'mordheimer', 'warbands', file));
+        const template = (warband.fighters || []).find(entry => entry.name === fighter);
+        assert.ok(template, `${file} missing fighter "${fighter}"`);
+        assert.deepEqual(template.required_starting_skill_groups || [], [skillGroup]);
+        assert.ok((template.starting_skills || []).includes(skillGroup));
+    });
+});

@@ -17,7 +17,7 @@ test('equipment rename updates print summaries and glossary immediately', () => 
 test('skill rename updates print summaries and glossary immediately', () => {
     assert.match(
         appJs,
-        /currentWarband\.fighters\[index\]\.skills\[skillIdx\]\.name = nameEdit\.value;[\s\S]*updateCardPrintSummaries\(cardEl,\s*currentWarband\.fighters\[index\]\)[\s\S]*updateLegend\(\)[\s\S]*saveToCache\(\)/,
+        /currentWarband\.fighters\[index\]\.skills\[skillIdx\] = \{[\s\S]*label: nameEdit\.value[\s\S]*\};[\s\S]*updateCardPrintSummaries\(cardEl,\s*currentWarband\.fighters\[index\]\)[\s\S]*updateLegend\(\)[\s\S]*saveToCache\(\)/,
     );
 });
 
