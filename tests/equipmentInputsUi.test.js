@@ -61,6 +61,16 @@ function extractBalancedBlock(source, startPattern) {
     return source.slice(openBraceIndex + 1, pos - 1);
 }
 
+function extractSourceSlice(source, startPattern, endPattern) {
+    const startMatch = source.match(startPattern);
+    assert.ok(startMatch, 'Expected slice start pattern to exist');
+    const startIndex = startMatch.index;
+    const rest = source.slice(startIndex + startMatch[0].length);
+    const endMatch = rest.match(endPattern);
+    assert.ok(endMatch, 'Expected slice end pattern to exist');
+    return source.slice(startIndex, startIndex + startMatch[0].length + endMatch.index);
+}
+
 function findSectionBlock(html, sectionClass) {
     const sectionRegex = new RegExp(`<div[^>]*class="[^"]*\\bcard-section\\b[^"]*\\b${sectionClass}\\b[^"]*"[^>]*>`, 'i');
     const match = sectionRegex.exec(html);
@@ -142,6 +152,10 @@ test('fighter template moves exp input from stats row into header cost info', ()
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
+    const experienceSection = extractSourceSlice(appJs, /\/\/ Experience/, /\/\/ Helper to get which list element/);
+    assert.match(experienceSection, /querySelector\((['"])\.fighter-exp-input\1\)/);
+    assert.doesNotMatch(experienceSection, /querySelector\((['"])\.stat-exp\1\)/);
+
     const expTrackBlock = extractBalancedBlock(appJs, /if\s*\(\s*expTrack\s*\)\s*\{/);
     const expTrackClickBody = extractArrowFunctionBody(
         expTrackBlock,
