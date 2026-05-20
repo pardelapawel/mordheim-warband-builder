@@ -6,11 +6,11 @@
  */
 (function (root, factory) {
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./fighterSkillUtils.js'));
     } else {
-        root.ValidationSystem = factory();
+        root.ValidationSystem = factory(root.FighterSkillUtils);
     }
-}(typeof self !== 'undefined' ? self : this, function () {
+}(typeof self !== 'undefined' ? self : this, function (FighterSkillUtils) {
     'use strict';
 
     const LEGACY_EQUIPMENT_ALIASES = {
@@ -184,13 +184,10 @@
                             spell_list: template.spell_list || null,
                             stats: { ...(template.stats || {}) },
                             equipment: [],
-                            skills: (template.rules || []).map(r => ({ name: r })),
+                            skills: FighterSkillUtils.getTemplateStartingSkills(template).map(skill => ({ name: skill.name })),
                             requirements: template.requirements || null,
                             validations: template.validations || null
                         };
-                        if (template.spell_list) {
-                            newFighter.skills.push({ name: template.spell_list });
-                        }
                         
                         warband.fighters.unshift(newFighter); // Place Leader at top
                         return true;
@@ -483,6 +480,10 @@
         // 3. Iterate through fighters and run fighter-level, equipment-level, and skill-level validations
         (warband.fighters || []).forEach((fighter, fIdx) => {
             const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const exemptSkillNames = new Set(
+                FighterSkillUtils.getTemplateStartingSkills(fighterTemplate || {})
+                    .map(skill => FighterSkillUtils.normalizeSkillName(skill.name))
+            );
             const countKey = getTemplateCountKey(fighter, fighterTemplate);
             const occurrence = countKey ? ((fighterOccurrenceByTemplate.get(countKey) || 0) + 1) : 0;
 
@@ -714,6 +715,23 @@
 
             // (d) Skill validations: Check if skills/rules themselves have validation properties
             (fighter.skills || []).forEach(s => {
+                const normalizedSkillName = FighterSkillUtils.normalizeSkillName(s.name);
+                if (
+                    fighterTemplate &&
+                    !exemptSkillNames.has(normalizedSkillName) &&
+                    !FighterSkillUtils.isSkillAllowedForTemplate(s.name, fighterTemplate, masterData)
+                ) {
+                    errors.push({
+                        id: `fighter-skill-access-${fIdx}-${normalizedSkillName}`,
+                        message: `${s.name} is not in this fighter's advancement list`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'skillAccess',
+                        severity: 'warning',
+                        skill: s
+                    });
+                }
+
                 const regSkill = (masterData.skills || []).find(m => m.name.toLowerCase() === s.name.toLowerCase());
                 if (regSkill) {
                     const skillVals = regSkill.validations || regSkill.validation ? (regSkill.validations || [regSkill.validation]) : [];

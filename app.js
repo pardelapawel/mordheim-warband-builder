@@ -899,6 +899,9 @@ function createFighterCard(data, index) {
             normalizeAutocompleteName(f.name) === normalizeAutocompleteName(data.templateName || data.type);
     }) || null;
     const allowedEquipmentNames = new Set();
+    const allowedSkillNames = fighterTemplate
+        ? FighterSkillUtils.getTemplateAllowedSkillNames(fighterTemplate, masterData)
+        : new Set();
 
     if (fighterTemplate) {
         const listKey = fighterTemplate.equipment_list_override ? `equipment_list_${fighterTemplate.equipment_list_override}` : 'equipment_list';
@@ -941,10 +944,11 @@ function createFighterCard(data, index) {
                 matches = listData.filter(i => i.name.toLowerCase().includes(val));
             }
 
-            if (type === 'equipment' && allowedEquipmentNames.size > 0) {
+            if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillNames.size > 0)) {
+                const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillNames;
                 matches = [...matches].sort((a, b) => {
-                    const allowedA = allowedEquipmentNames.has(normalizeAutocompleteName(a.name)) ? 0 : 1;
-                    const allowedB = allowedEquipmentNames.has(normalizeAutocompleteName(b.name)) ? 0 : 1;
+                    const allowedA = allowedNames.has(normalizeAutocompleteName(a.name)) ? 0 : 1;
+                    const allowedB = allowedNames.has(normalizeAutocompleteName(b.name)) ? 0 : 1;
                     if (allowedA !== allowedB) return allowedA - allowedB;
                     return a.name.localeCompare(b.name);
                 });
@@ -959,8 +963,9 @@ function createFighterCard(data, index) {
             matches.forEach(match => {
                 let item = document.createElement('li');
                 item.textContent = match.name;
-                if (type === 'equipment' && allowedEquipmentNames.size > 0) {
-                    if (allowedEquipmentNames.has(normalizeAutocompleteName(match.name))) {
+                if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillNames.size > 0)) {
+                    const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillNames;
+                    if (allowedNames.has(normalizeAutocompleteName(match.name))) {
                         item.classList.add('autocomplete-option-allowed');
                     } else {
                         item.classList.add('autocomplete-option-disallowed');
@@ -1039,33 +1044,8 @@ function applyFighterType(index, base) {
     fighter.customName = NameGenerator.generate(base);
 
     // Add starting rules/skills
-    const startingSkills = (base.rules || []).map(r => ({ name: r }));
-    if (base.spell_list) {
-        startingSkills.push({ name: `${base.spell_list}` });
-    }
-
-    // Automatically add accessible spell lists or mutations/blessings to starting skills
-    if (base.skills) {
-        base.skills.forEach(cat => {
-            const catLower = cat.toLowerCase();
-            const isSpellList = Object.keys(masterData.spellsByList || {}).some(listKey => {
-                const kLower = listKey.toLowerCase();
-                return catLower.includes(kLower) || kLower.includes(catLower) ||
-                       (catLower.includes('necrom') && kLower.includes('necrom')) ||
-                       (catLower.includes('sigmar') && kLower.includes('sigmar')) ||
-                       (catLower.includes('rat') && kLower.includes('rat')) ||
-                       (catLower.includes('taal') && kLower.includes('taal')) ||
-                       (catLower.includes('waaa') && kLower.includes('waaa'));
-            });
-            if (isSpellList) {
-                // Ensure it is not already in startingSkills
-                if (!startingSkills.some(s => s.name.toLowerCase() === cat.toLowerCase())) {
-                    startingSkills.push({ name: cat });
-                }
-            }
-        });
-    }
-    fighter.skills = startingSkills;
+    const startingSkills = FighterSkillUtils.getTemplateStartingSkills(base, masterData);
+    fighter.skills = startingSkills.map(skill => ({ name: skill.name }));
 
     // Reset and add starting equipment (Free Dagger for non-animals/ogres)
     fighter.equipment = [];
@@ -1447,10 +1427,8 @@ document.getElementById('fold-all-btn').onclick = () => {
     saveToCache();
 };
 document.getElementById('delete-all-saves-btn').onclick = () => {
-    if (confirm("Are you sure you want to delete ALL saved warbands? This cannot be undone.")) {
-        localStorage.removeItem('mordheim_saves');
-        renderSavedList();
-    }
+    localStorage.removeItem('mordheim_saves');
+    renderSavedList();
 };
 document.getElementById('warband-name').onchange = saveToCache;
 document.getElementById('warband-name').oninput = () => {
@@ -1471,13 +1449,11 @@ document.getElementById('import-json-input').onchange = (e) => {
 };
 document.getElementById('print-pdf-btn').onclick = () => { window.print(); };
 document.getElementById('clear-all-btn').onclick = () => {
-    if (confirm("Clear this warband?")) {
-        currentWarband.name = "New Warband";
-        currentWarband.fighters = [];
-        currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
-        renderWarband();
-        saveToCache();
-    }
+    currentWarband.name = "New Warband";
+    currentWarband.fighters = [];
+    currentWarband.glossary = { descriptions: {}, deletedTerms: [] };
+    renderWarband();
+    saveToCache();
 };
 
 init();
