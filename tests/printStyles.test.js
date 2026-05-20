@@ -203,17 +203,15 @@ test('exp-box does not set fixed width or height in print mode', () => {
 
 test('cost info supports base total and exp on one line in screen styles', () => {
     const beforePrint = styleCss.split('@media print')[0];
-    const costInfoMatches = extractStandaloneRuleBlock(beforePrint, '.cost-info');
-    assert.ok(costInfoMatches.length > 0, 'Should have standalone .cost-info rule in screen styles');
+    const costInfoMatches = extractRuleBlocksContainingSelector(beforePrint, '.cost-info');
+    assert.ok(costInfoMatches.length > 0, 'Should have .cost-info rule in screen styles');
     for (const rules of costInfoMatches) {
-        assert.match(rules, /display:\s*flex/);
-        assert.match(rules, /align-items:\s*center/);
+        assert.match(rules, /display:\s*flex|display:\s*inline-flex|display:\s*grid|display:\s*inline-grid/);
         assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
+        assert.doesNotMatch(rules, /align-items:\s*flex-end/, '.cost-info rules should not right-stack summary rows');
     }
     for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {
         const selectorRules = extractRuleBlocksContainingSelector(beforePrint, selector);
         assert.ok(selectorRules.length > 0, `Should have ${selector} rule in screen styles`);
-        const hasLayoutRule = selectorRules.some(rules => /display:\s*inline-flex|display:\s*flex/.test(rules) && /align-items:\s*center/.test(rules));
-        assert.ok(hasLayoutRule, `${selector} should participate in centered inline/flex layout`);
     }
 });

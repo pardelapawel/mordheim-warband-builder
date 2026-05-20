@@ -44,6 +44,23 @@ function extractArrowFunctionBody(source, assignmentPattern) {
     return source.slice(match.index + match[0].length, pos - 1);
 }
 
+function extractBalancedBlock(source, startPattern) {
+    const match = source.match(startPattern);
+    assert.ok(match, 'Expected block start pattern to exist');
+    const openBraceIndex = source.indexOf('{', match.index + match[0].length - 1);
+    assert.ok(openBraceIndex !== -1, 'Expected block to contain opening brace');
+    let pos = openBraceIndex + 1;
+    let depth = 1;
+    while (depth > 0 && pos < source.length) {
+        const char = source[pos];
+        if (char === '{') depth++;
+        if (char === '}') depth--;
+        pos++;
+    }
+    assert.equal(depth, 0, 'Expected balanced braces in extracted block');
+    return source.slice(openBraceIndex + 1, pos - 1);
+}
+
 function findSectionBlock(html, sectionClass) {
     const sectionRegex = new RegExp(`<div[^>]*class="[^"]*\\bcard-section\\b[^"]*\\b${sectionClass}\\b[^"]*"[^>]*>`, 'i');
     const match = sectionRegex.exec(html);
@@ -127,11 +144,11 @@ test('fighter template moves exp input from stats row into header cost info', ()
 test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(appJs, /querySelector\((['"])\.fighter-exp-input\1\)/);
     assert.doesNotMatch(appJs, /querySelector\((['"])\.stat-exp\1\)/);
-    assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
-    assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
-    const onchangeBody = extractArrowFunctionBody(appJs, /expInput\.onchange\s*=\s*\(e\)\s*=>\s*\{/);
-    assert.match(onchangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
-    assert.match(onchangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
-    assert.match(onchangeBody, /updateWarbandRating\s*\(/);
-    assert.match(onchangeBody, /saveToCache\s*\(/);
+    const expInputBlock = extractBalancedBlock(appJs, /if\s*\(\s*expInput\s*\)\s*\{/);
+    assert.match(expInputBlock, /\.value\s*=\s*data\.exp\s*(?:\|\||\?\?)\s*0/);
+    assert.match(expInputBlock, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(expInputBlock, /updateExpTrack\s*\(\s*newExp\s*\)/);
+    assert.match(expInputBlock, /updateWarbandRating\s*\(/);
+    assert.match(expInputBlock, /saveToCache\s*\(/);
+    assert.match(appJs, /if\s*\(\s*expInput\s*\)\s*expInput\.value\s*=\s*newExp/);
 });
