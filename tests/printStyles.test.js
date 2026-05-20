@@ -43,12 +43,14 @@ function extractStandaloneRuleBlock(css, selector) {
 }
 
 function extractRuleBlocksContainingSelector(css, selector) {
-    const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const ruleRegex = new RegExp(`(^|\\n)\\s*([^\\{]*\\b${escapedSelector}\\b[^\\{]*)\\{([\\s\\S]*?)\\}`, 'g');
+    const ruleRegex = /(^|\n)\s*([^\{]+)\{([\s\S]*?)\}/g;
     const matches = [];
     let match;
     while ((match = ruleRegex.exec(css)) !== null) {
-        matches.push(match[3]);
+        const selectors = match[2].split(',').map(s => s.trim());
+        if (selectors.includes(selector)) {
+            matches.push(match[3]);
+        }
     }
     return matches;
 }
