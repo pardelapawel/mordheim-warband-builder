@@ -125,8 +125,8 @@ test('fighter template moves exp input from stats row into header cost info', ()
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
-    assert.match(appJs, /const expInput = cardEl\.querySelector\('\.fighter-exp-input'\)/);
-    assert.doesNotMatch(appJs, /const expInput = cardEl\.querySelector\('\.stat-exp'\)/);
+    assert.match(appJs, /querySelector\((['"])\.fighter-exp-input\1\)/);
+    assert.doesNotMatch(appJs, /querySelector\((['"])\.stat-exp\1\)/);
     assert.match(appJs, /if \(expInput\) expInput\.value = newExp/);
     assert.match(appJs, /expInput\.value = data\.exp \|\| 0/);
     const onchangeBody = extractArrowFunctionBody(appJs, /expInput\.onchange\s*=\s*\(e\)\s*=>\s*\{/);

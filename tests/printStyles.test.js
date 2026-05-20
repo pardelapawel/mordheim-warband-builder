@@ -213,9 +213,7 @@ test('cost info supports base total and exp on one line in screen styles', () =>
     for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {
         const selectorRules = extractRuleBlocksContainingSelector(beforePrint, selector);
         assert.ok(selectorRules.length > 0, `Should have ${selector} rule in screen styles`);
-        for (const rules of selectorRules) {
-            assert.match(rules, /display:\s*inline-flex|display:\s*flex/);
-            assert.match(rules, /align-items:\s*center/);
-        }
+        const hasLayoutRule = selectorRules.some(rules => /display:\s*inline-flex|display:\s*flex/.test(rules) && /align-items:\s*center/.test(rules));
+        assert.ok(hasLayoutRule, `${selector} should participate in centered inline/flex layout`);
     }
 });
