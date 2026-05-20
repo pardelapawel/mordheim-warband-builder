@@ -119,11 +119,6 @@ h4 {
     display: none;
 }
 
-.stat-exp-col label {
-    color: var(--accent-color);
-    font-weight: 700;
-}
-
 .header-content {
     display: flex;
     justify-content: space-between;
@@ -689,15 +684,21 @@ h4 {
 
 .cost-info {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.cost-input-container,
+.total-card-cost,
+.fighter-exp-summary {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .cost-input-container {
-    display: flex;
-    align-items: center;
-    gap: 2px;
     font-size: 0.7rem;
     opacity: 0.8;
 }
@@ -717,8 +718,23 @@ h4 {
     font-weight: 700;
 }
 
+.fighter-exp-summary {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 .fighter-total-cost {
     font-size: 1rem;
+}
+
+.fighter-exp-input {
+    width: 42px;
+    text-align: right;
+    font-weight: 700;
+    color: var(--accent-color);
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--border-color);
 }
 
 /* Stats */
@@ -1177,7 +1193,8 @@ input[type=number] {
     }
 
     .fighter-type-input,
-    .fighter-base-cost {
+    .fighter-base-cost,
+    .fighter-exp-input {
         border-bottom: none !important;
     }
 

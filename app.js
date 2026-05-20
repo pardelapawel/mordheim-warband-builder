@@ -610,7 +610,7 @@ function createFighterCard(data, index) {
     });
 
     // Experience
-    const expInput = cardEl.querySelector('.stat-exp');
+    const expInput = cardEl.querySelector('.fighter-exp-input');
     const expTrack = cardEl.querySelector('.exp-track');
     const EXP_MILESTONES = new Set([2, 4, 6, 8, 11, 14, 17, 20, 24, 28, 32, 36, 41, 46, 51, 57, 63, 69, 76, 83, 90]);
     const EXP_MAX = 90;
