@@ -362,7 +362,7 @@ function updateCardPrintSummaries(cardEl, fighter) {
         throw new Error('PrintUtils.buildPrintSectionSummaries is unavailable.');
     }
 
-    const printSummaries = buildPrintSectionSummaries(fighter, masterData.equipment);
+    const printSummaries = buildPrintSectionSummaries(fighter, masterData.equipment, masterData);
     cardEl.querySelector('.melee-print-summary').textContent = printSummaries.melee;
     cardEl.querySelector('.ranged-print-summary').textContent = printSummaries.ranged;
     cardEl.querySelector('.armor-print-summary').textContent = printSummaries.armor;
@@ -738,72 +738,68 @@ function createFighterCard(data, index) {
     data.skills.forEach((skill, skillIdx) => {
         const row = document.createElement('div');
         row.className = 'item-row';
-
-        const isSpellList = skill.name.toLowerCase().includes('spell list') ||
-            skill.name.toLowerCase().includes('magia') ||
-            skill.name.toLowerCase().includes('modlitwy');
-
-        // Suboptions picker support (e.g. for spells and mutations)
-        let suboptionsType = 'spell';
-        let suboptionsList = [];
-
-        // 1. Check if name matches a spell list key (fuzzy mapping)
-        const spellListKey = Object.keys(masterData.spellsByList || {}).find(listKey => {
-            const k1 = listKey.toLowerCase();
-            const k2 = skill.name.toLowerCase();
-            return k1.includes(k2) || k2.includes(k1) ||
-                   (k1.includes('necrom') && k2.includes('necrom')) ||
-                   (k1.includes('sigmar') && k2.includes('sigmar')) ||
-                   (k1.includes('rat') && k2.includes('rat')) ||
-                   (k1.includes('taal') && k2.includes('taal')) ||
-                   (k1.includes('waaa') && k2.includes('waaa'));
-        });
-
-        if (spellListKey) {
-            suboptionsList = masterData.spellsByList[spellListKey];
-            suboptionsType = 'spell';
+        const displayValue = FighterSkillUtils.formatSkillEntry(skill, masterData);
+        let options = [];
+        let isGrouped = false;
+        if (skill.kind === 'group') {
+            isGrouped = true;
+            const optionsFromHelper = FighterSkillUtils.getGroupedSkillOptions(skill, masterData);
+            options = Array.isArray(optionsFromHelper) ? optionsFromHelper : [];
         } else {
-            // 2. Check if name matches a skill category key (e.g. Mutations, Blessings of Nurgle) (fuzzy mapping)
-            const skillCatKey = Object.keys(masterData.skillsByCategory || {}).find(catKey => {
-                const k1 = catKey.toLowerCase();
-                const k2 = skill.name.toLowerCase();
-                return ['mutations', 'blessings of nurgle', 'dwarf special', 'orc special', 'skaven special', 'troll slayer', 'sisters of sigmar'].includes(k1) &&
-                       (k1.includes(k2) || k2.includes(k1) ||
-                        (k1.includes('mutat') && k2.includes('mutat')) ||
-                        (k1.includes('nurgle') && k2.includes('nurgle')));
-            });
-            if (skillCatKey) {
-                suboptionsList = masterData.skillsByCategory[skillCatKey];
-                suboptionsType = 'skill';
-            } else if (isSpellList) {
-                // Fallback to active fighter's spell list
-                suboptionsList = data.spell_list && masterData.spellsByList[data.spell_list]
-                    ? masterData.spellsByList[data.spell_list]
-                    : masterData.spells;
-                suboptionsType = 'spell';
-            }
+            const fallbackOptions = FighterSkillUtils.getGroupedSkillOptions(skill, masterData);
+            options = Array.isArray(fallbackOptions) ? fallbackOptions : [];
+            isGrouped = options.length > 0;
         }
-
-        const hasSuboptions = suboptionsList && suboptionsList.length > 0;
+        const hasSuboptions = options.length > 0;
 
         row.innerHTML = `
             <div class="item-content">
-                <textarea class="item-name-edit skill-name" rows="1">${skill.name}</textarea>
+                <textarea class="item-name-edit skill-name" rows="1">${escapeHtml(displayValue)}</textarea>
+                <span class="cost-hint no-print">
+                    (<input type="number" class="item-cost-edit skill-cost-edit" value="${FighterSkillUtils.getSkillEntryCost(skill, masterData)}"> gc)
+                </span>
                 ${hasSuboptions ? '<span class="add-spell-btn no-print" title="Pick Option">➕</span>' : ''}
             </div>
             <span class="item-delete no-print">&times;</span>
         `;
 
         const nameEdit = row.querySelector('.skill-name');
+        if (isGrouped) nameEdit.readOnly = true;
         const resize = () => { nameEdit.style.height = 'auto'; nameEdit.style.height = nameEdit.scrollHeight + 'px'; };
         nameEdit.oninput = () => {
-            currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
+            if (currentWarband.fighters[index].skills[skillIdx]?.kind === 'group') return;
+            const currentSkill = currentWarband.fighters[index].skills[skillIdx];
+            if (currentSkill && typeof currentSkill === 'object') {
+                currentWarband.fighters[index].skills[skillIdx] = {
+                    ...currentSkill,
+                    label: nameEdit.value
+                };
+            } else {
+                currentWarband.fighters[index].skills[skillIdx] = { name: nameEdit.value };
+            }
             updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
             updateLegend();
             saveToCache();
             resize();
         };
         setTimeout(resize, 0);
+
+        const costEdit = row.querySelector('.skill-cost-edit');
+        costEdit.oninput = () => {
+            const currentSkill = currentWarband.fighters[index].skills[skillIdx];
+            if (currentSkill && typeof currentSkill === 'object') {
+                currentWarband.fighters[index].skills[skillIdx].cost = parseInt(costEdit.value) || 0;
+            } else {
+                currentWarband.fighters[index].skills[skillIdx] = {
+                    name: displayValue,
+                    cost: parseInt(costEdit.value) || 0
+                };
+            }
+            updateTotalCost();
+            runValidations();
+            saveToCache();
+            cardEl.querySelector('.fighter-total-cost').textContent = calculateFighterCost(currentWarband.fighters[index]);
+        };
 
         if (hasSuboptions) {
             const addBtn = row.querySelector('.add-spell-btn');
@@ -813,10 +809,10 @@ function createFighterCard(data, index) {
                 const select = document.createElement('select');
                 select.className = 'inline-spell-picker no-print';
                 select.innerHTML = '<option value="">-- Pick Option --</option>';
-                suboptionsList.forEach(s => {
+                options.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.name;
-                    if (suboptionsType === 'spell') {
+                    if (Object.prototype.hasOwnProperty.call(s, 'difficulty')) {
                         opt.textContent = `${s.name} (${s.difficulty})`;
                     } else {
                         opt.textContent = s.cost ? `${s.name} (${s.cost} gc)` : s.name;
@@ -826,21 +822,14 @@ function createFighterCard(data, index) {
 
                 select.onchange = () => {
                     if (select.value) {
-                        const current = nameEdit.value;
-                        const selectedOption = suboptionsList.find(s => s.name === select.value);
-                        let suffix = ` (${select.value})`;
-
-                        if (suboptionsType === 'skill' && selectedOption && selectedOption.cost) {
-                            suffix = ` (${select.value} - ${selectedOption.cost} gc)`;
-                        }
-
-                        nameEdit.value = current.includes('(') ? current.replace(/\(.*\)/, suffix) : current + suffix;
-                        currentWarband.fighters[index].skills[skillIdx].name = nameEdit.value;
-                        updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
-                        updateTotalCost();
-                        cardEl.querySelector('.fighter-total-cost').textContent = calculateFighterCost(currentWarband.fighters[index]);
+                        currentWarband.fighters[index].skills[skillIdx] =
+                            FighterSkillUtils.selectGroupedSkillOption(
+                                currentWarband.fighters[index].skills[skillIdx],
+                                select.value,
+                                masterData
+                            );
+                        renderWarband();
                         saveToCache();
-                        updateLegend();
                     }
                     select.remove();
                 };
@@ -885,7 +874,9 @@ function createFighterCard(data, index) {
         if (type === 'equipment') {
             currentWarband.fighters[index].equipment.push(createEquipmentEntry(val, masterData.equipment, equipmentCategory));
         } else {
-            currentWarband.fighters[index].skills.push({ name: val });
+            currentWarband.fighters[index].skills.push(
+                FighterSkillUtils.createAddableSkillEntry(val, fighterTemplate, masterData)
+            );
         }
         input.value = '';
         renderWarband();
@@ -902,6 +893,11 @@ function createFighterCard(data, index) {
     const allowedSkillNames = fighterTemplate
         ? FighterSkillUtils.getTemplateAllowedSkillNames(fighterTemplate, masterData)
         : new Set();
+    const addableSkillGroupNames = fighterTemplate
+        ? FighterSkillUtils.getTemplateAddableSkillGroupNames(fighterTemplate, masterData)
+        : [];
+    const addableSkillGroupNameSet = new Set(addableSkillGroupNames.map(normalizeAutocompleteName));
+    const allowedSkillEntryNames = new Set([...allowedSkillNames, ...addableSkillGroupNameSet]);
 
     if (fighterTemplate) {
         const listKey = fighterTemplate.equipment_list_override ? `equipment_list_${fighterTemplate.equipment_list_override}` : 'equipment_list';
@@ -926,13 +922,14 @@ function createFighterCard(data, index) {
 
         const updateList = () => {
             let val = input.value.toLowerCase();
-            let spellLists = Object.keys(masterData.spellsByList).map(k => ({ name: k }));
+            let spellLists = Object.keys(masterData.spellsByList).map(name => ({ label: name }));
+            let directSkillEntries = masterData.skills.filter(item => !addableSkillGroupNameSet.has(normalizeAutocompleteName(item.originCategory)));
             let listData = type === 'equipment'
                 ? masterData.equipment.filter(item => !equipmentCategory || item.originCategory === equipmentCategory)
-                : [...masterData.skills, ...spellLists, ...masterData.spells];
+                : [...directSkillEntries.map(item => ({ label: item.name })), ...spellLists, ...addableSkillGroupNames.map(name => ({ label: name }))];
             let seenNames = new Set();
             listData = listData.filter(item => {
-                const normalizedName = String(item.name || '').trim().toLowerCase();
+                const normalizedName = String(item.label || item.name || '').trim().toLowerCase();
                 if (!normalizedName || seenNames.has(normalizedName)) return false;
                 seenNames.add(normalizedName);
                 return true;
@@ -941,16 +938,16 @@ function createFighterCard(data, index) {
             // If empty, show all. If typed, filter.
             let matches = listData;
             if (val) {
-                matches = listData.filter(i => i.name.toLowerCase().includes(val));
+                matches = listData.filter(i => String(i.label || i.name || '').toLowerCase().includes(val));
             }
 
-            if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillNames.size > 0)) {
-                const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillNames;
+            if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillEntryNames.size > 0)) {
+                const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillEntryNames;
                 matches = [...matches].sort((a, b) => {
-                    const allowedA = allowedNames.has(normalizeAutocompleteName(a.name)) ? 0 : 1;
-                    const allowedB = allowedNames.has(normalizeAutocompleteName(b.name)) ? 0 : 1;
+                    const allowedA = allowedNames.has(normalizeAutocompleteName(a.label || a.name)) ? 0 : 1;
+                    const allowedB = allowedNames.has(normalizeAutocompleteName(b.label || b.name)) ? 0 : 1;
                     if (allowedA !== allowedB) return allowedA - allowedB;
-                    return a.name.localeCompare(b.name);
+                    return String(a.label || a.name).localeCompare(String(b.label || b.name));
                 });
             }
 
@@ -962,10 +959,11 @@ function createFighterCard(data, index) {
 
             matches.forEach(match => {
                 let item = document.createElement('li');
-                item.textContent = match.name;
-                if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillNames.size > 0)) {
-                    const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillNames;
-                    if (allowedNames.has(normalizeAutocompleteName(match.name))) {
+                const displayName = match.label || match.name;
+                item.textContent = displayName;
+                if ((type === 'equipment' && allowedEquipmentNames.size > 0) || (type === 'skills' && allowedSkillEntryNames.size > 0)) {
+                    const allowedNames = type === 'equipment' ? allowedEquipmentNames : allowedSkillEntryNames;
+                    if (allowedNames.has(normalizeAutocompleteName(displayName))) {
                         item.classList.add('autocomplete-option-allowed');
                     } else {
                         item.classList.add('autocomplete-option-disallowed');
@@ -974,7 +972,7 @@ function createFighterCard(data, index) {
                 // mousedown prevents input blur before click 
                 item.addEventListener('mousedown', (e) => e.preventDefault());
                 item.onclick = () => {
-                    input.value = match.name;
+                    input.value = displayName;
                     listEl.style.display = 'none';
                     handleAdd(type, input, equipmentCategory);
                 };
@@ -1044,8 +1042,8 @@ function applyFighterType(index, base) {
     fighter.customName = NameGenerator.generate(base);
 
     // Add starting rules/skills
-    const startingSkills = FighterSkillUtils.getTemplateStartingSkills(base, masterData);
-    fighter.skills = startingSkills.map(skill => ({ name: skill.name }));
+    const startingSkills = FighterSkillUtils.getTemplateStartingSkillEntries(base, masterData);
+    fighter.skills = startingSkills.map(skill => ({ ...skill }));
 
     // Reset and add starting equipment (Free Dagger for non-animals/ogres)
     fighter.equipment = [];
@@ -1075,10 +1073,7 @@ function calculateFighterCost(fighter) {
     let cost = parseInt(fighter.baseCost) || 0;
     fighter.equipment.forEach(item => cost += (parseInt(item.cost) || 0));
     (fighter.skills || []).forEach(s => {
-        const match = s.name.match(/\((\+|-)?(\d+)\s*gc\)/i) || s.name.match(/-\s*(\d+)\s*gc\)/i);
-        if (match) {
-            cost += parseInt(match[match.length - 1]) || 0;
-        }
+        cost += FighterSkillUtils.getSkillEntryCost(s, masterData);
     });
     return cost;
 }

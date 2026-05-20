@@ -87,6 +87,39 @@
         }, []);
     }
 
+    function getSkillEntryDisplayName(skill) {
+        return FighterSkillUtils.formatSkillEntry(skill && typeof skill === 'object' && skill.name && !skill.label
+            ? skill.name
+            : skill);
+    }
+
+    function getSkillEntryKeys(skill) {
+        return FighterSkillUtils.getSkillEntryNames(skill && typeof skill === 'object' && skill.name && !skill.label
+            ? skill.name
+            : skill);
+    }
+
+    function hasSelectedSkillFromGroup(fighter, groupName, masterData) {
+        const groupSkillNames = new Set(
+            (masterData?.skillsByCategory?.[groupName] || []).map(skill => FighterSkillUtils.normalizeSkillName(skill.name))
+        );
+
+        const normalizedGroupName = FighterSkillUtils.normalizeSkillName(groupName);
+
+        return (fighter?.skills || []).some(skill => {
+            if (
+                skill?.kind === 'group' &&
+                FighterSkillUtils.normalizeSkillName(skill.groupKey) === normalizedGroupName &&
+                FighterSkillUtils.normalizeSkillName(skill.selectedKey) &&
+                groupSkillNames.has(FighterSkillUtils.normalizeSkillName(skill.selectedKey))
+            ) {
+                return true;
+            }
+
+            return getSkillEntryKeys(skill).some(name => name !== normalizedGroupName && groupSkillNames.has(name));
+        });
+    }
+
     function getValidationSeverity(error) {
         return error?.severity || 'error';
     }
@@ -184,7 +217,7 @@
                             spell_list: template.spell_list || null,
                             stats: { ...(template.stats || {}) },
                             equipment: [],
-                            skills: FighterSkillUtils.getTemplateStartingSkills(template).map(skill => ({ name: skill.name })),
+                            skills: FighterSkillUtils.getTemplateStartingSkillEntries(template, masterData).map(skill => ({ ...skill })),
                             requirements: template.requirements || null,
                             validations: template.validations || null
                         };
@@ -338,12 +371,12 @@
             description: (fighter) => `"${fighter.customName || fighter.type}" can never be the warband leader.`,
             fixLabel: 'Remove Leader status',
             check: function (warband, fighter) {
-                const isLeader = fighter.type === 'Leader' || (fighter.skills || []).some(s => s.name === 'Leader');
+                const isLeader = fighter.type === 'Leader' || (fighter.skills || []).some(s => getSkillEntryKeys(s).includes('leader'));
                 return !isLeader;
             },
             fix: function (warband, fighter) {
                 fighter.type = 'Henchman';
-                fighter.skills = (fighter.skills || []).filter(s => s.name !== 'Leader');
+                fighter.skills = (fighter.skills || []).filter(s => !getSkillEntryKeys(s).includes('leader'));
                 return true;
             }
         },
@@ -387,14 +420,14 @@
 
         // --- Skill-level validation ---
         'heroOnly': {
-            description: (fighter, skill) => `Skill "${skill.name}" is only available to Heroes.`,
+            description: (fighter, skill) => `Skill "${getSkillEntryDisplayName(skill)}" is only available to Heroes.`,
             fixLabel: 'Remove this skill',
             check: function (warband, fighter) {
                 const isHero = fighter.type === 'Hero' || fighter.type === 'Leader' || fighter.type === 'Wizard';
                 return isHero;
             },
             fix: function (warband, fighter, masterData, skill) {
-                fighter.skills = (fighter.skills || []).filter(s => s.name !== skill.name);
+                fighter.skills = (fighter.skills || []).filter(s => s !== skill);
                 return true;
             }
         }
@@ -574,6 +607,20 @@
                 }
             }
 
+            (fighterTemplate?.required_starting_skill_groups || []).forEach(groupName => {
+                if (hasSelectedSkillFromGroup(fighter, groupName, masterData)) return;
+
+                errors.push({
+                    id: `fighter-required-starting-skill-group-${fIdx}-${FighterSkillUtils.normalizeSkillName(groupName)}`,
+                    message: `"${fighter.customName || fighter.type}" may start with one or more ${groupName}.`,
+                    level: 'fighter',
+                    fighterIndex: fIdx,
+                    key: 'requiredStartingSkillGroup',
+                    severity: 'tip',
+                    skillGroup: groupName
+                });
+            });
+
             const allowedEquipment = getFighterEquipmentList(activeData, fighterTemplate);
             if (allowedEquipment && allowedEquipment.size > 0) {
                 (fighter.equipment || []).forEach((item, itemIdx) => {
@@ -715,15 +762,16 @@
 
             // (d) Skill validations: Check if skills/rules themselves have validation properties
             (fighter.skills || []).forEach(s => {
-                const normalizedSkillName = FighterSkillUtils.normalizeSkillName(s.name);
+                const skillDisplayName = getSkillEntryDisplayName(s);
+                const normalizedSkillName = FighterSkillUtils.normalizeSkillName(skillDisplayName);
                 if (
                     fighterTemplate &&
                     !exemptSkillNames.has(normalizedSkillName) &&
-                    !FighterSkillUtils.isSkillAllowedForTemplate(s.name, fighterTemplate, masterData)
+                    !FighterSkillUtils.isSkillAllowedForTemplate(s, fighterTemplate, masterData)
                 ) {
                     errors.push({
                         id: `fighter-skill-access-${fIdx}-${normalizedSkillName}`,
-                        message: `${s.name} is not in this fighter's advancement list`,
+                        message: `${skillDisplayName} is not in this fighter's advancement list`,
                         level: 'fighter',
                         fighterIndex: fIdx,
                         key: 'skillAccess',
@@ -732,7 +780,9 @@
                     });
                 }
 
-                const regSkill = (masterData.skills || []).find(m => m.name.toLowerCase() === s.name.toLowerCase());
+                const regSkill = (masterData.skills || []).find(m =>
+                    getSkillEntryKeys(s).includes(FighterSkillUtils.normalizeSkillName(m.name))
+                );
                 if (regSkill) {
                     const skillVals = regSkill.validations || regSkill.validation ? (regSkill.validations || [regSkill.validation]) : [];
                     skillVals.forEach((valKey, valIdx) => {
@@ -741,7 +791,7 @@
                             const isValid = rule.check(warband, fighter, masterData, s);
                             if (!isValid) {
                                 errors.push({
-                                    id: `fighter-sk-val-${fIdx}-${s.name}-${valKey}-${valIdx}`,
+                                    id: `fighter-sk-val-${fIdx}-${normalizedSkillName}-${valKey}-${valIdx}`,
                                     message: rule.description(fighter, s),
                                     level: 'fighter',
                                     fighterIndex: fIdx,

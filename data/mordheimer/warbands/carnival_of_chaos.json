@@ -64,6 +64,8 @@
       "exp_start": 0,
       "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
       "rules": ["Nurgle's Blessings"],
+      "starting_skills": ["Blessings of Nurgle"],
+      "required_starting_skill_groups": ["Blessings of Nurgle"],
       "skills": ["Combat", "Speed"],
       "note": "Must start with one or more Blessings of Nurgle. Each blessing costs double for subsequent purchases."
     },

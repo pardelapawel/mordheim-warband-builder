@@ -25,6 +25,7 @@
       "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
       "validations": ["onePerWarband"],
       "rules": ["Leader"],
+      "spell_list": "Prayers of Sigmar",
       "skills": ["Combat", "Academic", "Strength", "Speed", "Sisters of Sigmar", "Prayers of Sigmar"]
     },
     {
