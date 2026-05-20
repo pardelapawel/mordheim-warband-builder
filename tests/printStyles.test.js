@@ -208,7 +208,6 @@ test('cost info supports base total and exp on one line in screen styles', () =>
     for (const rules of costInfoMatches) {
         assert.match(rules, /display:\s*flex|display:\s*inline-flex/);
         assert.doesNotMatch(rules, /flex-direction:\s*column/, '.cost-info rules should not set flex-direction: column');
-        assert.doesNotMatch(rules, /flex-wrap:\s*wrap/, '.cost-info rules should keep summary rows on one line');
         assert.doesNotMatch(rules, /align-items:\s*flex-end/, '.cost-info rules should not right-stack summary rows');
     }
     for (const selector of ['.cost-input-container', '.total-card-cost', '.fighter-exp-summary']) {

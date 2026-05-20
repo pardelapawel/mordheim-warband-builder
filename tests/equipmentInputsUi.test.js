@@ -61,16 +61,6 @@ function extractBalancedBlock(source, startPattern) {
     return source.slice(openBraceIndex + 1, pos - 1);
 }
 
-function extractSourceSlice(source, startPattern, endPattern) {
-    const startMatch = source.match(startPattern);
-    assert.ok(startMatch, 'Expected slice start pattern to exist');
-    const startIndex = startMatch.index;
-    const rest = source.slice(startIndex + startMatch[0].length);
-    const endMatch = rest.match(endPattern);
-    assert.ok(endMatch, 'Expected slice end pattern to exist');
-    return source.slice(startIndex, startIndex + startMatch[0].length + endMatch.index);
-}
-
 function findSectionBlock(html, sectionClass) {
     const sectionRegex = new RegExp(`<div[^>]*class="[^"]*\\bcard-section\\b[^"]*\\b${sectionClass}\\b[^"]*"[^>]*>`, 'i');
     const match = sectionRegex.exec(html);
@@ -152,7 +142,11 @@ test('fighter template moves exp input from stats row into header cost info', ()
 });
 
 test('fighter card binds header exp input and keeps exp track sync', () => {
-    const experienceSection = extractSourceSlice(appJs, /\/\/ Experience/, /\/\/ Helper to get which list element/);
+    const expInputDeclIndex = appJs.indexOf("const expInput = cardEl.querySelector");
+    assert.ok(expInputDeclIndex !== -1, 'Expected exp input query to exist');
+    const expTrackDeclIndex = appJs.indexOf("const expTrack = cardEl.querySelector('.exp-track')", expInputDeclIndex);
+    assert.ok(expTrackDeclIndex !== -1, 'Expected exp track query to exist after exp input query');
+    const experienceSection = appJs.slice(expInputDeclIndex, expTrackDeclIndex);
     assert.match(experienceSection, /querySelector\((['"])\.fighter-exp-input\1\)/);
     assert.doesNotMatch(experienceSection, /querySelector\((['"])\.stat-exp\1\)/);
 
@@ -169,8 +163,12 @@ test('fighter card binds header exp input and keeps exp track sync', () => {
 
     const expInputBlock = extractBalancedBlock(appJs, /if\s*\(\s*expInput\s*\)\s*\{/);
     assert.match(expInputBlock, /\.value\s*=\s*data\.exp\s*(?:\|\||\?\?)\s*0/);
-    assert.match(expInputBlock, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
-    assert.match(expInputBlock, /updateExpTrack\s*\(\s*newExp\s*\)/);
-    assert.match(expInputBlock, /updateWarbandRating\s*\(/);
-    assert.match(expInputBlock, /saveToCache\s*\(/);
+    assert.match(expInputBlock, /(?:\.onchange\s*=|addEventListener\(\s*['"]change['"])/);
+    const expInputChangeBody = expInputBlock.includes('.onchange')
+        ? extractArrowFunctionBody(expInputBlock, /\.onchange\s*=\s*\(e\)\s*=>\s*\{/)
+        : extractArrowFunctionBody(expInputBlock, /addEventListener\(\s*['"]change['"]\s*,\s*\(e\)\s*=>\s*\{/);
+    assert.match(expInputChangeBody, /currentWarband\.fighters\[index\]\.exp\s*=\s*newExp/);
+    assert.match(expInputChangeBody, /updateExpTrack\s*\(\s*newExp\s*\)/);
+    assert.match(expInputChangeBody, /updateWarbandRating\s*\(/);
+    assert.match(expInputChangeBody, /saveToCache\s*\(/);
 });
