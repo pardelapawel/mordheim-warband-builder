@@ -99,8 +99,8 @@ test('skills autocomplete excludes skill category keys as addable entries', () =
 });
 
 test('fighter templates only auto-add spell list entries from available skill lists', () => {
-    assert.doesNotMatch(appJs, /const isMutationList =/);
-    assert.match(appJs, /if \(isSpellList\) \{/);
+    assert.match(appJs, /FighterSkillUtils\.getTemplateStartingSkills\(base,\s*masterData\)/);
+    assert.doesNotMatch(appJs, /if \(base\.skills\) \{\s*base\.skills\.forEach/);
 });
 
 test('equipment autocomplete sorts allowed entries before disallowed ones for the fighter', () => {
@@ -108,8 +108,9 @@ test('equipment autocomplete sorts allowed entries before disallowed ones for th
     assert.match(appJs, /const listKey = fighterTemplate\.equipment_list_override\s*\?\s*`equipment_list_\$\{fighterTemplate\.equipment_list_override\}`\s*:\s*'equipment_list'/);
     assert.match(appJs, /Object\.values\(rawList\)\.forEach\(items => \{/);
     assert.match(appJs, /matches = \[\.\.\.matches\]\.sort\(\(a, b\) => \{/);
-    assert.match(appJs, /const allowedA = allowedEquipmentNames\.has\(normalizeAutocompleteName\(a\.name\)\) \? 0 : 1/);
-    assert.match(appJs, /const allowedB = allowedEquipmentNames\.has\(normalizeAutocompleteName\(b\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedNames = type === 'equipment' \? allowedEquipmentNames : allowedSkillNames/);
+    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.name\)\) \? 0 : 1/);
     assert.match(appJs, /if \(allowedA !== allowedB\) return allowedA - allowedB/);
 });
 
@@ -118,6 +119,30 @@ test('equipment autocomplete visually distinguishes allowed and disallowed entri
     assert.match(appJs, /item\.classList\.add\('autocomplete-option-disallowed'\)/);
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-allowed\s*\{[\s\S]*font-weight:\s*700/);
     assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-disallowed\s*\{[\s\S]*color:\s*var\(--text-secondary\)/);
+});
+
+test('skills autocomplete visually distinguishes allowed and disallowed entries for the fighter', () => {
+    assert.match(appJs, /const allowedSkillNames = fighterTemplate[\s\S]*FighterSkillUtils\.getTemplateAllowedSkillNames\(fighterTemplate,\s*masterData\)[\s\S]*new Set\(\)/);
+    assert.match(appJs, /FighterSkillUtils\.getTemplateAllowedSkillNames\(fighterTemplate,\s*masterData\)/);
+    assert.match(appJs, /if \(\(type === 'equipment' && allowedEquipmentNames\.size > 0\) \|\| \(type === 'skills' && allowedSkillNames\.size > 0\)\)/);
+    assert.match(appJs, /const allowedA = allowedNames\.has\(normalizeAutocompleteName\(a\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /const allowedB = allowedNames\.has\(normalizeAutocompleteName\(b\.name\)\) \? 0 : 1/);
+    assert.match(appJs, /if \(allowedNames\.has\(normalizeAutocompleteName\(match\.name\)\)\) \{/);
+    assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-allowed\s*\{[\s\S]*font-weight:\s*700/);
+    assert.match(styleCss, /\.autocomplete-list li\.autocomplete-option-disallowed\s*\{[\s\S]*color:\s*var\(--text-secondary\)/);
+});
+
+test('clear actions do not require browser confirmations', () => {
+    assert.doesNotMatch(
+        appJs,
+        /delete-all-saves-btn'\)\.onclick\s*=\s*\(\)\s*=>\s*\{\s*if\s*\(\s*confirm\(/,
+    );
+    assert.doesNotMatch(
+        appJs,
+        /clear-all-btn'\)\.onclick\s*=\s*\(\)\s*=>\s*\{\s*if\s*\(\s*confirm\(/,
+    );
+    assert.match(appJs, /localStorage\.removeItem\('mordheim_saves'\)/);
+    assert.match(appJs, /currentWarband\.fighters = \[\]/);
 });
 
 test('fighter template moves exp input from stats row into header cost info', () => {

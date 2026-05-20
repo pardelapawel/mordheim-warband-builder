@@ -10,6 +10,7 @@ const DEPLOY_FILES = [
     'headerScroll.js',
     'legendUtils.js',
     'lz-string.min.js',
+    'fighterSkillUtils.js',
     'warbandUtils.js',
     'nameGenerator.js',
     'printUtils.js',
