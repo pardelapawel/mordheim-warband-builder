@@ -35,6 +35,10 @@ test('validation styles define distinct colors for error warning and tip states'
     assert.match(styleCss, /\.validation-badge\.validation-tip/);
 });
 
+test('validation summary cards size dynamically to fit narrow screens', () => {
+    assert.match(styleCss, /\.validation-errors-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(min\(100%,\s*340px\),\s*1fr\)\);/);
+});
+
 test('validation fix buttons define distinct colors for error warning and tip states', () => {
     assert.match(appJs, /inline-fix-btn no-print validation-\$\{severity\}/);
     assert.match(appJs, /fix-btn no-print validation-\$\{severity\}/);
