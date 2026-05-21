@@ -39,6 +39,11 @@ test('validation summary cards size dynamically to fit narrow screens', () => {
     assert.match(styleCss, /\.validation-errors-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(min\(100%,\s*340px\),\s*1fr\)\);/);
 });
 
+test('validation action buttons stack inside cards on mobile widths', () => {
+    assert.match(styleCss, /@media screen and \(max-width:\s*768px\)\s*\{[\s\S]*\.validation-error-actions\s*\{[\s\S]*flex-direction:\s*column;/);
+    assert.match(styleCss, /@media screen and \(max-width:\s*768px\)\s*\{[\s\S]*\.validation-error-actions \.fix-btn,[\s\S]*\.validation-error-actions \.view-btn\s*\{[\s\S]*width:\s*100%;[\s\S]*white-space:\s*normal;/);
+});
+
 test('validation fix buttons define distinct colors for error warning and tip states', () => {
     assert.match(appJs, /inline-fix-btn no-print validation-\$\{severity\}/);
     assert.match(appJs, /fix-btn no-print validation-\$\{severity\}/);
