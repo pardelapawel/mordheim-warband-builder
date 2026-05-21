@@ -1851,6 +1851,16 @@ input[type=number] {
         min-height: auto;
     }
 
+    .validation-error-actions {
+        flex-direction: column;
+    }
+
+    .validation-error-actions .fix-btn,
+    .validation-error-actions .view-btn {
+        width: 100%;
+        white-space: normal;
+    }
+
     #save-manager {
         width: calc(100% - 40px);
         left: 20px;
