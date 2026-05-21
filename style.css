@@ -1447,7 +1447,7 @@ input[type=number] {
 
 .validation-errors-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
 }
@@ -1849,6 +1849,16 @@ input[type=number] {
 
     .fighter-card {
         min-height: auto;
+    }
+
+    .validation-error-actions {
+        flex-direction: column;
+    }
+
+    .validation-error-actions .fix-btn,
+    .validation-error-actions .view-btn {
+        width: 100%;
+        white-space: normal;
     }
 
     #save-manager {
