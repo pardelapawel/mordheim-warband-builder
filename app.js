@@ -270,6 +270,9 @@ function initScrollHeader() {
         window.requestAnimationFrame(syncHeaderState);
     };
 
+    summaryBar.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
     window.addEventListener('scroll', requestSync, { passive: true });
     window.addEventListener('resize', requestSync);
     syncHeaderState();
