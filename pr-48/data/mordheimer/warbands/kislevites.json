@@ -1,0 +1,104 @@
+{
+  "warband_name": "Kislevites",
+  "source": "Town Cryer #16",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "druzhina_captain" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "missile": ["Throwing knives", "Short Bow", "Bow", "Crossbow", "Pistol", "Duelling Pistol"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"],
+    "miscellaneous": ["Bear-Claw Necklace", "Vodka"]
+  },
+  "equipment_list_streltsi": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "missile": ["Bow", "Crossbow", "Pistol", "Duelling Pistol", "Handgun"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Druzhina Captain",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Inheritance"],
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Bear Tamer",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 4, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Bear Handler", "Fiercely Loyal"],
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Esaul",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Shooting", "Speed"]
+    },
+    {
+      "name": "Youth",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 15,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Warrior",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    },
+    {
+      "name": "Cossack",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 30,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Hate Chaos"]
+    },
+    {
+      "name": "Streltsi",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 3,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "streltsi",
+      "rules": ["Gun-Rest"]
+    },
+    {
+      "name": "Trained Bear",
+      "type": "Henchman",
+      "race": "Animal",
+      "max_quantity": 1,
+      "cost": 125,
+      "stats": { "m": 6, "ws": 3, "bs": 0, "s": 5, "t": 5, "w": 2, "i": 2, "a": 2, "ld": 6 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Stupidity", "Fearsome", "Bear Hug", "Large Target"]
+    }
+  ]
+}

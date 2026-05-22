@@ -1,0 +1,825 @@
+/**
+ * Mordheim Warband Builder - Validation System
+ *
+ * Core engine for executing validation rules and applying automated fixes.
+ * Uses the UMD pattern for compatibility across browser and Node.js testing.
+ */
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = factory(require('./fighterSkillUtils.js'));
+    } else {
+        root.ValidationSystem = factory(root.FighterSkillUtils);
+    }
+}(typeof self !== 'undefined' ? self : this, function (FighterSkillUtils) {
+    'use strict';
+
+    const LEGACY_EQUIPMENT_ALIASES = {
+        'mace, hammer or club': ['mace', 'hammer', 'club'],
+        'throwing stars/knives': ['throwing stars', 'throwing knives'],
+        'dwuręczny młot/maczuga': ['dwuręczny młot', 'dwuręczna maczuga'],
+        'dwuręczny topór/kilof/nadziak': ['dwuręczny topór', 'dwuręczny kilof', 'dwuręczny nadziak']
+    };
+
+    // Helper: Find item category in master registry or infer from common terms
+    function getItemCategory(itemName, masterEquipment) {
+        const item = getEquipmentCatalogEntry(itemName, masterEquipment);
+        if (item && item.originCategory) {
+            return item.originCategory;
+        }
+        
+        // Inference fallback
+        const name = itemName.toLowerCase();
+        if (name.includes('armour') || name.includes('armor') || name.includes('shield') || name.includes('buckler') || name.includes('helmet') || name.includes('wolfcloak')) {
+            return 'armor';
+        }
+        if (name.includes('bow') || name.includes('pistol') || name.includes('handgun') || name.includes('blunderbuss') || name.includes('rifle') || name.includes('crossbow')) {
+            return 'ranged_weapons'; // or missile
+        }
+        return 'melee_weapons';
+    }
+
+    function normalizeItemName(name) {
+        return String(name || '').trim().toLowerCase();
+    }
+
+    function getEquipmentCatalogEntries(itemName, masterEquipment) {
+        const normalizedName = normalizeItemName(itemName);
+        const candidateKeys = [normalizedName, ...(LEGACY_EQUIPMENT_ALIASES[normalizedName] || [])];
+        return (masterEquipment || []).filter(item => candidateKeys.includes(normalizeItemName(item.name)));
+    }
+
+    function getEquipmentCatalogEntry(itemName, masterEquipment) {
+        return getEquipmentCatalogEntries(itemName, masterEquipment)[0] || null;
+    }
+
+    function isAllowedEquipmentName(allowedNames, itemName) {
+        const normalizedName = normalizeItemName(itemName);
+        if (allowedNames.has(normalizedName)) return true;
+        return (LEGACY_EQUIPMENT_ALIASES[normalizedName] || []).some(alias => allowedNames.has(alias));
+    }
+
+    function normalizeFighterIdentifier(name) {
+        return String(name || '').trim().toLowerCase().replace(/[\s_]+/g, '_');
+    }
+
+    function getMordheimerFreeDagger(masterData, warband) {
+        if (warband?.ruleSetId !== 'Mordheimer') return null;
+
+        return (masterData?.equipment || []).find(item => {
+            const name = normalizeItemName(item.name);
+            const special = normalizeItemName(item.special);
+            return name === 'dagger' || special.includes('1st free for every warrior');
+        }) || null;
+    }
+
+    function fighterNeedsFreeDagger(fighter) {
+        return !(fighter?.validations || []).includes('noEquipment');
+    }
+
+    function getFighterDaggerIndexes(fighter, daggerName) {
+        const normalizedDaggerName = normalizeItemName(daggerName);
+
+        return (fighter?.equipment || []).reduce((indexes, item, index) => {
+            if (normalizeItemName(item.name) === normalizedDaggerName) {
+                indexes.push(index);
+            }
+            return indexes;
+        }, []);
+    }
+
+    function getSkillEntryDisplayName(skill) {
+        return FighterSkillUtils.formatSkillEntry(skill && typeof skill === 'object' && skill.name && !skill.label
+            ? skill.name
+            : skill);
+    }
+
+    function getSkillEntryKeys(skill) {
+        return FighterSkillUtils.getSkillEntryNames(skill && typeof skill === 'object' && skill.name && !skill.label
+            ? skill.name
+            : skill);
+    }
+
+    function hasSelectedSkillFromGroup(fighter, groupName, masterData) {
+        const groupSkillNames = new Set(
+            (masterData?.skillsByCategory?.[groupName] || []).map(skill => FighterSkillUtils.normalizeSkillName(skill.name))
+        );
+
+        const normalizedGroupName = FighterSkillUtils.normalizeSkillName(groupName);
+
+        return (fighter?.skills || []).some(skill => {
+            if (
+                skill?.kind === 'group' &&
+                FighterSkillUtils.normalizeSkillName(skill.groupKey) === normalizedGroupName &&
+                FighterSkillUtils.normalizeSkillName(skill.selectedKey) &&
+                groupSkillNames.has(FighterSkillUtils.normalizeSkillName(skill.selectedKey))
+            ) {
+                return true;
+            }
+
+            return getSkillEntryKeys(skill).some(name => name !== normalizedGroupName && groupSkillNames.has(name));
+        });
+    }
+
+    function getValidationSeverity(error) {
+        return error?.severity || 'error';
+    }
+
+    function findFighterTemplate(activeData, fighter) {
+        const fighterKey = normalizeItemName(fighter?.typeId || fighter?.templateName || fighter?.type);
+        if (!fighterKey || !Array.isArray(activeData?.fighters)) return null;
+
+        return activeData.fighters.find(template => {
+            return normalizeItemName(template.id || template.name) === fighterKey ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.templateName) ||
+                normalizeItemName(template.name) === normalizeItemName(fighter?.type);
+        }) || null;
+    }
+
+    function getTemplateCountKey(fighter, fighterTemplate) {
+        return normalizeItemName(fighterTemplate?.id || fighterTemplate?.name || fighter?.typeId || fighter?.templateName || fighter?.type);
+    }
+
+    function getFighterEquipmentList(activeData, fighterTemplate) {
+        if (!activeData || !fighterTemplate) return null;
+
+        const listKey = fighterTemplate.equipment_list_override
+            ? `equipment_list_${fighterTemplate.equipment_list_override}`
+            : 'equipment_list';
+        const rawList = activeData[listKey];
+        if (!rawList || typeof rawList !== 'object') return null;
+
+        const allowedNames = new Set();
+        Object.values(rawList).forEach(items => {
+            (items || []).forEach(itemName => {
+                const normalizedName = normalizeItemName(itemName);
+                if (normalizedName) allowedNames.add(normalizedName);
+            });
+        });
+
+        return allowedNames;
+    }
+
+    function getEquipmentListLabel(activeData, fighterTemplate, fighter) {
+        const warbandName = String(activeData?.warband_name || '').trim();
+        const fighterName = String(fighterTemplate?.name || fighter?.templateName || fighter?.type || 'fighter').trim();
+        return warbandName ? `${warbandName} ${fighterName} equipment list` : `${fighterName} equipment list`;
+    }
+
+    // Database of validation rules
+    const ValidationRules = {
+        // --- Warband-level validations ---
+        'exactlyOne': {
+            description: (param) => `Warband must contain exactly one leader of type: "${param}".`,
+            fixLabel: function (warband, param) {
+                const normalizedParam = normalizeFighterIdentifier(param);
+                const count = (warband.fighters || []).filter(f => 
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
+                ).length;
+                return count === 0 ? `Add ${param}` : 'Delete duplicate card';
+            },
+            check: function (warband, param) {
+                const normalizedParam = normalizeFighterIdentifier(param);
+                const count = (warband.fighters || []).filter(f => 
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
+                ).length;
+                return count === 1;
+            },
+            fix: function (warband, param, masterData) {
+                const normalizedParam = normalizeFighterIdentifier(param);
+                const count = (warband.fighters || []).filter(f => 
+                    normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                    normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                    normalizeFighterIdentifier(f.type) === normalizedParam
+                ).length;
+
+                if (count === 0) {
+                    // Try to find the template in masterData
+                    const template = (masterData.fighters || []).find(f => 
+                        normalizeFighterIdentifier(f.id) === normalizedParam ||
+                        normalizeFighterIdentifier(f.name) === normalizedParam
+                    );
+                    
+                    if (template) {
+                        // Create and add the leader
+                        const newFighter = {
+                            typeId: template.id || template.name,
+                            type: template.name,
+                            customName: typeof NameGenerator !== 'undefined' ? NameGenerator.generate(template) : `New ${template.name}`,
+                            baseCost: template.cost,
+                            race: template.race || "Human",
+                            exp: template.exp_start || 0,
+                            exp_start: template.exp_start || 0,
+                            is_large: template.is_large || false,
+                            spell_list: template.spell_list || null,
+                            stats: { ...(template.stats || {}) },
+                            equipment: [],
+                            skills: FighterSkillUtils.getTemplateStartingSkillEntries(template, masterData).map(skill => ({ ...skill })),
+                            requirements: template.requirements || null,
+                            validations: template.validations || null
+                        };
+                        
+                        warband.fighters.unshift(newFighter); // Place Leader at top
+                        return true;
+                    }
+                } else if (count > 1) {
+                    // Remove duplicate leaders, leaving only the first one
+                    let kept = false;
+                    warband.fighters = warband.fighters.filter(f => {
+                        const isLeader = normalizeFighterIdentifier(f.typeId) === normalizedParam ||
+                                         normalizeFighterIdentifier(f.templateName) === normalizedParam ||
+                                         normalizeFighterIdentifier(f.type) === normalizedParam;
+                        if (isLeader) {
+                            if (!kept) {
+                                kept = true;
+                                return true;
+                            }
+                            return false;
+                        }
+                        return true;
+                    });
+                    return true;
+                }
+                return false;
+            }
+        },
+
+        // --- Fighter-level validations ---
+        'onePerWarband': {
+            description: (fighter) => `Only one "${fighter.type}" is allowed in the warband.`,
+            fixLabel: 'Delete duplicate card',
+            check: function (warband, fighter) {
+                const count = warband.fighters.filter(f => 
+                    f.typeId === fighter.typeId || 
+                    (f.templateName && f.templateName === fighter.templateName)
+                ).length;
+                return count <= 1;
+            },
+            fix: function (warband, fighter) {
+                let kept = false;
+                warband.fighters = warband.fighters.filter(f => {
+                    const isMatch = f.typeId === fighter.typeId || (f.templateName && f.templateName === fighter.templateName);
+                    if (isMatch) {
+                        if (f === fighter) {
+                            kept = true;
+                            return true;
+                        }
+                        return kept; // Delete duplicates
+                    }
+                    return true;
+                });
+                return true;
+            }
+        },
+
+        'noEquipment': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot carry any equipment.`,
+            fixLabel: 'Remove all equipment',
+            check: function (warband, fighter) {
+                return (fighter.equipment || []).length === 0;
+            },
+            fix: function (warband, fighter) {
+                fighter.equipment = [];
+                return true;
+            }
+        },
+
+        'noExperience': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot gain experience.`,
+            fixLabel: 'Reset experience to 0',
+            check: function (warband, fighter) {
+                return (fighter.exp || 0) === 0;
+            },
+            fix: function (warband, fighter) {
+                fighter.exp = 0;
+                return true;
+            }
+        },
+
+        'noArmor': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot wear any armor.`,
+            fixLabel: 'Remove equipped armor',
+            check: function (warband, fighter, masterData) {
+                const hasArmor = (fighter.equipment || []).some(item => {
+                    const cat = getItemCategory(item.name, masterData.equipment);
+                    return cat === 'armor';
+                });
+                return !hasArmor;
+            },
+            fix: function (warband, fighter, masterData) {
+                fighter.equipment = (fighter.equipment || []).filter(item => {
+                    const cat = getItemCategory(item.name, masterData.equipment);
+                    return cat !== 'armor';
+                });
+                return true;
+            }
+        },
+
+        'noMissile': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot use missile/ranged weapons.`,
+            fixLabel: 'Remove ranged weapons',
+            check: function (warband, fighter, masterData) {
+                const hasRanged = (fighter.equipment || []).some(item => {
+                    const cat = getItemCategory(item.name, masterData.equipment);
+                    return cat === 'ranged_weapons' || cat === 'missile';
+                });
+                return !hasRanged;
+            },
+            fix: function (warband, fighter, masterData) {
+                fighter.equipment = (fighter.equipment || []).filter(item => {
+                    const cat = getItemCategory(item.name, masterData.equipment);
+                    return cat !== 'ranged_weapons' && cat !== 'missile';
+                });
+                return true;
+            }
+        },
+
+        'noRanged': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot use ranged weapons.`,
+            fixLabel: 'Remove ranged weapons',
+            check: function (warband, fighter, masterData) {
+                return ValidationRules['noMissile'].check(warband, fighter, masterData);
+            },
+            fix: function (warband, fighter, masterData) {
+                return ValidationRules['noMissile'].fix(warband, fighter, masterData);
+            }
+        },
+
+        'noHeavyArmor': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" cannot wear heavy armor.`,
+            fixLabel: 'Remove heavy armor',
+            check: function (warband, fighter) {
+                const hasHeavy = (fighter.equipment || []).some(item => 
+                    item.name.toLowerCase().includes('heavy armour') || 
+                    item.name.toLowerCase().includes('heavy armor')
+                );
+                return !hasHeavy;
+            },
+            fix: function (warband, fighter) {
+                fighter.equipment = (fighter.equipment || []).filter(item => 
+                    !item.name.toLowerCase().includes('heavy armour') && 
+                    !item.name.toLowerCase().includes('heavy armor')
+                );
+                return true;
+            }
+        },
+
+        'neverLeader': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" can never be the warband leader.`,
+            fixLabel: 'Remove Leader status',
+            check: function (warband, fighter) {
+                const isLeader = fighter.type === 'Leader' || (fighter.skills || []).some(s => getSkillEntryKeys(s).includes('leader'));
+                return !isLeader;
+            },
+            fix: function (warband, fighter) {
+                fighter.type = 'Henchman';
+                fighter.skills = (fighter.skills || []).filter(s => !getSkillEntryKeys(s).includes('leader'));
+                return true;
+            }
+        },
+
+        'neverHero': {
+            description: (fighter) => `"${fighter.customName || fighter.type}" can never become a Hero.`,
+            fixLabel: 'Demote to Henchman',
+            check: function (warband, fighter) {
+                return fighter.type !== 'Hero';
+            },
+            fix: function (warband, fighter) {
+                fighter.type = 'Henchman';
+                return true;
+            }
+        },
+
+        // --- Equipment-level validation ---
+        'twoHanded': {
+            description: (fighter, item) => `"${fighter.customName || fighter.type}" is using a two-handed weapon ("${item.name}") and cannot equip shields, bucklers, or other weapons.`,
+            fixLabel: 'Remove conflicting items',
+            check: function (warband, fighter, masterData, item) {
+                // If this is the only weapon/shield, it's valid
+                const weaponsAndShields = (fighter.equipment || []).filter(e => {
+                    const cat = getItemCategory(e.name, masterData.equipment);
+                    return cat === 'melee_weapons' || cat === 'ranged_weapons' || cat === 'armor' && (e.name.toLowerCase().includes('shield') || e.name.toLowerCase().includes('buckler'));
+                });
+                return weaponsAndShields.length <= 1;
+            },
+            fix: function (warband, fighter, masterData, item) {
+                // Keep ONLY the two-handed weapon itself
+                fighter.equipment = (fighter.equipment || []).filter(e => {
+                    const isTwoHanded = e.name === item.name;
+                    const cat = getItemCategory(e.name, masterData.equipment);
+                    // Filter out other weapons or shields/bucklers
+                    const isConflicting = cat === 'melee_weapons' || cat === 'ranged_weapons' || (cat === 'armor' && (e.name.toLowerCase().includes('shield') || e.name.toLowerCase().includes('buckler')));
+                    return isTwoHanded || !isConflicting;
+                });
+                return true;
+            }
+        },
+
+        // --- Skill-level validation ---
+        'heroOnly': {
+            description: (fighter, skill) => `Skill "${getSkillEntryDisplayName(skill)}" is only available to Heroes.`,
+            fixLabel: 'Remove this skill',
+            check: function (warband, fighter) {
+                const isHero = fighter.type === 'Hero' || fighter.type === 'Leader' || fighter.type === 'Wizard';
+                return isHero;
+            },
+            fix: function (warband, fighter, masterData, skill) {
+                fighter.skills = (fighter.skills || []).filter(s => s !== skill);
+                return true;
+            }
+        }
+    };
+
+    /**
+     * Validate a warband and return an array of validation errors.
+     * @param {Object} warband - Current active warband
+     * @param {Object} masterData - Loaded master records (fighters, equipment, spells, skills)
+     * @returns {Array} List of validation error objects
+     */
+    function validateWarband(warband, masterData) {
+        const errors = [];
+        if (!warband || !masterData) return errors;
+
+        // 1. Run warband-level validations configured in activeWarbandTypeData
+        const activeData = masterData.activeWarbandTypeData;
+        const warbandValidations = activeData ? (activeData.validations || []) : [];
+        
+        warbandValidations.forEach((val, idx) => {
+            const valType = typeof val === 'string' ? val : val.type;
+            const param = typeof val === 'object' ? val.fighter : null;
+            const rule = ValidationRules[valType];
+
+            if (rule) {
+                const isValid = rule.check(warband, param, masterData);
+                if (!isValid) {
+                    errors.push({
+                        id: `wb-val-${valType}-${idx}`,
+                        message: rule.description(param),
+                        level: 'warband',
+                        key: valType,
+                        param: param,
+                        hasFix: typeof rule.fix === 'function',
+                        fixLabel: typeof rule.fixLabel === 'function' ? rule.fixLabel(warband, param) : (typeof rule.fixLabel === 'string' ? rule.fixLabel : 'Fix'),
+                        fix: function () {
+                            const changed = rule.fix(warband, param, masterData);
+                            if (changed && typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        // 2. Built-in warband capacity limits (Max/Min Warriors)
+        if (activeData) {
+            const currentSize = (warband.fighters || []).length;
+            
+            if (activeData.max_warriors && currentSize > activeData.max_warriors) {
+                errors.push({
+                    id: `wb-limit-max`,
+                    message: `Warband has too many warriors (current: ${currentSize}, max allowed: ${activeData.max_warriors}).`,
+                    level: 'warband',
+                    key: 'maxWarriors',
+                    hasFix: false
+                });
+            }
+            if (activeData.min_warriors && currentSize > 0 && currentSize < activeData.min_warriors) {
+                errors.push({
+                    id: `wb-limit-min`,
+                    message: `Warband has too few warriors (current: ${currentSize}, min required: ${activeData.min_warriors}).`,
+                    level: 'warband',
+                    key: 'minWarriors',
+                    hasFix: false
+                });
+            }
+        }
+
+        const freeDagger = getMordheimerFreeDagger(masterData, warband);
+        const fighterCountByTemplate = new Map();
+
+        (warband.fighters || []).forEach(fighter => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            if (!countKey) return;
+            fighterCountByTemplate.set(countKey, (fighterCountByTemplate.get(countKey) || 0) + 1);
+        });
+        const fighterOccurrenceByTemplate = new Map();
+
+        // 3. Iterate through fighters and run fighter-level, equipment-level, and skill-level validations
+        (warband.fighters || []).forEach((fighter, fIdx) => {
+            const fighterTemplate = findFighterTemplate(activeData, fighter);
+            const exemptSkillNames = new Set(
+                FighterSkillUtils.getTemplateStartingSkills(fighterTemplate || {})
+                    .map(skill => FighterSkillUtils.normalizeSkillName(skill.name))
+            );
+            const countKey = getTemplateCountKey(fighter, fighterTemplate);
+            const occurrence = countKey ? ((fighterOccurrenceByTemplate.get(countKey) || 0) + 1) : 0;
+
+            if (countKey) {
+                fighterOccurrenceByTemplate.set(countKey, occurrence);
+            }
+
+            if (fighterTemplate && typeof fighterTemplate.max_quantity === 'number' && fighterTemplate.max_quantity > 0) {
+                const totalCount = fighterCountByTemplate.get(countKey) || 0;
+                const hasExplicitOnePerWarband = (fighter.validations || []).includes('onePerWarband') ||
+                    (fighterTemplate.validations || []).includes('onePerWarband');
+
+                if (!(fighterTemplate.max_quantity === 1 && hasExplicitOnePerWarband) &&
+                    totalCount > fighterTemplate.max_quantity &&
+                    occurrence > fighterTemplate.max_quantity) {
+                    const limitMessage = fighterTemplate.max_quantity === 1
+                        ? `Only one "${fighterTemplate.name}" is allowed in the warband.`
+                        : `Only ${fighterTemplate.max_quantity} "${fighterTemplate.name}" fighters are allowed in the warband.`;
+
+                    errors.push({
+                        id: `fighter-max-quantity-${fIdx}`,
+                        message: limitMessage,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'maxQuantity',
+                        hasFix: true,
+                        fixLabel: 'Delete extra card',
+                        fix: function () {
+                            const fighterIndex = warband.fighters.indexOf(fighter);
+                            if (fighterIndex === -1) return;
+                            warband.fighters.splice(fighterIndex, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+            }
+
+            if (freeDagger && fighterNeedsFreeDagger(fighter)) {
+                const daggerIndexes = getFighterDaggerIndexes(fighter, freeDagger.name);
+
+                if (daggerIndexes.length === 0) {
+                    errors.push({
+                        id: `fighter-free-dagger-required-${fIdx}`,
+                        message: `"${fighter.customName || fighter.type}" can have a free ${freeDagger.name}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'freeDaggerRequired',
+                        severity: 'tip',
+                        hasFix: true,
+                        fixLabel: `Add free ${freeDagger.name}`,
+                        fix: function () {
+                            fighter.equipment = fighter.equipment || [];
+                            fighter.equipment.unshift({
+                                name: freeDagger.name,
+                                cost: 0,
+                                originCategory: freeDagger.originCategory || 'melee_weapons'
+                            });
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                } else {
+                    const firstDagger = fighter.equipment[daggerIndexes[0]];
+                    if ((parseInt(firstDagger.cost) || 0) !== 0) {
+                        errors.push({
+                            id: `fighter-free-dagger-cost-${fIdx}`,
+                            message: `The first ${freeDagger.name} for "${fighter.customName || fighter.type}" must cost 0 gc.`,
+                            level: 'fighter',
+                            fighterIndex: fIdx,
+                            key: 'freeDaggerCost',
+                            severity: 'tip',
+                            hasFix: true,
+                            fixLabel: `Set first ${freeDagger.name} to 0 gc`,
+                            fix: function () {
+                                fighter.equipment[daggerIndexes[0]].cost = 0;
+                                if (typeof renderWarband === 'function') {
+                                    renderWarband();
+                                    saveToCache();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            (fighterTemplate?.required_starting_skill_groups || []).forEach(groupName => {
+                if (hasSelectedSkillFromGroup(fighter, groupName, masterData)) return;
+
+                errors.push({
+                    id: `fighter-required-starting-skill-group-${fIdx}-${FighterSkillUtils.normalizeSkillName(groupName)}`,
+                    message: `"${fighter.customName || fighter.type}" may start with one or more ${groupName}.`,
+                    level: 'fighter',
+                    fighterIndex: fIdx,
+                    key: 'requiredStartingSkillGroup',
+                    severity: 'tip',
+                    skillGroup: groupName
+                });
+            });
+
+            const allowedEquipment = getFighterEquipmentList(activeData, fighterTemplate);
+            if (allowedEquipment && allowedEquipment.size > 0) {
+                (fighter.equipment || []).forEach((item, itemIdx) => {
+                    if (isAllowedEquipmentName(allowedEquipment, item.name)) return;
+
+                    errors.push({
+                        id: `fighter-eq-list-${fIdx}-${itemIdx}`,
+                        message: `"${item.name}" is not in the ${getEquipmentListLabel(activeData, fighterTemplate, fighter)}.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'equipmentList',
+                        severity: 'warning',
+                        item: item,
+                        hasFix: true,
+                        fixLabel: `Remove ${item.name}`,
+                        fix: function () {
+                            fighter.equipment.splice(itemIdx, 1);
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                });
+            }
+
+            // (a) Fighter-level validations (copied from base template rules)
+            const fighterVals = fighter.validations || [];
+            fighterVals.forEach((valKey, valIdx) => {
+                const rule = ValidationRules[valKey];
+                if (rule) {
+                    const isValid = rule.check(warband, fighter, masterData);
+                    if (!isValid) {
+                        errors.push({
+                            id: `fighter-val-${fIdx}-${valKey}-${valIdx}`,
+                            message: rule.description(fighter),
+                            level: 'fighter',
+                            fighterIndex: fIdx,
+                            key: valKey,
+                            hasFix: typeof rule.fix === 'function',
+                            fixLabel: typeof rule.fixLabel === 'function' ? rule.fixLabel(warband, fighter) : (typeof rule.fixLabel === 'string' ? rule.fixLabel : 'Fix'),
+                            fix: function () {
+                                const changed = rule.fix(warband, fighter, masterData);
+                                if (changed && typeof renderWarband === 'function') {
+                                    renderWarband();
+                                    saveToCache();
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // (b) Requirements-level validation (hardcoded wizards/elves logic in builders)
+            const eqTags = (fighter.equipment || []).flatMap(e => {
+                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
+                return found ? (found.tags || []) : [];
+            });
+            
+            if (fighter.requirements) {
+                if (fighter.requirements.noArmorIfWizard && eqTags.includes('armor')) {
+                    errors.push({
+                        id: `fighter-req-${fIdx}-noArmorIfWizard`,
+                        message: `"${fighter.customName || fighter.type}" is a Wizard and cannot wear armor.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'noArmorIfWizard',
+                        hasFix: true,
+                        fixLabel: 'Remove equipped armor',
+                        fix: function () {
+                            // Strip armor
+                            fighter.equipment = fighter.equipment.filter(e => {
+                                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
+                                return !(found && (found.tags || []).includes('armor'));
+                            });
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+                if (fighter.requirements.noBlackPowder && eqTags.includes('black-powder')) {
+                    errors.push({
+                        id: `fighter-req-${fIdx}-noBlackPowder`,
+                        message: `Elves like "${fighter.customName || fighter.type}" cannot use black-powder weapons.`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'noBlackPowder',
+                        hasFix: true,
+                        fixLabel: 'Remove black-powder',
+                        fix: function () {
+                            // Strip black powder
+                            fighter.equipment = fighter.equipment.filter(e => {
+                                const found = getEquipmentCatalogEntry(e.name, masterData.equipment);
+                                return !(found && (found.tags || []).includes('black-powder'));
+                            });
+                            if (typeof renderWarband === 'function') {
+                                renderWarband();
+                                saveToCache();
+                            }
+                        }
+                    });
+                }
+            }
+
+            // (c) Equipment validations: Check if items themselves have validation properties
+            (fighter.equipment || []).forEach(e => {
+                const regItem = getEquipmentCatalogEntry(e.name, masterData.equipment);
+                if (regItem) {
+                    const itemVals = regItem.validations || regItem.validation ? (regItem.validations || [regItem.validation]) : [];
+                    itemVals.forEach((valKey, valIdx) => {
+                        const rule = ValidationRules[valKey];
+                        if (rule) {
+                            const isValid = rule.check(warband, fighter, masterData, e);
+                            if (!isValid) {
+                                errors.push({
+                                    id: `fighter-eq-val-${fIdx}-${e.name}-${valKey}-${valIdx}`,
+                                    message: rule.description(fighter, e),
+                                    level: 'fighter',
+                                    fighterIndex: fIdx,
+                                    key: valKey,
+                                    item: e,
+                                    hasFix: typeof rule.fix === 'function',
+                                    fixLabel: typeof rule.fixLabel === 'function' ? rule.fixLabel(warband, fighter, masterData, e) : (typeof rule.fixLabel === 'string' ? rule.fixLabel : 'Fix'),
+                                    fix: function () {
+                                        const changed = rule.fix(warband, fighter, masterData, e);
+                                        if (changed && typeof renderWarband === 'function') {
+                                            renderWarband();
+                                            saveToCache();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            // (d) Skill validations: Check if skills/rules themselves have validation properties
+            (fighter.skills || []).forEach(s => {
+                const skillDisplayName = getSkillEntryDisplayName(s);
+                const normalizedSkillName = FighterSkillUtils.normalizeSkillName(skillDisplayName);
+                if (
+                    fighterTemplate &&
+                    !exemptSkillNames.has(normalizedSkillName) &&
+                    !FighterSkillUtils.isSkillAllowedForTemplate(s, fighterTemplate, masterData)
+                ) {
+                    errors.push({
+                        id: `fighter-skill-access-${fIdx}-${normalizedSkillName}`,
+                        message: `${skillDisplayName} is not in this fighter's advancement list`,
+                        level: 'fighter',
+                        fighterIndex: fIdx,
+                        key: 'skillAccess',
+                        severity: 'warning',
+                        skill: s
+                    });
+                }
+
+                const regSkill = (masterData.skills || []).find(m =>
+                    getSkillEntryKeys(s).includes(FighterSkillUtils.normalizeSkillName(m.name))
+                );
+                if (regSkill) {
+                    const skillVals = regSkill.validations || regSkill.validation ? (regSkill.validations || [regSkill.validation]) : [];
+                    skillVals.forEach((valKey, valIdx) => {
+                        const rule = ValidationRules[valKey];
+                        if (rule) {
+                            const isValid = rule.check(warband, fighter, masterData, s);
+                            if (!isValid) {
+                                errors.push({
+                                    id: `fighter-sk-val-${fIdx}-${normalizedSkillName}-${valKey}-${valIdx}`,
+                                    message: rule.description(fighter, s),
+                                    level: 'fighter',
+                                    fighterIndex: fIdx,
+                                    key: valKey,
+                                    skill: s,
+                                    hasFix: typeof rule.fix === 'function',
+                                    fixLabel: typeof rule.fixLabel === 'function' ? rule.fixLabel(warband, fighter, masterData, s) : (typeof rule.fixLabel === 'string' ? rule.fixLabel : 'Fix'),
+                                    fix: function () {
+                                        const changed = rule.fix(warband, fighter, masterData, s);
+                                        if (changed && typeof renderWarband === 'function') {
+                                            renderWarband();
+                                            saveToCache();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        return errors;
+    }
+
+    return {
+        ValidationRules,
+        validateWarband,
+        getValidationSeverity
+    };
+}));
