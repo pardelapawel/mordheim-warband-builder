@@ -1878,7 +1878,8 @@ input[type=number] {
     .save-manager-toggle {
         display: block !important;
         position: absolute;
-        top: -40px;
+        top: auto;
+        bottom: 100%;
         right: 0;
         background: var(--accent-color);
         color: white;
