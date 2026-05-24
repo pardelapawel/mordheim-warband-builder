@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Drachenfels",
+    "warbands": [
+      { "id": "awanturnicy", "name": "Awanturnicy", "file": "awanturnicy.json" },
+      { "id": "sludzy_ciemnosci", "name": "Słudzy Ciemności", "file": "sludzy_ciemnosci.json" }
+    ]
+  },
+  {
+    "name": "Mordheimer",
+    "warbands": [
+      { "id": "undead", "name": "Undead", "file": "undead.json" },
+      { "id": "witch_hunters", "name": "Witch Hunters", "file": "witch_hunters.json" },
+      { "id": "averlanders", "name": "Averlanders", "file": "averlanders.json" },
+      { "id": "beastmen_raiders", "name": "Beastmen Raiders", "file": "beastmen_raiders.json" },
+      { "id": "carnival_of_chaos", "name": "Carnival of Chaos", "file": "carnival_of_chaos.json" },
+      { "id": "dwarf_treasure_hunters", "name": "Dwarf Treasure Hunters", "file": "dwarf_treasure_hunters.json" },
+      { "id": "skaven_eshin", "name": "Skaven of Clan Eshin", "file": "skaven_eshin.json" },
+      { "id": "sisters_of_sigmar", "name": "Sisters of Sigmar", "file": "sisters_of_sigmar.json" },
+      { "id": "cult_of_the_possessed", "name": "Cult of the Possessed", "file": "cult_of_the_possessed.json" },
+      { "id": "mercenaries_reikland", "name": "Reikland Mercenaries", "file": "mercenaries_reikland.json" },
+      { "id": "mercenaries_middenheim", "name": "Middenheim Mercenaries", "file": "mercenaries_middenheim.json" },
+      { "id": "mercenaries_marienburg", "name": "Marienburg Mercenaries", "file": "mercenaries_merienburg.json" },
+      { "id": "orc_mob", "name": "Orc Mob", "file": "orc_mob.json" },
+      { "id": "kislevites", "name": "Kislevites", "file": "kislevites.json" },
+      { "id": "ostlander", "name": "Ostlander Mercenaries", "file": "ostlander.json" }
+    ]
+  }
+]

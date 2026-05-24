@@ -1,0 +1,100 @@
+{
+  "warband_name": "Averlander Mercenaries",
+  "source": "Town Cryer #10, revised in Mordheim Annual 2002",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "captain" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Axe", "Sword", "Spear", "Halberd", "Morning star", "Double-handed weapon"],
+    "missile": ["Pistol", "Duelling Pistol", "Crossbow", "Bow"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"]
+  },
+  "equipment_list_scout": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Axe", "Sword"],
+    "missile": ["Bow", "Long bow"],
+    "armour": ["Light armour", "Buckler", "Helmet"],
+    "miscellaneous": ["Hunting arrows"]
+  },
+  "equipment_list_marksman": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Axe", "Sword"],
+    "missile": ["Crossbow", "Pistol", "Bow", "Long bow", "Blunderbuss", "Handgun", "Hunting Rifle"],
+    "armour": ["Light armour", "Buckler", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Captain",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader"],
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Sergeant",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Strength", "Speed"]
+    },
+    {
+      "name": "Bergjaeger",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 35,
+      "exp_start": 4,
+      "stats": { "m": 4, "ws": 2, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "scout",
+      "rules": ["Set Traps"],
+      "skills": ["Shooting", "Speed"]
+    },
+    {
+      "name": "Youngblood",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 15,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Shooting", "Speed"]
+    },
+    {
+      "name": "Mountainguard",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 30,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    },
+    {
+      "name": "Marksman",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "marksman"
+    },
+    {
+      "name": "Halfling Scout",
+      "type": "Henchman",
+      "race": "Halfling",
+      "max_quantity": 3,
+      "cost": 20,
+      "stats": { "m": 4, "ws": 2, "bs": 4, "s": 2, "t": 2, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "equipment_list_override": "scout",
+      "rules": ["Promotion: If promoted to hero, may not choose Strength skills"]
+    }
+  ]
+}
