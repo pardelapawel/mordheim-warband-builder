@@ -142,9 +142,9 @@ test('mobile save manager toggle keeps the cached count while expanding and coll
     assert.equal(toggleBtn.textContent, '3 Cached ▾');
 });
 
-test('mobile save manager sits flush with the bottom edge', () => {
+test('mobile save manager anchors the toggle directly above the panel', () => {
     assert.match(
         styleCss,
-        /@media screen and \(max-width:\s*768px\)\s*\{[\s\S]*#save-manager\s*\{[\s\S]*bottom:\s*0;/,
+        /@media screen and \(max-width:\s*768px\)\s*\{[\s\S]*#save-manager\s*\{[\s\S]*bottom:\s*0;[\s\S]*\.save-manager-toggle\s*\{[\s\S]*top:\s*auto;[\s\S]*bottom:\s*100%;/,
     );
 });
