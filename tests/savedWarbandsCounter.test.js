@@ -8,6 +8,7 @@ const vm = require('node:vm');
 
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
 function extractBalancedBlock(source, startPattern) {
     const start = source.indexOf(startPattern);
@@ -139,4 +140,11 @@ test('mobile save manager toggle keeps the cached count while expanding and coll
 
     toggleBtn.onclick();
     assert.equal(toggleBtn.textContent, '3 Cached ▾');
+});
+
+test('mobile save manager sits flush with the bottom edge', () => {
+    assert.match(
+        styleCss,
+        /@media screen and \(max-width:\s*768px\)\s*\{[\s\S]*#save-manager\s*\{[\s\S]*bottom:\s*0;/,
+    );
 });

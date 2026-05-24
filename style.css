@@ -1866,6 +1866,7 @@ input[type=number] {
         width: calc(100% - 40px);
         left: 20px;
         right: 20px;
+        bottom: 0;
         z-index: 1000;
         transition: transform 0.3s ease;
     }
