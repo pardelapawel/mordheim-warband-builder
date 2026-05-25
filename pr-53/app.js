@@ -385,6 +385,13 @@ function updateCardPrintSummaries(cardEl, fighter) {
     cardEl.querySelector('.skills-print-summary').textContent = printSummaries.skills;
 }
 
+function updateFoldedSummary(cardEl, fighter) {
+    const el = cardEl.querySelector('.folded-equipment-summary');
+    if (!el) return;
+    const names = (fighter.equipment || []).map(e => e.name).filter(Boolean);
+    el.textContent = names.length ? names.join(', ') : '—';
+}
+
 function updateLegend() {
     const sidebar = document.getElementById('legend-sidebar');
     if (!sidebar) return;
@@ -520,6 +527,12 @@ function createFighterCard(data, index) {
         currentWarband.fighters[index].folded = !isFolded;
         applyFoldState(!isFolded);
         saveToCache();
+        // Sync fold-all button label
+        const foldAllBtn = document.getElementById('fold-all-btn');
+        if (foldAllBtn) {
+            const anyExpanded = currentWarband.fighters.some(f => !f.folded);
+            foldAllBtn.textContent = anyExpanded ? '⊟ Fold All' : '⊞ Expand All';
+        }
     };
 
     // Populate Type Select
@@ -715,6 +728,7 @@ function createFighterCard(data, index) {
                 masterData.equipment
             );
             updateCardPrintSummaries(cardEl, currentWarband.fighters[index]);
+            updateFoldedSummary(cardEl, currentWarband.fighters[index]);
             updateLegend();
             runValidations();
             saveToCache();
@@ -868,6 +882,7 @@ function createFighterCard(data, index) {
     }
 
     updateCardPrintSummaries(cardEl, data);
+    updateFoldedSummary(cardEl, data);
 
     // Add Logic and dynamic datalists
     const meleeInput = cardEl.querySelector('.melee-input');
