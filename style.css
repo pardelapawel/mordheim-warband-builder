@@ -521,6 +521,7 @@ h4 {
 .fighter-card.folded {
     min-height: unset;
     height: auto;
+    padding: 0.6rem 1.5rem;
 }
 
 .fighter-card.folded .stats-table,
@@ -536,6 +537,29 @@ h4 {
     border-bottom: none;
     margin-bottom: 0;
     padding-bottom: 0;
+}
+
+.fighter-card.folded .card-header-meta {
+    margin-top: 0.25rem;
+}
+
+.fighter-card.folded .name-container {
+    margin-bottom: 0;
+}
+
+.folded-equipment-summary {
+    display: none;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fighter-card.folded .folded-equipment-summary {
+    display: block;
 }
 
 .fold-btn.expanded {
