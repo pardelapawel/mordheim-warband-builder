@@ -1,0 +1,70 @@
+{
+  "warband_name": "The Sisters of Sigmar",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "sigmarite_matriarch" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Sigmarite Warhammer", "Flail", "Steel Whip", "Double-handed weapon"],
+    "missile": ["Sling"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"],
+    "miscellaneous": ["Holy Tome", "Blessed Water", "Holy Relic"]
+  },
+  "fighters": [
+    {
+      "name": "Sigmarite Matriarch",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 70,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader"],
+      "spell_list": "Prayers of Sigmar",
+      "skills": ["Combat", "Academic", "Strength", "Speed", "Sisters of Sigmar", "Prayers of Sigmar"]
+    },
+    {
+      "name": "Sister Superior",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 3,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Academic", "Strength", "Speed", "Sisters of Sigmar"]
+    },
+    {
+      "name": "Augur",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 25,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "validations": ["noArmor"],
+      "rules": ["Blessed Sight"],
+      "skills": ["Academic", "Speed", "Sisters of Sigmar"]
+    },
+    {
+      "name": "Sigmarite Sister",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    },
+    {
+      "name": "Novice",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 10,
+      "cost": 15,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 }
+    }
+  ]
+}

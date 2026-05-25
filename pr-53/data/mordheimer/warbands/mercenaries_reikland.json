@@ -1,0 +1,82 @@
+{
+  "warband_name": "Reikland Mercenaries",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 15,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "mercenary_captain" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword", "Morning star", "Double-handed weapon", "Spear", "Halberd"],
+    "missile": ["Crossbow", "Pistol", "Duelling Pistol", "Bow"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Buckler", "Helmet"]
+  },
+  "equipment_list_marksman": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Axe", "Sword"],
+    "missile": ["Crossbow", "Pistol", "Bow", "Long bow", "Blunderbuss", "Handgun", "Hunting Rifle"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Mercenary Captain",
+      "type": "Leader",
+      "race": "Human",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Military Discipline"],
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed"]
+    },
+    {
+      "name": "Champion",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 35,
+      "exp_start": 8,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "skills": ["Combat", "Shooting", "Strength"]
+    },
+    {
+      "name": "Youngblood",
+      "type": "Hero",
+      "race": "Human",
+      "max_quantity": 2,
+      "cost": 15,
+      "exp_start": 0,
+      "stats": { "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Shooting", "Speed"]
+    },
+    {
+      "name": "Warrior",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 }
+    },
+    {
+      "name": "Marksman",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 7,
+      "cost": 25,
+      "stats": { "m": 4, "ws": 3, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "equipment_list_override": "marksman",
+      "rules": ["Martial Training"]
+    },
+    {
+      "name": "Swordsman",
+      "type": "Henchman",
+      "race": "Human",
+      "max_quantity": 5,
+      "cost": 35,
+      "stats": { "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7 },
+      "rules": ["Expert Swordsmen"]
+    }
+  ]
+}
