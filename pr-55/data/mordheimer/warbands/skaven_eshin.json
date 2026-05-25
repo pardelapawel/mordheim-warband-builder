@@ -1,0 +1,95 @@
+{
+  "warband_name": "Skaven of Clan Eshin",
+  "source": "Mordheim Rulebook",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 20,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "assassin_adept" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Sword", "Flail", "Spear", "Halberd", "Weeping Blades", "Fighting Claws"],
+    "missile": ["Sling", "Throwing Stars", "Throwing Knives", "Blowpipe", "Warplock Pistol"],
+    "armour": ["Light armour", "Buckler", "Helmet"]
+  },
+  "equipment_list_henchmen": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Club", "Sword", "Spear"],
+    "missile": ["Sling"],
+    "armour": ["Light armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Assassin Adept",
+      "type": "Leader",
+      "race": "Skaven",
+      "max_quantity": 1,
+      "cost": 60,
+      "exp_start": 20,
+      "stats": { "m": 6, "ws": 4, "bs": 4, "s": 4, "t": 3, "w": 1, "i": 5, "a": 1, "ld": 7 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Perfect Killer"],
+      "skills": ["Combat", "Shooting", "Academic", "Strength", "Speed", "Skaven Special"]
+    },
+    {
+      "name": "Black Skaven",
+      "type": "Hero",
+      "race": "Skaven",
+      "max_quantity": 2,
+      "cost": 40,
+      "exp_start": 8,
+      "stats": { "m": 6, "ws": 4, "bs": 3, "s": 4, "t": 3, "w": 1, "i": 5, "a": 1, "ld": 6 },
+      "skills": ["Combat", "Shooting", "Strength", "Speed", "Skaven Special"]
+    },
+    {
+      "name": "Eshin Sorcerer",
+      "type": "Hero",
+      "race": "Skaven",
+      "max_quantity": 1,
+      "cost": 45,
+      "exp_start": 8,
+      "stats": { "m": 5, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 6 },
+      "spell_list": "Magic of the Horned Rat",
+      "skills": ["Academic", "Speed", "Skaven Special", "Magic of the Horned Rat"]
+    },
+    {
+      "name": "Night Runner",
+      "type": "Hero",
+      "race": "Skaven",
+      "max_quantity": 2,
+      "cost": 20,
+      "exp_start": 0,
+      "stats": { "m": 6, "ws": 2, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 4 },
+      "equipment_list_override": "henchmen",
+      "skills": ["Combat", "Shooting", "Speed", "Skaven Special"]
+    },
+    {
+      "name": "Verminkin",
+      "type": "Henchman",
+      "race": "Skaven",
+      "max_quantity": null,
+      "cost": 20,
+      "stats": { "m": 5, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 5 },
+      "equipment_list_override": "henchmen"
+    },
+    {
+      "name": "Giant Rat",
+      "type": "Henchman",
+      "race": "Animal",
+      "max_quantity": null,
+      "cost": 15,
+      "stats": { "m": 6, "ws": 2, "bs": 0, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 4 },
+      "validations": ["noEquipment", "noExperience"]
+    },
+    {
+      "name": "Rat Ogre",
+      "type": "Henchman",
+      "race": "Skaven Mutant",
+      "max_quantity": 1,
+      "cost": 210,
+      "stats": { "m": 6, "ws": 3, "bs": 3, "s": 5, "t": 5, "w": 3, "i": 4, "a": 3, "ld": 4 },
+      "validations": ["noEquipment", "noExperience"],
+      "rules": ["Cause Fear", "Stupidity", "Large Target"]
+    }
+  ]
+}

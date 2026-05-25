@@ -1,0 +1,86 @@
+{
+  "warband_name": "Dwarf Treasure Hunters",
+  "source": "Town Cryer #4, revised in Mordheim Annual 2002",
+  "grade": "1a",
+  "starting_gold": 500,
+  "max_warriors": 12,
+  "min_warriors": 3,
+  "validations": [
+    { "type": "exactlyOne", "fighter": "dwarf_noble" }
+  ],
+  "equipment_list": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Axe", "Sword", "Dwarf axe", "Double-handed weapon", "Spear", "Halberd"],
+    "missile": ["Pistol", "Crossbow", "Handgun"],
+    "armour": ["Light armour", "Heavy armour", "Gromril armour", "Shield", "Helmet"]
+  },
+  "equipment_list_thunderer": {
+    "hand_to_hand": ["Dagger", "Mace", "Hammer", "Axe", "Sword"],
+    "missile": ["Pistol", "Crossbow", "Handgun"],
+    "armour": ["Light armour", "Heavy armour", "Shield", "Helmet"]
+  },
+  "fighters": [
+    {
+      "name": "Dwarf Noble",
+      "type": "Leader",
+      "race": "Dwarf",
+      "max_quantity": 1,
+      "cost": 85,
+      "exp_start": 20,
+      "stats": { "m": 3, "ws": 5, "bs": 4, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "validations": ["onePerWarband"],
+      "rules": ["Leader", "Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"],
+      "skills": ["Combat", "Shooting", "Strength", "Dwarf Special"]
+    },
+    {
+      "name": "Dwarf Engineer",
+      "type": "Hero",
+      "race": "Dwarf",
+      "max_quantity": 1,
+      "cost": 50,
+      "exp_start": 10,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "rules": ["Expert Weaponsmith", "Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"],
+      "skills": ["Combat", "Shooting", "Dwarf Special"]
+    },
+    {
+      "name": "Dwarf Troll Slayer",
+      "type": "Hero",
+      "race": "Dwarf",
+      "max_quantity": 2,
+      "cost": 50,
+      "exp_start": 8,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "validations": ["noArmor", "noMissile"],
+      "rules": ["Deathwish", "Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"],
+      "skills": ["Combat", "Strength", "Dwarf Special", "Troll Slayer"]
+    },
+    {
+      "name": "Dwarf Clansman",
+      "type": "Henchman",
+      "race": "Dwarf",
+      "max_quantity": null,
+      "cost": 40,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "rules": ["Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"]
+    },
+    {
+      "name": "Dwarf Thunderer",
+      "type": "Henchman",
+      "race": "Dwarf",
+      "max_quantity": 5,
+      "cost": 40,
+      "stats": { "m": 3, "ws": 4, "bs": 3, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 9 },
+      "equipment_list_override": "thunderer",
+      "rules": ["Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"]
+    },
+    {
+      "name": "Beardling",
+      "type": "Henchman",
+      "race": "Dwarf",
+      "max_quantity": null,
+      "cost": 25,
+      "stats": { "m": 3, "ws": 3, "bs": 2, "s": 3, "t": 4, "w": 1, "i": 2, "a": 1, "ld": 8 },
+      "rules": ["Hard to Kill", "Hard Head", "Armour Proficiency", "Hate Orcs and Goblins", "Grudgebearers", "Incomparable Miners"]
+    }
+  ]
+}

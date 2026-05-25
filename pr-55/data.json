@@ -1,0 +1,72 @@
+{
+  "fighters": [
+    {
+      "id": "merc_captain",
+      "name": "Mercenary Captain",
+      "m": 4, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 4, "a": 1, "ld": 8,
+      "cost": 60,
+      "tags": ["hero", "leader"]
+    },
+    {
+      "id": "merc_champion",
+      "name": "Champion",
+      "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7,
+      "cost": 35,
+      "tags": ["hero"]
+    },
+    {
+      "id": "merc_youngblood",
+      "name": "Youngblood",
+      "m": 4, "ws": 2, "bs": 2, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 6,
+      "cost": 15,
+      "tags": ["hero"]
+    },
+    {
+      "id": "merc_marksman",
+      "name": "Marksman",
+      "m": 4, "ws": 3, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7,
+      "cost": 25,
+      "tags": ["henchman"]
+    },
+    {
+      "id": "sister_superior",
+      "name": "Sister Superior",
+      "m": 4, "ws": 4, "bs": 3, "s": 3, "t": 3, "w": 1, "i": 3, "a": 1, "ld": 7,
+      "cost": 35,
+      "tags": ["hero", "wizard"],
+      "requirements": {
+        "noArmorIfWizard": true
+      }
+    },
+    {
+      "id": "elf_ranger",
+      "name": "Elf Ranger",
+      "m": 5, "ws": 4, "bs": 4, "s": 3, "t": 3, "w": 1, "i": 5, "a": 1, "ld": 8,
+      "cost": 40,
+      "tags": ["hero", "elf"],
+      "requirements": {
+        "noBlackPowder": true
+      }
+    }
+  ],
+  "equipment": [
+    { "id": "sword", "name": "Sword", "cost": 10, "tags": ["melee"] },
+    { "id": "mace", "name": "Mace", "cost": 3, "tags": ["melee"] },
+    { "id": "axe", "name": "Axe", "cost": 5, "tags": ["melee"] },
+    { "id": "dagger", "name": "Dagger", "cost": 2, "tags": ["melee"] },
+    { "id": "great_weapon", "name": "Great Weapon", "cost": 15, "tags": ["melee", "two-handed"] },
+    { "id": "bow", "name": "Bow", "cost": 10, "tags": ["ranged"] },
+    { "id": "pistol", "name": "Pistol", "cost": 15, "tags": ["ranged", "black-powder"] },
+    { "id": "handgun", "name": "Handgun", "cost": 35, "tags": ["ranged", "black-powder"] },
+    { "id": "light_armor", "name": "Light Armor", "cost": 20, "tags": ["armor"] },
+    { "id": "heavy_armor", "name": "Heavy Armor", "cost": 50, "tags": ["armor"] },
+    { "id": "shield", "name": "Shield", "cost": 5, "tags": ["armor"] },
+    { "id": "helmet", "name": "Helmet", "cost": 10, "tags": ["armor"] }
+  ],
+  "skills": [
+    { "id": "strongman", "name": "Strongman", "cost": 0, "description": "Ignore -1 to hit with Great Weapons" },
+    { "id": "mighty_blow", "name": "Mighty Blow", "cost": 0, "description": "+1 S in close combat" },
+    { "id": "eagle_eyes", "name": "Eagle Eyes", "cost": 0, "description": "+6\" range to ranged weapons" },
+    { "id": "sprint", "name": "Sprint", "cost": 0, "description": "Triple move when running" }
+  ]
+}
