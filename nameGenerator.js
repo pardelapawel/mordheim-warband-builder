@@ -224,6 +224,14 @@ const NameGenerator = (() => {
         return normalized || "wojownik";
     }
 
+    function getDescriptiveEquipmentSuffixes(fighter) {
+        const equipment = Array.isArray(fighter.equipment) ? fighter.equipment : [];
+        const equipmentNames = equipment
+            .map(item => normalizeDescriptiveName(item && item.name ? item.name : ""))
+            .filter(Boolean);
+        return Array.from(new Set(equipmentNames.map(name => `z ${name}`)));
+    }
+
     function buildDescriptiveCandidates(fighter) {
         const baseName = getDescriptiveBaseName(fighter);
         const race = normalizeDescriptiveName(fighter.race);
@@ -233,7 +241,7 @@ const NameGenerator = (() => {
             fighter.templateName
         ].filter(Boolean).join(" "));
         const prefixes = ["stary", "weteran", "szybki", "ponury", "zwiadowca"];
-        const suffixes = ["z toporem", "z tarczą", "z mieczem", "z młotem", "z nożem", "i tarcza"];
+        const suffixes = getDescriptiveEquipmentSuffixes(fighter);
         const traitCandidates = [];
 
         if (race.includes("krasnolud") || race.includes("dwarf")) {

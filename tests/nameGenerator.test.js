@@ -271,3 +271,42 @@ test('generateDescriptive can use Polish wampir trait for Wampir templates', () 
     const name = NameGenerator.generateDescriptive(fighter, []);
     assert.equal(name, 'wampir');
 });
+
+test('generateDescriptive does not invent weapon suffixes when fighter has no equipment', () => {
+    const fighter = { type: 'Kusznik', race: 'Krasnolud', equipment: [] };
+    const existing = [
+        'kusznik',
+        'krasnal kusznik',
+        'stary kusznik',
+        'weteran kusznik',
+        'szybki kusznik',
+        'ponury kusznik',
+        'zwiadowca kusznik'
+    ];
+
+    const name = NameGenerator.generateDescriptive(fighter, existing);
+
+    assert.equal(name, 'kusznik 2');
+});
+
+test('generateDescriptive equipment suffixes are based on actual equipment names', () => {
+    const fighter = {
+        type: 'Kusznik',
+        race: 'Krasnolud',
+        equipment: [{ name: 'Morgenstern', cost: 15 }]
+    };
+    const existing = [
+        'kusznik',
+        'krasnal kusznik',
+        'stary kusznik',
+        'weteran kusznik',
+        'szybki kusznik',
+        'ponury kusznik',
+        'zwiadowca kusznik'
+    ];
+
+    const name = NameGenerator.generateDescriptive(fighter, existing);
+
+    assert.match(name, /morgenstern/);
+    assert.doesNotMatch(name, /z młotem/);
+});
