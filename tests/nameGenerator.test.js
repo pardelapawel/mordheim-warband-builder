@@ -230,3 +230,26 @@ test('good elf and dark elf produce different name pools', () => {
     assert.ok(elfHasLightPrefix, 'Elf Ranger should draw from light elf name pool');
     assert.ok(darkElfHasDarkPrefix, 'Dark Elf should draw from dark elf name pool');
 });
+
+test('generateDescriptive returns base-type descriptive names', () => {
+    const name = NameGenerator.generateDescriptive({ type: 'Kusznik', race: 'Krasnolud' }, []);
+    assert.match(name, /kusznik/);
+});
+
+test('generateDescriptive returns a unique name when base name is already used', () => {
+    const fighter = { type: 'Kusznik', race: 'Krasnolud' };
+    const existing = [
+        'kusznik',
+        'krasnal kusznik',
+        'stary kusznik',
+        'weteran kusznik',
+        'szybki kusznik',
+        'ponury kusznik',
+        'zwiadowca kusznik'
+    ];
+
+    const name = NameGenerator.generateDescriptive(fighter, existing);
+
+    assert.ok(!existing.includes(name), 'generated descriptive name should not duplicate currently used names');
+    assert.match(name, /kusznik/);
+});

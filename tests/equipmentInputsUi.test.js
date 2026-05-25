@@ -245,3 +245,10 @@ test('fighter card binds header exp input and keeps exp track sync', () => {
     assert.match(expInputChangeBody, /updateWarbandRating\s*\(/);
     assert.match(expInputChangeBody, /saveToCache\s*\(/);
 });
+
+test('fighter template includes descriptive name button wired to unique generator', () => {
+    assert.match(indexHtml, /class="[^"]*\bdescriptive-name-btn\b[^"]*"/);
+    assert.match(appJs, /const descriptiveNameBtn = cardEl\.querySelector\('\.descriptive-name-btn'\)/);
+    assert.match(appJs, /NameGenerator\.generateDescriptive\(fighter,\s*existingNames\)/);
+    assert.match(appJs, /filter\(\(_,\s*fighterIdx\)\s*=>\s*fighterIdx !== index\)/);
+});

@@ -214,7 +214,65 @@ const NameGenerator = (() => {
         return finalName.trim();
     }
 
-    return { generate };
+    function normalizeDescriptiveName(value) {
+        return (value || "").toLowerCase().trim().replace(/\s+/g, " ");
+    }
+
+    function getDescriptiveBaseName(fighter) {
+        const raw = (fighter.type || fighter.name || "wojownik").toString();
+        const normalized = normalizeDescriptiveName(raw);
+        return normalized || "wojownik";
+    }
+
+    function buildDescriptiveCandidates(fighter) {
+        const baseName = getDescriptiveBaseName(fighter);
+        const race = normalizeDescriptiveName(fighter.race);
+        const prefixes = ["stary", "weteran", "szybki", "ponury", "zwiadowca"];
+        const suffixes = ["z toporem", "z tarczą", "z mieczem", "z młotem", "z nożem", "i tarcza"];
+
+        if (race.includes("krasnolud") || race.includes("dwarf")) {
+            prefixes.unshift("krasnal");
+        } else if (race.includes("elf")) {
+            prefixes.unshift("elfi");
+        } else if (race.includes("skaven")) {
+            prefixes.unshift("skaveński");
+        }
+
+        const candidates = [baseName];
+        prefixes.forEach(prefix => candidates.push(`${prefix} ${baseName}`));
+        suffixes.forEach(suffix => candidates.push(`${baseName} ${suffix}`));
+        prefixes.forEach(prefix => {
+            suffixes.forEach(suffix => candidates.push(`${prefix} ${baseName} ${suffix}`));
+        });
+
+        return Array.from(new Set(candidates.map(normalizeDescriptiveName)));
+    }
+
+    function generateDescriptive(fighter, existingNames = []) {
+        const used = new Set(existingNames.map(normalizeDescriptiveName).filter(Boolean));
+        const candidates = buildDescriptiveCandidates(fighter);
+        const randomized = [...candidates];
+
+        for (let i = randomized.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [randomized[i], randomized[j]] = [randomized[j], randomized[i]];
+        }
+
+        for (const candidate of randomized) {
+            if (!used.has(candidate)) return candidate;
+        }
+
+        const baseName = getDescriptiveBaseName(fighter);
+        let fallbackIndex = 2;
+        let fallback = `${baseName} ${fallbackIndex}`;
+        while (used.has(normalizeDescriptiveName(fallback))) {
+            fallbackIndex += 1;
+            fallback = `${baseName} ${fallbackIndex}`;
+        }
+        return fallback;
+    }
+
+    return { generate, generateDescriptive };
 })();
 
 // Export for use in app.js

@@ -602,6 +602,20 @@ function createFighterCard(data, index) {
         resizeName();
     };
 
+    const descriptiveNameBtn = cardEl.querySelector('.descriptive-name-btn');
+    descriptiveNameBtn.onclick = () => {
+        const fighter = currentWarband.fighters[index];
+        const existingNames = currentWarband.fighters
+            .filter((_, fighterIdx) => fighterIdx !== index)
+            .map(f => f.customName)
+            .filter(Boolean);
+        const newName = NameGenerator.generateDescriptive(fighter, existingNames);
+        fighter.customName = newName;
+        nameInput.value = newName;
+        saveToCache();
+        resizeName();
+    };
+
     typeInput.textContent = data.type || '';
     typeInput.oninput = () => {
         currentWarband.fighters[index].type = typeInput.textContent.trim();
