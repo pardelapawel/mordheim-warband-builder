@@ -225,10 +225,22 @@ function initMobileUI() {
         mgr.classList.add('collapsed');
     }
 
+    updateSaveManagerToggle();
+
     toggleBtn.onclick = () => {
         mgr.classList.toggle('collapsed');
-        toggleBtn.textContent = mgr.classList.contains('collapsed') ? 'Cached ▴' : 'Cached ▾';
+        updateSaveManagerToggle();
     };
+}
+
+function updateSaveManagerToggle(savedCount) {
+    const mgr = document.getElementById('save-manager');
+    const toggleBtn = document.getElementById('save-manager-toggle');
+    const count = Number.isInteger(savedCount)
+        ? savedCount
+        : JSON.parse(localStorage.getItem('mordheim_saves') || '[]').length;
+
+    toggleBtn.textContent = `${count} Cached ${mgr.classList.contains('collapsed') ? '▴' : '▾'}`;
 }
 
 function initScrollHeader() {
@@ -1402,6 +1414,7 @@ function renderSavedList() {
     const list = document.getElementById('saved-warbands-list');
     list.innerHTML = '';
     const saved = JSON.parse(localStorage.getItem('mordheim_saves') || '[]');
+    updateSaveManagerToggle(saved.length);
     saved.forEach((s, idx) => {
         const li = document.createElement('li');
         li.className = 'saved-item';
