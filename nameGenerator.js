@@ -227,8 +227,14 @@ const NameGenerator = (() => {
     function buildDescriptiveCandidates(fighter) {
         const baseName = getDescriptiveBaseName(fighter);
         const race = normalizeDescriptiveName(fighter.race);
+        const sourceText = normalizeDescriptiveName([
+            fighter.type,
+            fighter.name,
+            fighter.templateName
+        ].filter(Boolean).join(" "));
         const prefixes = ["stary", "weteran", "szybki", "ponury", "zwiadowca"];
         const suffixes = ["z toporem", "z tarczą", "z mieczem", "z młotem", "z nożem", "i tarcza"];
+        const traitCandidates = [];
 
         if (race.includes("krasnolud") || race.includes("dwarf")) {
             prefixes.unshift("krasnal");
@@ -238,27 +244,49 @@ const NameGenerator = (() => {
             prefixes.unshift("skaveński");
         }
 
-        const candidates = [baseName];
+        if (sourceText.includes("wampir")) {
+            traitCandidates.push("wampir");
+        }
+        if (sourceText.includes("vampir") || sourceText.includes("vampire")) {
+            traitCandidates.push("vampire");
+        }
+        if (sourceText.includes("szaman")) {
+            traitCandidates.push("szaman");
+        }
+        if (sourceText.includes("shaman")) {
+            traitCandidates.push("shaman");
+        }
+
+        const candidates = [...traitCandidates, baseName];
         prefixes.forEach(prefix => candidates.push(`${prefix} ${baseName}`));
         suffixes.forEach(suffix => candidates.push(`${baseName} ${suffix}`));
         prefixes.forEach(prefix => {
             suffixes.forEach(suffix => candidates.push(`${prefix} ${baseName} ${suffix}`));
         });
 
-        return Array.from(new Set(candidates.map(normalizeDescriptiveName)));
+        return {
+            candidates: Array.from(new Set(candidates.map(normalizeDescriptiveName))),
+            traitCandidates: Array.from(new Set(traitCandidates.map(normalizeDescriptiveName)))
+        };
+    }
+
+    function shuffle(values) {
+        for (let i = values.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [values[i], values[j]] = [values[j], values[i]];
+        }
+        return values;
     }
 
     function generateDescriptive(fighter, existingNames = []) {
         const used = new Set(existingNames.map(normalizeDescriptiveName).filter(Boolean));
-        const candidates = buildDescriptiveCandidates(fighter);
-        const randomized = [...candidates];
+        const { candidates, traitCandidates } = buildDescriptiveCandidates(fighter);
 
-        for (let i = randomized.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [randomized[i], randomized[j]] = [randomized[j], randomized[i]];
+        for (const traitCandidate of shuffle([...traitCandidates])) {
+            if (!used.has(traitCandidate)) return traitCandidate;
         }
 
-        for (const candidate of randomized) {
+        for (const candidate of shuffle([...candidates])) {
             if (!used.has(candidate)) return candidate;
         }
 

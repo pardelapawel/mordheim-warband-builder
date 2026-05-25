@@ -253,3 +253,21 @@ test('generateDescriptive returns a unique name when base name is already used',
     assert.ok(!existing.includes(name), 'generated descriptive name should not duplicate currently used names');
     assert.match(name, /kusznik/);
 });
+
+test('generateDescriptive can use vampire trait for unique vampire characters', () => {
+    const fighter = { name: 'Konrad von Carstein', type: 'Renegade Vampire', race: 'Undead' };
+    const name = NameGenerator.generateDescriptive(fighter, []);
+    assert.equal(name, 'vampire');
+});
+
+test('generateDescriptive can use shaman trait for unique shaman characters', () => {
+    const fighter = { name: 'Gorbad', type: 'Orc Shaman', race: 'Greenskin' };
+    const name = NameGenerator.generateDescriptive(fighter, []);
+    assert.equal(name, 'shaman');
+});
+
+test('generateDescriptive can use Polish wampir trait for Wampir templates', () => {
+    const fighter = { name: 'Wampir Renegat', type: 'Wampir Renegat', race: 'Nieumarły' };
+    const name = NameGenerator.generateDescriptive(fighter, []);
+    assert.equal(name, 'wampir');
+});
