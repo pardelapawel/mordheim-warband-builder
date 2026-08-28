@@ -1489,23 +1489,46 @@ document.getElementById('export-text-btn').onclick = () => {
         output.push(`--- ${name} ---`);
         output.push(`Type: ${f.type || '-'} | Race: ${f.race || '-'} | Cost: ${fighterCost} gc | Exp: ${f.exp || 0}`);
         
-        output.push(` M | WS | BS |  S |  T |  W |  I |  A | Ld `);
         const s = f.stats || {};
-        const pad = (v) => String(v || 0).padStart(2, ' ');
-        output.push(`${pad(s.m)} | ${pad(s.ws)} | ${pad(s.bs)} | ${pad(s.s)} | ${pad(s.t)} | ${pad(s.w)} | ${pad(s.i)} | ${pad(s.a)} | ${pad(s.ld)} `);
+        const statLines = [
+            `M: ${s.m || 0}`,
+            `WS: ${s.ws || 0}`,
+            `BS: ${s.bs || 0}`,
+            `S: ${s.s || 0}`,
+            `T: ${s.t || 0}`,
+            `W: ${s.w || 0}`,
+            `I: ${s.i || 0}`,
+            `A: ${s.a || 0}`,
+            `Ld: ${s.ld || 0}`
+        ];
 
+        const rightLines = [];
         if (f.equipment && f.equipment.length > 0) {
-            const eqStrings = f.equipment.map(item => `${item.name} (${item.cost || 0} gc)`);
-            output.push(`Equipment: ${eqStrings.join(", ")}`);
+            rightLines.push("Equipment:");
+            f.equipment.forEach(item => rightLines.push(`- ${item.name} (${item.cost || 0} gc)`));
         }
 
         if (f.skills && f.skills.length > 0) {
-            const skillStrings = f.skills.map(skill => {
+            if (rightLines.length > 0) rightLines.push("");
+            rightLines.push("Skills/Spells:");
+            f.skills.forEach(skill => {
                 const formatted = FighterSkillUtils.formatSkillEntry(skill, masterData);
                 const cost = FighterSkillUtils.getSkillEntryCost(skill, masterData);
-                return cost > 0 ? `${formatted} (${cost} gc)` : formatted;
+                rightLines.push(`- ${cost > 0 ? formatted + ' (' + cost + ' gc)' : formatted}`);
             });
-            output.push(`Skills: ${skillStrings.join(", ")}`);
+        }
+
+        const maxLines = Math.max(statLines.length, rightLines.length);
+        for (let i = 0; i < maxLines; i++) {
+            const left = statLines[i] || "";
+            const right = rightLines[i] || "";
+            if (right) {
+                // Using tab characters to help align in proportional fonts
+                output.push(`${left}\t|\t${right}`);
+            } else {
+                output.push(left);
+            }
+			//output.push("\n");
         }
         
         output.push("\n\n\n");
@@ -1552,7 +1575,9 @@ document.getElementById('print-pdf-1col-btn').onclick = async () => {
             body { width: 108mm !important; margin: 0 auto !important; background: white !important; }
             .card-grid { grid-template-columns: 1fr !important; width: 100% !important; margin: 0 auto !important; }
             .no-print { display: none !important; }
+            .print-only { display: block !important; }
             .main-layout { display: block; padding: 0; width: 100%; margin: 0 auto; }
+            .legend-item-desc { white-space: pre-wrap; }
         `;
 
         const style = document.createElement('style');
