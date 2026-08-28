@@ -1512,26 +1512,85 @@ document.getElementById('export-text-btn').onclick = () => {
     });
 
     const textContent = output.join("\n");
-    const newWindow = window.open("", "_blank");
-    if (newWindow) {
-        newWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>${currentWarband.name} - Text Export</title>
-                <style>
-                    body { padding: 20px; margin: 0; }
-                    pre { font-family: monospace; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
-                </style>
-            </head>
-            <body>
-                <pre>${textContent}</pre>
-            </body>
-            </html>
-        `);
-        newWindow.document.close();
-    } else {
-        alert("Please allow popups to view the text export.");
+    document.documentElement.innerHTML = `
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${currentWarband.name} - Text Export</title>
+            <style>
+                body { padding: 15px; margin: 0; background: var(--bg-color, #fff); color: var(--text-color, #000); }
+                pre { font-family: monospace; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
+                .back-btn { margin-bottom: 15px; padding: 10px 15px; font-size: 16px; cursor: pointer; background: #eee; border: 1px solid #ccc; border-radius: 4px; color: #000; text-decoration: none; display: inline-block; }
+            </style>
+        </head>
+        <body>
+            <button class="back-btn" onclick="window.location.reload()">← Back to Builder</button>
+            <pre>${textContent}</pre>
+        </body>
+    `;
+};
+document.getElementById('print-pdf-1col-btn').onclick = async () => {
+    const btn = document.getElementById('print-pdf-1col-btn');
+    const originalText = btn.textContent;
+    btn.textContent = "Generating...";
+    btn.disabled = true;
+
+    try {
+        let printCss = '';
+        for (let sheet of document.styleSheets) {
+            try {
+                for (let rule of sheet.cssRules) {
+                    if (rule instanceof CSSMediaRule && rule.conditionText === 'print') {
+                        for (let innerRule of rule.cssRules) {
+                            printCss += innerRule.cssText + '\\n';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+        
+        printCss += `
+            body { width: 108mm !important; margin: 0 auto !important; background: white !important; }
+            .card-grid { grid-template-columns: 1fr !important; width: 100% !important; margin: 0 auto !important; }
+            .no-print { display: none !important; }
+            .main-layout { display: block; padding: 0; width: 100%; margin: 0 auto; }
+        `;
+
+        const style = document.createElement('style');
+        style.id = 'temp-print-style';
+        style.innerHTML = printCss;
+        document.head.appendChild(style);
+
+        // Ensure input values are captured by html2canvas
+        document.querySelectorAll('input, textarea').forEach(el => {
+            if (el.tagName === 'TEXTAREA') {
+                el.innerHTML = el.value;
+            } else if (el.type === 'text' || el.type === 'number') {
+                el.setAttribute('value', el.value);
+            }
+        });
+
+        const cardCount = currentWarband.fighters.length;
+        const heightMm = Math.max(297, (cardCount * 105) + 150);
+
+        const opt = {
+            margin:       10,
+            filename:     WarbandUtils.generateExportFilename(currentWarband.name).replace('.json', '.pdf'),
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 408 },
+            jsPDF:        { unit: 'mm', format: [108, heightMm], orientation: 'portrait' }
+        };
+
+        await new Promise(r => setTimeout(r, 150));
+
+        await html2pdf().set(opt).from(document.body).save();
+    } catch(err) {
+        console.error(err);
+        alert("PDF generation failed.");
+    } finally {
+        const injectedStyle = document.getElementById('temp-print-style');
+        if (injectedStyle) injectedStyle.remove();
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
 };
 document.getElementById('import-json-input').onchange = (e) => {
