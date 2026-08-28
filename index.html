@@ -41,6 +41,7 @@
                         <button id="save-cache-btn" class="btn">Save to Cache</button>
                         <button id="export-json-btn" class="btn">Export JSON</button>
                         <button id="export-text-btn" class="btn">Export Text</button>
+                        <button id="print-pdf-1col-btn" class="btn highlight">1 Column PDF</button>
                         <label for="import-json-input" class="btn">Import JSON</label>
                         <input type="file" id="import-json-input" hidden accept=".json">
                         <button id="print-pdf-btn" class="btn highlight">Print PDF</button>
@@ -217,6 +218,7 @@
         </div>
     </template>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="nameGenerator.js"></script>
     <script src="headerScroll.js"></script>
     <script src="warbandUtils.js"></script>
