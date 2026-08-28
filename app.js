@@ -1466,6 +1466,74 @@ document.getElementById('export-json-btn').onclick = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = WarbandUtils.generateExportFilename(currentWarband.name); a.click();
 };
+document.getElementById('export-text-btn').onclick = () => {
+    let output = [];
+    let totalCost = 0;
+    currentWarband.fighters.forEach(f => {
+        totalCost += calculateFighterCost(f);
+    });
+
+    const rating = WarbandUtils.calculateWarbandRating(currentWarband.fighters);
+    
+    output.push(`Warband: ${currentWarband.name}`);
+    if (currentWarband.ruleSetId) output.push(`Rule Set: ${currentWarband.ruleSetId}`);
+    if (currentWarband.warbandTypeId) output.push(`Warband Type: ${currentWarband.warbandTypeId}`);
+    output.push(`Total Cost: ${totalCost} gc`);
+    output.push(`Rating: ${rating.total}`);
+    output.push("--------------------------------------------------");
+    output.push("\n\n\n");
+
+    currentWarband.fighters.forEach(f => {
+        const fighterCost = calculateFighterCost(f);
+        const name = f.customName || f.type || "Unknown Warrior";
+        output.push(`--- ${name} ---`);
+        output.push(`Type: ${f.type || '-'} | Race: ${f.race || '-'} | Cost: ${fighterCost} gc | Exp: ${f.exp || 0}`);
+        
+        output.push(` M | WS | BS |  S |  T |  W |  I |  A | Ld `);
+        const s = f.stats || {};
+        const pad = (v) => String(v || 0).padStart(2, ' ');
+        output.push(`${pad(s.m)} | ${pad(s.ws)} | ${pad(s.bs)} | ${pad(s.s)} | ${pad(s.t)} | ${pad(s.w)} | ${pad(s.i)} | ${pad(s.a)} | ${pad(s.ld)} `);
+
+        if (f.equipment && f.equipment.length > 0) {
+            const eqStrings = f.equipment.map(item => `${item.name} (${item.cost || 0} gc)`);
+            output.push(`Equipment: ${eqStrings.join(", ")}`);
+        }
+
+        if (f.skills && f.skills.length > 0) {
+            const skillStrings = f.skills.map(skill => {
+                const formatted = FighterSkillUtils.formatSkillEntry(skill, masterData);
+                const cost = FighterSkillUtils.getSkillEntryCost(skill, masterData);
+                return cost > 0 ? `${formatted} (${cost} gc)` : formatted;
+            });
+            output.push(`Skills: ${skillStrings.join(", ")}`);
+        }
+        
+        output.push("\n\n\n");
+    });
+
+    const textContent = output.join("\n");
+    const newWindow = window.open("", "_blank");
+    if (newWindow) {
+        newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${currentWarband.name} - Text Export</title>
+                <style>
+                    body { padding: 20px; margin: 0; }
+                    pre { font-family: monospace; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
+                </style>
+            </head>
+            <body>
+                <pre>${textContent}</pre>
+            </body>
+            </html>
+        `);
+        newWindow.document.close();
+    } else {
+        alert("Please allow popups to view the text export.");
+    }
+};
 document.getElementById('import-json-input').onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
