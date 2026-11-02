@@ -1523,12 +1523,16 @@ document.getElementById('export-text-btn').onclick = () => {
             const left = statLines[i] || "";
             const right = rightLines[i] || "";
             if (right) {
-                // Using tab characters to help align in proportional fonts
-                output.push(`${left}\t|\t${right}`);
+                // Convert normal spaces to non‑breaking spaces in both columns
+                const leftNbsp = left.replace(/ /g, '\u00A0');
+                const rightNbsp = right.replace(/ /g, '\u00A0');
+                // Pad left column to align (7 characters wide) using non‑breaking spaces
+                const paddedLeft = leftNbsp + '\u00A0'.repeat(Math.max(0, 7 - leftNbsp.length));
+                output.push(`${paddedLeft}\u00A0|\u00A0${rightNbsp}`);
             } else {
-                output.push(left);
+                // No right column – still replace spaces in left text
+                output.push(left.replace(/ /g, '\u00A0'));
             }
-			//output.push("\n");
         }
         
         output.push("\n\n\n");

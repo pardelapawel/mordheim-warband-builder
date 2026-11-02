@@ -4,3 +4,7 @@ skills-lock.json
 .worktrees/
 mordheimer_extracted/
 docs/
+tmp/
+dist-pages/
+!old/docs/
+!old/docs/**

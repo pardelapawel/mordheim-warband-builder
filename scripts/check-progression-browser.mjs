@@ -1,0 +1,51 @@
+// Run with the local server active: node scripts/check-progression-browser.mjs [path-to-playwright].
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const require=createRequire(import.meta.url);
+const {chromium}=require(process.argv[2] || 'playwright');
+const browser=await chromium.launch({headless:true,channel:'chrome'});
+const context=await browser.newContext({viewport:{width:1440,height:1100}});
+const page=await context.newPage(),errors=[];
+page.on('pageerror',error=>errors.push(error.message));
+const recruit=async name=>{await page.locator('#add-fighter').click();await page.locator(`button[data-template="${name}"]`).click();};
+const close=()=>page.locator('#editor .editor-footer [data-close="editor"]').click();
+const addSkill=async name=>{await page.locator('#skill-choice').selectOption(name);await page.locator('#skill-form button').click();};
+const mutationCost=name=>page.getByRole('spinbutton',{name:`Koszt zasady: ${name}`,exact:true});
+try {
+  await page.goto('http://127.0.0.1:4173');
+  await page.locator('#save-status').filter({hasText:'Zapisano'}).waitFor();
+  await recruit('Kapitan Najemników');
+  assert.deepEqual(await page.locator('.maxima td').allTextContents(),['4','6','6','4','4','3','6','4','9']);
+  await page.locator('#editor details').filter({has:page.locator('#reset-maxima')}).locator('summary').click();
+  const ws=page.getByRole('textbox',{name:'Maksimum WS',exact:true});await ws.fill('7');await ws.press('Tab');assert.equal(await page.locator('.maxima td').nth(1).innerText(),'7');
+  await close();await page.reload();await page.locator('.row-number').click();
+  await page.locator('#editor details').filter({has:page.locator('#reset-maxima')}).locator('summary').click();
+  assert.equal(await ws.inputValue(),'7');await page.locator('#reset-maxima').click();assert.equal(await ws.inputValue(),'6');await close();
+  await page.locator('#new-band').click();await page.locator('#create-band-form [name="type"]').selectOption('sludzy_ciemnosci');await page.locator('#create-band-form button').click();await page.locator('#band-type-label').filter({hasText:'Słudzy'}).waitFor();
+  await recruit('Mutant');assert.match(await page.locator('#editor-validation').innerText(),/co najmniej jedną mutacją/);
+  assert.match(await page.locator('#skill-choice option[value="Macka"]').innerText(),/35 zk/);
+  await addSkill('Macka');assert.equal(await mutationCost('Macka').inputValue(),'35');assert.equal(await mutationCost('Macka').getAttribute('readonly'),'');assert.equal(await page.locator('#total-cost').innerText(),'60 zk');
+  assert.match(await page.locator('#skill-choice option[value="Wielki Szpon"]').innerText(),/100 zk/);
+  await addSkill('Wielki Szpon');await addSkill('Różki');assert.equal(await mutationCost('Wielki Szpon').inputValue(),'100');assert.equal(await mutationCost('Różki').inputValue(),'20');assert.equal(await page.locator('#total-cost').innerText(),'180 zk');
+  await page.getByRole('button',{name:'Usuń zasadę: Macka',exact:true}).click();assert.equal(await mutationCost('Wielki Szpon').inputValue(),'50');assert.equal(await mutationCost('Różki').inputValue(),'20');assert.equal(await page.locator('#total-cost').innerText(),'95 zk');
+  await close();await page.reload();await page.locator('.row-number').click();assert.equal(await mutationCost('Wielki Szpon').inputValue(),'50');assert.equal(await mutationCost('Różki').inputValue(),'20');await close();
+  await recruit('Opętany');await close();assert.equal(await page.locator('.fighter-row').last().locator('.maxima td').nth(2).innerText(),'0');
+  await recruit('Wampir');await close();assert.equal(await page.locator('.fighter-row').last().locator('.maxima td').nth(3).innerText(),'7');
+  await recruit('Goblin');await close();assert.equal(await page.locator('.fighter-row').last().locator('.maxima td').nth(1).innerText(),'5');
+  await recruit('Zwierzoczłek');await close();assert.equal(await page.locator('.fighter-row').last().locator('.maxima td').first().innerText(),'4');
+  await recruit('Wulfen');assert.equal(await page.locator('#skill-choice option[value="Macka"]').count(),0);await close();
+  await recruit('Wielki Szczur');await close();assert.ok((await page.locator('.fighter-row').last().locator('.maxima td').allTextContents()).every(value=>value==='–'));
+  const output=new URL('../tmp/browser/',import.meta.url);await fs.mkdir(output,{recursive:true});
+  await page.screenshot({path:fileURLToPath(new URL('progression-roster.png',output)),fullPage:true});
+  await page.locator('.row-number').first().click();await page.screenshot({path:fileURLToPath(new URL('mutation-editor.png',output))});await close();
+  // Import a legacy save with missing maxima and manually entered mutation prices.
+  const legacy=await page.evaluate(()=>{const library=JSON.parse(localStorage.getItem('mordheim_rosters_v2')),band=library.bands.find(b=>b.id===library.activeId);band.fighters=band.fighters.slice(0,1);delete band.fighters[0].maxStats;band.fighters[0].skills.forEach(s=>s.cost=0);return band;});
+  await page.locator('#import-file').setInputFiles({name:'stary-mutant.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});await page.locator('#notice').filter({hasText:'Zaimportowano'}).waitFor();
+  assert.equal(await page.locator('#total-cost').innerText(),'95 zk');assert.equal(await page.locator('.maxima td').nth(1).innerText(),'6');
+  const stored=await page.evaluate(()=>{const library=JSON.parse(localStorage.getItem('mordheim_rosters_v2'));return library.bands.find(b=>b.id===library.activeId).fighters[0];});
+  assert.equal(stored.skills.find(s=>s.label==='Wielki Szpon').cost,50);assert.equal(stored.skills.find(s=>s.label==='Różki').cost,20);
+  assert.deepEqual(errors,[]);
+  console.log('PASS: source-based maxima, zero BS, vampire/orc/goblin mapping, manual exceptions/reset, mutation prices, 1x/2x/2x costs, deletion repricing, reload, eligibility, and legacy import.');
+} finally {await browser.close();}
