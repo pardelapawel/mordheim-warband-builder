@@ -13,6 +13,7 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 ## Obsługa
 
 - Dodaj wojownika z katalogu i edytuj jego profil w panelu. Zmiany zapisują się lokalnie. Wojowników można powielać; usunięcie i zastąpienie szablonu można cofnąć.
+- Strzałki po lewej stronie każdego wiersza przesuwają wojownika o jedno miejsce w górę lub w dół. Kolejność zapisuje się automatycznie i obowiązuje także przy drukowaniu, eksporcie i udostępnianiu.
 - Zachowane są dwa typy band: Awanturnicy i Słudzy Ciemności. Każda nowa banda otrzymuje osobny identyfikator; identyczne nazwy nie nadpisują zapisów.
 - Eksport JSON służy jako przenośna kopia zapasowa. Import i otwieranie linku tworzą osobny zapis i ładują właściwy katalog. Eksport tekstowy pobiera plik bez opuszczania aplikacji.
 - „Drukuj / PDF” używa drukowania przeglądarki w formacie A4. Opisy zasad można dołączyć do wydruku. Długie wpisy rosną wraz z treścią; wpis wojownika nie jest dzielony między strony, o ile mieści się na jednej stronie.
