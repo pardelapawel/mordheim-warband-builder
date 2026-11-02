@@ -313,6 +313,43 @@ main {
   padding:2px 1px
 }
 
+.fighter-entry {
+  display:grid;
+  grid-template-columns:32px minmax(850px,1fr);
+  gap:8px;
+  min-width:890px;
+  margin-bottom:13px;
+}
+
+.fighter-entry .fighter-row {
+  min-width:0;
+  margin-bottom:0;
+}
+
+.fighter-order {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:6px;
+  position:sticky;
+  left:0;
+  z-index:1;
+  background:var(--paper);
+}
+
+.fighter-order button {
+  padding:6px 0;
+  width:32px;
+  min-height:36px;
+  font-size:18px;
+  line-height:1;
+}
+
+.fighter-order button:disabled {
+  opacity:.25;
+  cursor:default;
+}
+
 .fighter-row {
   display:grid;
   grid-template-columns:33% 33% 34%;
@@ -1120,6 +1157,10 @@ dialog::backdrop {
 }
 
 @media(max-width:650px) {
+  .fighter-entry {
+    grid-template-columns:32px minmax(780px,1fr);
+    min-width:820px;
+  }
   main {
     padding:24px 14px 0
   }
@@ -1277,6 +1318,12 @@ dialog::backdrop {
 }
 
 @media print {
+  .fighter-entry {
+    display:block;
+    min-width:0;
+    margin-bottom:3mm;
+    break-inside:avoid;
+  }
   * {
     box-shadow:none!important
   }
