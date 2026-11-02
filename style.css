@@ -207,11 +207,33 @@ main {
 
 .band-type-line {
   display:flex;
+  flex-wrap:wrap;
   gap:10px;
   align-items:center;
   margin-top:10px;
   color:var(--muted);
   font-size:12px
+}
+
+#band-phase {
+  padding:4px 6px;
+  font-size:10px;
+  background:transparent;
+}
+
+.spell-difficulty {
+  font-size:11px;
+  color:var(--green);
+  margin:5px 0;
+}
+
+.editor-details>label {
+  margin:10px 0;
+}
+
+.editor-details>label select {
+  display:block;
+  margin-top:6px;
 }
 
 .seal {

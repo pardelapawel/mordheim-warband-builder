@@ -8,11 +8,11 @@ import {validateBand,equipmentIssue} from '../src/rules.mjs';
 import {readLibrary,writeLibrary,STORAGE_KEY,encodeShare,decodeShare} from '../src/storage.mjs';
 import {selectGroupedSkillOption} from '../src/skills.mjs';
 import {racialMaximumProfile,racialMaxima,mutationPrice,skillCost,synchronizeMutationPrices,canBuyMutations} from '../src/progression.mjs';
+import {assembleCatalog} from '../src/catalog.mjs';
 const require=createRequire(import.meta.url),codec=require('../lz-string.min.js');
 const read=file=>JSON.parse(fs.readFileSync(new URL('../data/drachenfels/'+file,import.meta.url),'utf8'));
 function catalog(type='awanturnicy'){
-  const skills=read('skills.json'),spells=read('spells.json'),band=read(`warbands/${type}.json`),progression=read('progression.json');
-  return {band,progression,fighters:band.fighters,equipment:Object.entries(read('equipment.json')).flatMap(([originCategory,items])=>items.map(e=>({...e,originCategory}))),skills:Object.values(skills).flat(),skillsByCategory:skills,spells:Object.values(spells).filter(Array.isArray).flat(),spellsByList:spells,spellListDescriptions:spells.__listDescriptions};
+  return assembleCatalog(type,{equipment:read('equipment.json'),skills:read('skills.json'),spells:read('spells.json'),band:read(`warbands/${type}.json`),progression:read('progression.json'),ruleMetadata:read('rules.json'),artifacts:read('artifacts.json')});
 }
 const recruit=(name,c=catalog())=>createFighter(c.fighters.find(t=>t.name===name),c);
 const storage=initial=>{const values=new Map(Object.entries(initial || {}));return {getItem:k=>values.get(k) ?? null,setItem:(k,v)=>values.set(k,v),values};};

@@ -10,6 +10,8 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 
 `node scripts/check-progression-browser.mjs [ścieżka-do-playwright]` sprawdza dodatkowo automatyczne maksima, wyjątki ręczne, ceny mutacji, przeliczanie po usunięciu oraz aktualizację starych zapisów.
 
+`node scripts/check-rules-corrections.mjs [ścieżka-do-playwright]` sprawdza poprawione reguły, ceny kampanii, opcjonalne rozwinięcia przy werbunku, artefakty, trudność czarów i zgodność starych zapisów. Lista wdrożonych poprawek i decyzji znajduje się w `RULES_CORRECTIONS.md`.
+
 ## Obsługa
 
 - Dodaj wojownika z katalogu i edytuj jego profil w panelu. Zmiany zapisują się lokalnie. Wojowników można powielać; usunięcie i zastąpienie szablonu można cofnąć.
@@ -20,6 +22,12 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 - Profil zawiera dziewięć charakterystyk: M, WS, BS, S, T, W, I, A i Ld. Program nie zmienia profilu automatycznie po dodaniu ekwipunku lub umiejętności.
 - Maksima rasowe uzupełniają się automatycznie według tabeli Drachenfels ze str. 34, również dla istniejących zapisów. Można zachować ręczne wyjątki i przywrócić wartości z tabeli. Zwierzaki bez własnego profilu w tej tabeli pozostają bez automatycznych limitów; ghoul ma własny profil. Zwierzoczłek ma M 4 zgodnie z Drachenfels (Mordheimer podaje M 5).
 - Ceny mutacji pochodzą ze str. 31 Drachenfels: pierwsza ma cenę podstawową, każda następna dwukrotność swojej ceny, w kolejności dodawania. Usunięcie mutacji przelicza pozostałe koszty. Wczytanie starego zapisu aktualizuje ceny mutacji, zachowując ich kolejność. Mutacje są dostępne dla Mutanta i Opętanego, nie dla Wulfena; zgodnie z podręcznikiem kupuje się je podczas rekrutacji. Mutant musi wybrać co najmniej jedną; u Opętanego są opcjonalne.
+- „Tworzenie bandy” i „Kampania” określają ceny nowych zakupów. Rozpoczęcie kampanii zamyka rekrutację istniejących wojowników, ale zachowuje ich zapłacone koszty. Nowo dodany wojownik nadal może kupić dopuszczone rozwinięcia i mutacje; jego rekrutację kończy się osobno w edytorze.
+- „Rozwój przy werbunku” obsługuje dodatkowe W Lidera, dodatkowe WS modeli zaczynających z WS 2 oraz wybór WS lub BS Ludzkiego Najemnika. Koszt, doświadczenie i profil zmieniają się razem. Koszty rozwinięć są dodawane do kosztu podstawowego.
+- Nowi rekruci nie otrzymują umiejętności specjalnych z rozwoju za darmo. Edytor oferuje tylko umiejętności dostępne dla danego typu, rasy i roli. Umiejętności w historycznych zapisach są zachowane, ponieważ nie da się odróżnić starych darmowych wpisów od zdobytych rozwojów.
+- Katalog zawiera warianty broni z gromrilu i ithilmaru oraz ogrze wersje broni i pancerzy. Ogrzy sprzęt ma już wliczone dopłaty. Błędna historyczna cena 5 zk ogrzej broni dwuręcznej jest korygowana do pełnych 20 zk.
+- Artefakty z eksploracji dodaje się przez „Znaleziony artefakt”. Nie mają ceny zakupu, więc zapisują 0 wydanych zk; nie jest to ich cena rynkowa. Premie z przedmiotów i umiejętności nadal wpisuje się ręcznie do profilu.
+- Trudność czarów jest widoczna w rozpisce, edytorze i opisach. Pole trudności pozwala zapisać obniżenie uzyskane przy ponownym wylosowaniu czaru.
 - Biblioteka jest przechowywana pod kluczem `mordheim_rosters_v2`. Stare zapisy Drachenfels (`mordheim_current`, `mordheim_saves`) są migrowane przy pierwszym uruchomieniu; stare klucze pozostają bez zmian. Zapisy innych zestawów zasad są pomijane z komunikatem. Migracja wymaga tego samego adresu strony i przeglądarki, w których zapisano poprzednią wersję.
 - Link udostępnienia zawiera pełną migawkę bandy. Odbiorca otrzymuje niezależną kopię.
 
@@ -36,6 +44,8 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 `src/skills.mjs` — zachowane i przekształcone na moduł funkcje umiejętności.
 
 `src/progression.mjs` — dobór maksimum rasowego, ręczne wyjątki i ceny mutacji. Dane i źródła: `data/drachenfels/progression.json`.
+
+`src/equipment.mjs`, `src/eligibility.mjs`, `src/recruitment.mjs`, `src/spells.mjs` i `src/migration.mjs` — warianty i ceny przedmiotów, wymagania umiejętności, opcjonalne rozwinięcia, trudność czarów i zgodność historycznych zapisów.
 
 `src/app.mjs` — interakcje i renderowanie interfejsu.
 

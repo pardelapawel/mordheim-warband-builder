@@ -1,5 +1,8 @@
 import * as Skills from './skills.mjs';
 import {canBuyMutations, mutationPrice, skillCost} from './progression.mjs';
+import {specialSkillNames,skillRestriction} from './eligibility.mjs';
+import {recruitmentCost} from './recruitment.mjs';
+import {spellInfo,skillDisplay} from './spells.mjs';
 export const STAT_KEYS = ['m','ws','bs','s','t','w','i','a','ld'];
 export const STAT_LABELS = ['M','WS','BS','S','T','W','I','A','Ld'];
 export const BAND_TYPES = {awanturnicy:'Awanturnicy', sludzy_ciemnosci:'Słudzy Ciemności'};
@@ -8,7 +11,7 @@ export const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u0
 export const number = value => Math.max(0, Math.min(1000000, Number(value) || 0));
 export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy') {
-  return {schemaVersion:2,id:uid(),name:'Nowa banda',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
+  return {schemaVersion:2,rulesRevision:3,id:uid(),name:'Nowa banda',phase:'recruitment',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
 }
 export function createFighter(template, catalog) {
   const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:''};
@@ -17,7 +20,7 @@ export function createFighter(template, catalog) {
 }
 export function duplicateFighter(fighter) { return {...structuredClone(fighter),id:uid(),customName:`${fighter.customName} (kopia)`}; }
 export function fighterCost(fighter,catalog) {
-  return number(fighter.baseCost) + fighter.equipment.reduce((sum,item)=>sum+number(item.cost),0) + fighter.skills.reduce((sum,item,index)=>sum+number(skillCost(fighter,index,catalog)),0);
+  return number(fighter.baseCost) + recruitmentCost(fighter) + fighter.equipment.reduce((sum,item)=>sum+number(item.cost),0) + fighter.skills.reduce((sum,item,index)=>sum+number(skillCost(fighter,index,catalog)),0);
 }
 export function summary(band,catalog) {
   return band.fighters.reduce((out,f)=>({count:out.count+1,cost:out.cost+fighterCost(f,catalog),exp:out.exp+number(f.exp),large:out.large+(f.is_large?1:0),rating:out.rating+(f.is_large?20:5)+number(f.exp)}),{count:0,cost:0,exp:0,large:0,rating:0});
@@ -35,30 +38,33 @@ export function normalizeBand(raw) {
     usedIds.add(id);
     const cleaned = {...f};
     delete cleaned.save;
+    cleaned.recruitmentComplete=f.recruitmentComplete===true;
+    cleaned.recruitmentUpgrades={extraWound:f.recruitmentUpgrades?.extraWound===true,weaponSkill:f.recruitmentUpgrades?.weaponSkill===true,mercenaryAdvance:['ws','bs'].includes(f.recruitmentUpgrades?.mercenaryAdvance)?f.recruitmentUpgrades.mercenaryAdvance:''};
     return {...cleaned,id,customName:String(f.customName || f.type || 'Wojownik'),type:String(f.type || f.templateName || ''),templateName:String(f.templateName || f.typeId || f.type || ''),baseCost:number(f.baseCost),exp:number(f.exp),stats:Object.fromEntries(STAT_KEYS.map(k=>[k,String(f.stats[k] ?? 0)])),maxStats:f.maxStats && typeof f.maxStats === 'object'?f.maxStats:{},equipment:f.equipment.map(e=>{if(!e || typeof e !== 'object') throw new Error('Nieprawidłowy ekwipunek.'); return {...e,name:String(e.name || ''),cost:number(e.cost)};}),skills:(f.skills || []).map(s=>typeof s==='string'?{name:s}:s).filter(s=>s && typeof s==='object'),injuries:String(f.injuries || ''),notes:String(f.notes || '')};
   });
-  return {...base,...raw,schemaVersion:2,id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId:'Drachenfels',name:String(raw.name || 'Nowa banda'),fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury},storedEquipment:String(raw.storedEquipment || '')};
+  return {...base,...raw,schemaVersion:2,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId:'Drachenfels',name:String(raw.name || 'Nowa banda'),fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury},storedEquipment:String(raw.storedEquipment || '')};
 }
 export function templateFor(fighter,catalog) { return catalog.fighters.find(t=>[fighter.templateName,fighter.typeId,fighter.type].includes(t.name)); }
 export function skillChoices(fighter,catalog) {
   const template = templateFor(fighter,catalog), names = Skills.getTemplateAllowedSkillNames(template,catalog);
-  const direct = catalog.skills.filter(s=>names.has(Skills.normalizeSkillName(s.name))).map(s=>({name:s.name,kind:'simple'}));
+  const direct = catalog.skills.filter(s=>names.has(Skills.normalizeSkillName(s.name)) && !skillRestriction(s.name,fighter,catalog)).map(s=>({name:s.name,kind:'simple'}));
   const groups = Skills.getTemplateAddableSkillGroupNames(template,catalog);
   if (template?.spell_list) groups.push(template.spell_list);
-  const mutations = canBuyMutations(fighter,catalog) ? catalog.progression.mutations.map(mutation=>({name:mutation.name,kind:'simple',mutation:true,cost:mutationPrice(fighter,{name:mutation.name},catalog)})) : [];
-  const extra = [...mutations,...(catalog.band.special_skills || []).map(name=>({name,kind:'simple'}))];
-  return [...direct,...extra,...groups.map(name=>({name,kind:'group'}))];
+  const mutations = canBuyMutations(fighter,catalog) && !fighter.recruitmentComplete ? catalog.progression.mutations.map(mutation=>({name:mutation.name,kind:'simple',mutation:true,cost:mutationPrice(fighter,{name:mutation.name},catalog)})) : [];
+  const extra = [...mutations,...specialSkillNames(fighter,catalog).filter(name=>!skillRestriction(name,fighter,catalog)).map(name=>({name,kind:'simple'}))];
+  const existing=new Set(fighter.skills.filter(s=>s.kind!=='group').map(s=>Skills.formatSkillEntry(s).toLocaleLowerCase('pl')));
+  return [...direct,...extra,...groups.map(name=>({name,kind:'group'}))].filter(s=>s.mutation || s.kind==='group' || !existing.has(s.name.toLocaleLowerCase('pl')));
 }
 export function glossaryEntries(band,catalog) {
   const entries = new Map();
-  const add = (name,description) => {if(name && !band.glossary.deletedTerms.includes(name)) entries.set(name,{name,description:band.glossary.descriptions[name] ?? description ?? ''});};
+  const add = (name,description,difficulty) => {if(name && !band.glossary.deletedTerms.includes(name)) entries.set(name,{name,description:band.glossary.descriptions[name] ?? description ?? '',...(difficulty!==undefined?{difficulty}:{})});};
   band.fighters.forEach(f=>{
-    f.equipment.forEach(e=>add(e.name,e.description || catalog.equipment.find(i=>i.name===e.name)?.description));
+    f.equipment.forEach(e=>add(e.name,[...catalog.equipment,...(catalog.artifacts || [])].find(i=>i.name===e.name)?.description || e.description));
     f.skills.forEach(s=>{
       const direct=[...catalog.skills,...catalog.spells].find(x=>x.name.toLocaleLowerCase('pl')===label(s).toLocaleLowerCase('pl'));
-      if(direct && s.kind!=='group'){add(direct.name,direct.description);return;}
+      if(direct && s.kind!=='group'){add(direct.name,direct.description,spellInfo(s,catalog)?.difficulty);return;}
       const names=Skills.getSkillEntryNames(s);
-      names.forEach(key=>{const item=[...catalog.skills,...catalog.spells].find(x=>Skills.normalizeSkillName(x.name)===key);if(item) add(item.name,item.description);});
+      names.forEach(key=>{const item=[...catalog.skills,...catalog.spells].find(x=>Skills.normalizeSkillName(x.name)===key);if(item) add(item.name,item.description,spellInfo(s,catalog)?.name===item.name?spellInfo(s,catalog).difficulty:undefined);});
       if(s.groupKey && catalog.spellListDescriptions[s.groupKey]) add(s.groupKey,catalog.spellListDescriptions[s.groupKey]);
       if(!names.some(key=>[...catalog.skills,...catalog.spells].some(x=>Skills.normalizeSkillName(x.name)===key)) && !s.groupKey) add(label(s),s.description);
     });
@@ -67,5 +73,5 @@ export function glossaryEntries(band,catalog) {
 }
 export function textExport(band,catalog) {
   const totals=summary(band,catalog);
-  return [`${band.name} — ${BAND_TYPES[band.warbandTypeId]}`,`Koszt: ${totals.cost} zk | Liczebność: ${totals.count} | Siła bandy: ${totals.rating}`,...band.fighters.map((f,i)=>`\n${i+1}. ${f.customName} — ${f.type}\n${STAT_KEYS.map((k,n)=>`${STAT_LABELS[n]}: ${f.stats[k]}`).join(' | ')}\nEkwipunek: ${f.equipment.map(e=>e.name).join(', ') || '—'}\nUmiejętności i czary: ${f.skills.map(label).join(', ') || '—'}\nObrażenia: ${f.injuries || '—'}\nPD: ${f.exp} | Koszt: ${fighterCost(f,catalog)} zk${f.notes?'\nUwagi: '+f.notes:''}`),`\nSkarbiec: ${band.treasury.gold} zk | Spaczeń: ${band.treasury.shards}\n${band.treasury.notes}\nMagazyn: ${band.storedEquipment}`].join('\n');
+  return [`${band.name} — ${BAND_TYPES[band.warbandTypeId]}`,`Koszt: ${totals.cost} zk | Liczebność: ${totals.count} | Siła bandy: ${totals.rating}`,...band.fighters.map((f,i)=>`\n${i+1}. ${f.customName} — ${f.type}\n${STAT_KEYS.map((k,n)=>`${STAT_LABELS[n]}: ${f.stats[k]}`).join(' | ')}\nEkwipunek: ${f.equipment.map(e=>e.name).join(', ') || '—'}\nUmiejętności i czary: ${f.skills.map(s=>skillDisplay(s,catalog)).join(', ') || '—'}\nObrażenia: ${f.injuries || '—'}\nPD: ${f.exp} | Koszt: ${fighterCost(f,catalog)} zk${f.notes?'\nUwagi: '+f.notes:''}`),`\nSkarbiec: ${band.treasury.gold} zk | Spaczeń: ${band.treasury.shards}\n${band.treasury.notes}\nMagazyn: ${band.storedEquipment}`].join('\n');
 }
