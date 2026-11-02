@@ -9,59 +9,227 @@
     "Modlitwy Taala": "Taal jest Bogiem Natury i żąda szacunku od wszystkich, którzy zapuszczają się w dzikie ostępy Imperium."
   },
   "Pomniejsza Magia": [
-    { "name": "Ognie U'Zhul", "difficulty": 7, "description": "Kula ognia o zasięgu 18 cali, trafia w pierwszy cel na swojej drodze, Siła 4, normalne rzuty pancerza." },
-    { "name": "Lot Zimmerana", "difficulty": 7, "description": "Natychmiastowy ruch na 12 cali, w tym do kontaktu z przeciwnikiem (liczone jako szarża)." },
-    { "name": "Groza Aramar", "difficulty": 7, "description": "Pojedynczy model w zasięgu 12 cali od czarującego musi zdać test Ld albo traktuj go jako Przewróconego ze strachu. Nie działa na modele Nieumarłych i odporne na strach." },
-    { "name": "Srebrne Strzały Arhy", "difficulty": 7, "description": "Nie może być rzucone w walce wręcz. Przyzywa k6+2 strzały, które mogą być wysłane w jeden model. Zasięg 24 cale. Użyj BS czarodzieja by określić trafienia, zignoruj karne modyfikatory za ruch i osłonę. Każda strzała ma Siłę 3." },
-    { "name": "Szczęście Shemteka", "difficulty": 6, "description": "Czarodziej może przerzucić wszystkie nieudane rzuty, ale drugi wynik zostaje. Trwa do rozpoczęcia następnej Rundy czarodzieja." },
-    { "name": "Miecz Rezhebel", "difficulty": 8, "description": "Przyzwany miecz daje czarodziejowi +1 Atak (A), + 2 Walki wręcz (WS) i + 2 Siły (S). Na początku każdej Rundy drużyny czarodzieja rzuć jego Ld, jeśli test będzie nieudany, miecz znika." }
+    {
+      "name": "Ognie U'Zhul",
+      "difficulty": 7,
+      "description": "Kula ognia o zasięgu 18 cali, trafia w pierwszy cel na swojej drodze, Siła 4, normalne rzuty pancerza."
+    },
+    {
+      "name": "Lot Zimmerana",
+      "difficulty": 7,
+      "description": "Natychmiastowy ruch na 12 cali, w tym do kontaktu z przeciwnikiem (liczone jako szarża)."
+    },
+    {
+      "name": "Groza Aramar",
+      "difficulty": 7,
+      "description": "Pojedynczy model w zasięgu 12 cali od czarującego musi zdać test Ld albo traktuj go jako Przewróconego ze strachu. Nie działa na modele Nieumarłych i odporne na strach."
+    },
+    {
+      "name": "Srebrne Strzały Arhy",
+      "difficulty": 7,
+      "description": "Nie może być rzucone w walce wręcz. Przyzywa k6+2 strzały, które mogą być wysłane w jeden model. Zasięg 24 cale. Użyj BS czarodzieja by określić trafienia, zignoruj karne modyfikatory za ruch i osłonę. Każda strzała ma Siłę 3."
+    },
+    {
+      "name": "Szczęście Shemteka",
+      "difficulty": 6,
+      "description": "Czarodziej może przerzucać wszystkie nieudane rzuty, ale drugi wynik zostaje. Trwa do rozpoczęcia następnej Rundy czarodzieja."
+    },
+    {
+      "name": "Miecz Rezhebel",
+      "difficulty": 8,
+      "description": "Przyzwany miecz daje czarodziejowi +1 Atak (A), + 2 Walki wręcz (WS) i + 2 Siły (S). Na początku każdej Rundy drużyny czarodzieja rzuć jego Ld, jeśli test będzie nieudany, miecz znika."
+    }
   ],
   "Modlitwy Sigmara": [
-    { "name": "Młot Sigmara", "difficulty": 7, "description": "Cel otrzymuje +2S w walce wręcz i podwaja obrażenia (2 rany zamiast 1). Rzucający musi co fazę strzelania testować trudność czaru aby go podtrzymać." },
-    { "name": "Serca ze Stali", "difficulty": 8, "description": "Wszyscy sprzymierzeni wojownicy w zasięgu 8\" stają się odporni na Strach. Dodatkowo cała banda dostaje +1 do zdawania testów Rozbicia. Czar utrzymuje się, dopóki rzucający nie zostanie przewrócony, ogłuszony albo OOA. Rzucony ponownie nie kumuluje się." },
-    { "name": "Ogień duszy", "difficulty": 9, "description": "Wszystkie wrogie modele w promieniu 4\" od rzucającego otrzymują uderzenie z S3. Ignoruje rzuty pancerza. Opętani i Nieumarli otrzymują uderzenie z S5." },
-    { "name": "Tarcza Wiary", "difficulty": 6, "description": "Kapłan staje się odporny na wszelkie czary. Na początku swojej tury rzucaj k6 – na 1-2 tarcza znika." },
-    { "name": "Lecząca Dłoń", "difficulty": 5, "description": "Wszystkie modele w 2\" łącznie z rzucającym odzyskują pełną pulę Ran. Dodatkowo wszystkie przewrócone i ogłuszone modele w zasięgu podnoszą się automatycznie i mogą normalnie walczyć." },
-    { "name": "Zbroja Prawości", "difficulty": 9, "description": "Rzucający dostaje rzut pancerza na 2+, który zastępuje mu jego normalny rzut. Dodatkowo budzi strach i sam staje się na niego odporny. Zbroja utrzymuje się do następnej fazy strzelania gracza." }
+    {
+      "name": "Młot Sigmara",
+      "difficulty": 7,
+      "description": "Cel otrzymuje +2S w walce wręcz i podwaja obrażenia (2 rany zamiast 1). Rzucający musi co fazę strzelania testować trudność czaru aby go podtrzymać."
+    },
+    {
+      "name": "Serca ze Stali",
+      "difficulty": 8,
+      "description": "Wszyscy sprzymierzeni wojownicy w zasięgu 8” stają się odporni na Strach. Dodatkowo cała banda dostaje +1 do zdawania testów Rozbicia. Czar utrzymuje się, dopóki rzucający nie zostanie przewrócony, ogłuszony albo OOA. Rzucony ponownie nie kumuluje się."
+    },
+    {
+      "name": "Ogień duszy",
+      "difficulty": 9,
+      "description": "Wszystkie wrogie modele w promieniu 4” od rzucającego otrzymują uderzenie z S3. Ignoruje rzuty pancerza. Opętani i Nieumarli otrzymują uderzenie z S5."
+    },
+    {
+      "name": "Tarcza Wiary",
+      "difficulty": 6,
+      "description": "Kapłan staje się odporny na wszelkie czary. Na początku swojej tury rzucaj k6 – na 1-2 tarcza znika."
+    },
+    {
+      "name": "Lecząca Dłoń",
+      "difficulty": 5,
+      "description": "Wszystkie modele w 2” łącznie z rzucającym odzyskują pełną pulę Ran. Dodatkowo wszystkie przewrócone i ogłuszone modele w zasięgu podnoszą się automatycznie i mogą normalnie walczyć."
+    },
+    {
+      "name": "Zbroja Prawości",
+      "difficulty": 9,
+      "description": "Rzucający dostaje rzut pancerza na 2+, który zastępuje mu jego normalny rzut. Dodatkowo budzi strach i sam staje się na niego odporny. Zbroja utrzymuje się do następnej fazy strzelania gracza."
+    }
   ],
   "Magia ŁAAA!!!": [
-    { "name": "Dawaj!", "difficulty": 9, "description": "Każdy Ork lub Goblin w odległości 4 cali od Szamana, automatycznie uderza pierwszy w walce wręcz, niezależnie od okoliczności. Czar działa, dopóki szaman nie zostanie przewrócony, ogłuszony lub OOA." },
-    { "name": "Spadaj!", "difficulty": 7, "description": "Zasięg 8 cali. Przesuwa każdy wrogi model na jego linii o d6 cali w kierunku od Szamana. Jeśli cel wpadnie na budynek, przeszkodę lub wrogi model, to każde otrzymuje uderzenie z S3. Nie może być rzucane na modele w walce wręcz." },
-    { "name": "Zzap!", "difficulty": 9, "description": "Zasięg 12 cali. D3 trafienia z S4 w najbliższy wrogi cel, bez rzutów pancerza." },
-    { "name": "Gupole!", "difficulty": 6, "description": "Do swojej następnej rundy, żaden z wrogich modeli nie może zaszarżować Szamana. Jeśli szaman jest w walce wręcz, może się natychmiast przemieścić na 4 cale od niej." },
-    { "name": "Pała!", "difficulty": 7, "description": "W dłoni szamana poławia się pałka, która działa jak normalna pałka z bonusem +2 do Siły i dodaje mu +1 Atak. Czar trwa tak długo, aż Szaman otrzyma jakąś ranę." },
-    { "name": "Ogień Gorka", "difficulty": 8, "description": "Z nosa szamana lecą dwa płomienne pociski o zasięgu 12 cali, każdy zadający k3 trafienia z S3. Oba mogą trafić w jeden najbliższy model lub być rozdzielone na dwa najbliższe modele." }
+    {
+      "name": "Dawaj!",
+      "difficulty": 9,
+      "description": "Każdy Ork lub Goblin w odległości 4 cali od Szamana, automatycznie uderza pierwszy w walce wręcz, niezależnie od okoliczności. Czar działa, dopóki szaman nie zostanie przewrócony, ogłuszony lub OOA."
+    },
+    {
+      "name": "Spadaj!",
+      "difficulty": 7,
+      "description": "Zasięg 8 cali. Przesuwa każdy wrogi model na jego linii o d6 cali w kierunku od Szamana. Jeśli cel wpadnie na budynek, przeszkodę lub wrogi model, to każde otrzymuje uderzenie z S3. Nie może być rzucane na modele w walce wręcz."
+    },
+    {
+      "name": "Zzap!",
+      "difficulty": 9,
+      "description": "Zasięg 12 cali. D3 trafienia z S4 w najbliższy wrogi cel, bez rzutów pancerza."
+    },
+    {
+      "name": "Gupole!",
+      "difficulty": 6,
+      "description": "Do swojej następnej rundy, żaden z wrogich modeli nie może zaszarżować Szamana. Jeśli szaman jest w walce wręcz, może się natychmiast przemieścić na 4 cale od niej."
+    },
+    {
+      "name": "Pała!",
+      "difficulty": 7,
+      "description": "W dłoni szamana poławia się pałka, która działa jak normalna pałka z bonusem +2 do Siły i dodaje mu +1 Atak. Czar trwa tak długo, aż Szaman otrzyma jakąś ranę."
+    },
+    {
+      "name": "Ogień Gorka",
+      "difficulty": 8,
+      "description": "Z nosa szamana lecą dwa płomienne pociski o zasięgu 12 cali, każdy zadający k3 trafienia z S3. Oba mogą trafić w jeden najbliższy model lub być rozdzielone na dwa najbliższe modele."
+    }
   ],
   "Magia Nekromancka": [
-    { "name": "Złodziej Życia", "difficulty": 10, "description": "Wybierz pojedynczy model w 6 calach od rzucającego. Cel otrzymuje automatyczną ranę bez rzutów pancerza, a rzucający zyskuje jedną ranę, która może podnieść ich wartość nawet powyżej dozwolonego maksimum. Czar nie działa na modele Nieumarłych i Opętanych." },
-    { "name": "Re-Animacja", "difficulty": 5, "description": "Jeden zombie, który stał się OOA w ostatniej fazie strzelania lub walki (ale nie Duży), może natychmiast powrócić do walki. Musisz go postawić do 6 cali od rzucającego czar i nie tak, by był związany walką." },
-    { "name": "Śmiertelna wizja", "difficulty": 6, "description": "Rzucający wywołuje Strach do końca trwania potyczki." },
-    { "name": "Zaklęcie Zagłady", "difficulty": 9, "description": "Wybierz model przeciwnika w 12 calach od rzucającego. Model musi natychmiast wyrzucić na k6 wartość mniejszą lub równą jego Sile, albo automatycznie rzuca na Obrażenia." },
-    { "name": "Wezwanie Vanhela", "difficulty": 6, "description": "Pojedynczy Ghoul albo Wilkor w 6 calach od rzucającego, może natychmiast ruszyć ponownie na swój maksymalny dystans ruchu (ale bez biegu). Jeśli tym ruchem dotrze do przeciwnika, liczy się jako szarżujący." },
-    { "name": "Zaklęcie Przebudzenia", "difficulty": "Auto", "description": "Jeśli przeciwnik bandy Ożywieńców poniesie śmierć w walce z nimi, nekromanta może wskrzesić go sobie jako Zombie. Wskrzeszeniec zachowuje statystyki i ekwipunek, ale nie może używać umiejętności i broni strzeleckiej." }
+    {
+      "name": "Złodziej Życia",
+      "difficulty": 10,
+      "description": "Wybierz pojedynczy model w 6 calach od rzucającego. Cel otrzymuje automatyczną ranę bez rzutów pancerza, a rzucający zyskuje jedną ranę, która może podnieść ich wartość nawet powyżej dozwolonego maksimum. Czar nie działa na modele Nieumarłych i Opętanych."
+    },
+    {
+      "name": "Re-Animacja",
+      "difficulty": 5,
+      "description": "Jeden zombie, który stał się OOA w ostatniej fazie strzelania lub walki (ale nie Duży), może natychmiast powrócić do walki. Musisz go postawić do 6 cali od rzucającego czar i nie tak, by był związany walką."
+    },
+    {
+      "name": "Śmiertelna wizja",
+      "difficulty": 6,
+      "description": "Rzucający wywołuje Strach do końca trwania potyczki."
+    },
+    {
+      "name": "Zaklęcie Zagłady",
+      "difficulty": 9,
+      "description": "Wybierz model przeciwnika w 12 calach od rzucającego. Model musi natychmiast wyrzucić na k6 wartość mniejszą lub równą jego Sile, albo automatycznie rzuca na Obrażenia."
+    },
+    {
+      "name": "Wezwanie Vanhela",
+      "difficulty": 6,
+      "description": "Pojedynczy Ghoul albo Wilkor w 6 calach od rzucającego, może natychmiast ruszyć ponownie na swój maksymalny dystans ruchu (ale bez biegu). Jeśli tym ruchem dotrze do przeciwnika, liczy się jako szarżujący."
+    },
+    {
+      "name": "Zaklęcie Przebudzenia",
+      "difficulty": "Auto",
+      "description": "Jeśli przeciwnik bandy Ożywieńców (dowolny model herosa czy Zwierzaka) poniesie śmierć w walce z nimi (patrz: Poważne obrażenia), nekromanta (o ile nie był OOA) może wskrzesić go sobie jako Zombie. Wskrzeszeniec zachowuje wszystkie swoje statystki i ekwipunek, ale nie może już używać umiejętności i broni strzeleckiej. Odtąd staje się dodatkowym Zwierzakiem (Zombie mogą być ponad limit) i podlega wszystkim jego zasadom. Po każdej walce możesz wskrzesić tylko jeden poległy model przeciwnika, więc jeśli jest ich więcej, musisz wybrać którego. Nie możesz mieć więcej niż jednego, wskrzeszonego modelu Dużego (jeśli wskrzeszasz następnego, musisz wybrać, którego chcesz zatrzymać). Zombie nie mogą biegać, budzą strach i są odporne na psychologię."
+    }
   ],
   "Magia Rogatego Szczura": [
-    { "name": "Spaczogień", "difficulty": 8, "description": "Pocisk lecący na 8 cali i trafiający w pierwszy cel na drodze. Zadaje D3 uderzenia z Siłą 4 celowi i jedno uderzenie z Siłą 3 każdemu modelowi w zasięgu 2 cali od tego celu." },
-    { "name": "Dzieci Rogatego Szczura", "difficulty": "Auto", "description": "Czar musi być użyty przed bitwą i tylko raz na bitwę. Przywołuje D3 Wielkie Szczury, które muszą być rozstawione do 6 cali od Czarnoksiężnika. Szczury znikają zaraz po bitwie." },
-    { "name": "Pogryzienie", "difficulty": 7, "description": "Czar zadaje 2D6 uderzeń z Siłą 1 jednemu modelowi w 8 calach od rzucającego." },
-    { "name": "Czarna Furia", "difficulty": 8, "description": "Rzucający natychmiast szarżuje wroga w zasięgu 12 cali (ignorując teren i modele po drodze) otrzymując 2 dodatkowe Ataki i +1 Siły w tej jednej fazie walki wręcz." },
-    { "name": "Oko Osnowy", "difficulty": 8, "description": "Wszystkie stojące modele w kontakcie z rzucającym muszą zdać test Ld. Jeśli obleją, otrzymują uderzenie z Siłą 3 i muszą przesunąć się 2D6 cali od czarującego." },
-    { "name": "Klątwa Czarnoksiężnika", "difficulty": 6, "description": "Czar na 12\", na jeden model w zasięgu. Cel musi przerzucać wszystkie udane rzuty pancerza i rzuty na trafienie w obecnej skaveńskiej fazie walki oraz swojej nadchodzącej fazie strzelania i walki wręcz." }
+    {
+      "name": "Spaczogień",
+      "difficulty": 8,
+      "description": "Pocisk lecący na 8 cali i trafiający w pierwszy cel na drodze. Zadaje D3 uderzenia z Siłą 4 celowi i jedno uderzenie z Siłą 3 każdemu modelowi w zasięgu 2 cali od tego celu."
+    },
+    {
+      "name": "Dzieci Rogatego Szczura",
+      "difficulty": "Auto",
+      "description": "Czar musi być użyty przed bitwą i tylko raz na bitwę. Przywołuje D3 Wielkie Szczury, które muszą być rozstawione do 6 cali od Czarnoksiężnika. Szczury znikają zaraz po bitwie, nawet jeśli nie będą OOA"
+    },
+    {
+      "name": "Pogryzienie",
+      "difficulty": 7,
+      "description": "Czar zadaje 2D6 uderzeń z Siłą 1 jednemu modelowi w 8 calach od rzucającego"
+    },
+    {
+      "name": "Czarna Furia",
+      "difficulty": 8,
+      "description": "Rzucający natychmiast szarżuje wroga w zasięgu 12 cali (ignorując jakikolwiek teren i modele po drodze) otrzymując 2 dodatkowe Ataki i +1 Siły w tej jednej fazie walki wręcz"
+    },
+    {
+      "name": "Oko Osnowy",
+      "difficulty": 8,
+      "description": "Wszystkie stojące modele w kontakcie z rzucającym muszą zdać test Ld. Jeśli obleją, otrzymują uderzenie z Siłą 3 i muszą przesunąć się 2D6 cali od czarującego."
+    },
+    {
+      "name": "Klątwa Czarnoksiężnika",
+      "difficulty": 6,
+      "description": "Czar na 12”, na jeden model w zasięgu. Cel musi przerzucać wszystkie udane rzuty pancerza i rzuty na trafienie w obecnej skaveńskiej fazie walki oraz swojej nadchodzącej fazie strzelania i walki wręcz."
+    }
   ],
   "Rytuały Chaosu": [
-    { "name": "Wizje udręki", "difficulty": 10, "description": "Ma zasięg 6\" i musi być rzucony na najbliższy model. Model zostaje automatycznie Ogłuszony, a jeśli nie może być Ogłuszony zostaje Przewrócony." },
-    { "name": "Oko boga", "difficulty": 7, "description": "Wybierz model w zasięgu 6 cali, przyjazny lub wrogi i rzuć k6: 1 – gniew bogów (OOA), 2-5 – +1 do wybranej charakterystyki, 6 – +1 do każdej charakterystyki na czas całej potyczki." },
-    { "name": "Mroczna krew", "difficulty": 8, "description": "Atak o zasięgu 8 cali, zadający k3 trafienia z Siłą 5. Trafia pierwszy model na drodze. Po użyciu tego czaru model musi rzucić sobie na Obrażenia, ale OOA traktuj jako Ogłuszenie." },
-    { "name": "Pokusa Chaosu", "difficulty": 9, "description": "Czar ma zasięg 12 cali i musi być rzucony na najbliższy model. Test przeciwko Ld maga. Jeśli mag wygra, przejmuje kontrolę nad modelem do czasu zdania testu Ld w Fazie zbierania." },
-    { "name": "Skrzydła ciemności", "difficulty": 7, "description": "Natychmiastowy ruch na 12 cali, w tym do kontaktu z przeciwnikiem (liczone jako szarża)." },
-    { "name": "Słowo bólu", "difficulty": 7, "description": "Wszystkie modele (w tym przyjazne) w odległości 3 cali od maga otrzymują uderzenie z S3, bez rzutów Pancerza." }
+    {
+      "name": "Wizje udręki",
+      "difficulty": 10,
+      "description": "Ma zasięg 6” i musi być rzucony na najbliższy model. Jeśli mag jest w walce wręcz, może wybrać jeden model w kontakcie. Model zostaje automatycznie Ogłuszony, a jeśli nie może być Ogłuszony zostaje Przewrócony."
+    },
+    {
+      "name": "Oko boga",
+      "difficulty": 7,
+      "description": "Możesz skutecznie użyć raz na potyczkę. Wybierz model w zasięgu 6 cali, przyjazny lub wrogi i rzuć k6: 1 – gniew bogów dosięga model i zostaje on automatycznie OOA (nie musi po bitwie rzucać na Poważne obrażenia), 2-5 – model otrzymuje +1 do wybranej przez rzucającego charakterystyki, na czas całej potyczki, 6 – model dostaje +1 do każdej charakterystyki na czas całej potyczki"
+    },
+    {
+      "name": "Mroczna krew",
+      "difficulty": 8,
+      "description": "Atak o zasięgu 8 cali, zadający k3 trafienia z Siłą 5. Trafia pierwszy model na swojej drodze. Po użyciu tego czaru model musi rzucić sobie na Obrażenia, ale OOA traktuj jako Ogłuszenie."
+    },
+    {
+      "name": "Pokusa Chaosu",
+      "difficulty": 9,
+      "description": "Czar ma zasięg 12 cali i musi być rzucony na najbliższy model. Rzuć k6 i dodaj Ld czarującego, potem do Ld celu dodaj k6. Jeśli mag wyrzuci więcej, przejmuje kontrolę nad modelem do czasu, aż ten nie zda Ld w swojej Fazie zbierania. Model nie może popełnić samobójstwa, ale może zaatakować przyjazny model i nie atakować modeli z bandy maga. Jeśli jest już zaangażowany w walkę wręcz z takimi modelami, natychmiast odsuń go na 1 cal od nich."
+    },
+    {
+      "name": "Skrzydła ciemności",
+      "difficulty": 7,
+      "description": "Natychmiastowy ruch na 12 cali, w tym do kontaktu z przeciwnikiem (liczone jako szarża)."
+    },
+    {
+      "name": "Słowo bólu",
+      "difficulty": 7,
+      "description": "Wszystkie modele, w tym przyjazne, w odległości 3 cali od maga, otrzymują uderzenie z S3, bez rzutów Pancerza"
+    }
   ],
   "Modlitwy Taala": [
-    { "name": "Jeleni skok", "difficulty": 7, "description": "Model kapłana może przesunąć się o 9\", w tym wejść w kontakt z przeciwnikiem - liczy się wtedy jako szarżujący z +1 Siły." },
-    { "name": "Złoty trunek", "difficulty": 5, "description": "Model do 2\" od kapłana (z nim włącznie) może wyleczyć komplet swoich ran. Dodatkowo wszystkie żywe modele w promieniu 2\" tracą 1 Atak." },
-    { "name": "Niedźwiedzia łapa", "difficulty": 7, "description": "Dowolny przyjazny model w zasięgu 6\" otrzymuje +2 do Siły aż do następnej rundy bandy Kapłana." },
-    { "name": "Gniew ziemi", "difficulty": 8, "description": "Cały teren w odległości 12\" od Kapłana staje się Trudnym terenem (modele nie mogą biegać i mogą szarżować na dystans Ruchu (M))." },
-    { "name": "Przyzwanie gryzoni", "difficulty": 7, "description": "Wskaż model przeciwnika w odległości 12 cali od Kapłana. Otrzymuje on 2k6 trafień z Siłą 1, bez rzutów Pancerza." },
-    { "name": "Błogosławieństwo Taala", "difficulty": "X", "description": "Zmniejsz trudność jednej z już posiadanych przez siebie modlitw o 1." }
+    {
+      "name": "Jeleni skok",
+      "difficulty": 7,
+      "description": "Model kapłana może przesunąć się o 9”, w tym wejść w kontakt z przeciwnikiem - liczy się wtedy jako szarżujący z +1 Siły."
+    },
+    {
+      "name": "Złoty trunek",
+      "difficulty": 5,
+      "description": "Model do 2” od kapłana (z nim włącznie) może wyleczyć komplet swoich ran. Nie działa na modele Przewrócone ani Ogłuszone. Dodatkowo wszystkie żywe modele w promieniu 2” od kapłana (nie Nieumarli ani Opętani), tracą 1 Atak (do nie mniej niż 1) w następnej rundzie walki."
+    },
+    {
+      "name": "Niedźwiedzia łapa",
+      "difficulty": 7,
+      "description": "Dowolny przyjazny model (z kapłanem włącznie) w zasięgu 6” otrzymuje +2 do Siły aż do następnej rundy bandy Kapłana."
+    },
+    {
+      "name": "Gniew ziemi",
+      "difficulty": 8,
+      "description": "Cały teren w odległości 12” od Kapłana, do czasu jego następnej Fazy Strzelania, staje się Trudnym terenem (modele nie mogą biegać i mogą szarżować maksymalnie na odległość swojego Ruchu (M))"
+    },
+    {
+      "name": "Przyzwanie gryzoni",
+      "difficulty": 7,
+      "description": "Wskaż model przeciwnika w odległości 12 cali od Kapłana. Otrzymuje on 2k6 trafień z Siłą 1, bez rzutów Pancerza."
+    },
+    {
+      "name": "Błogosławieństwo Taala",
+      "difficulty": "X",
+      "description": "Zmniejsz trudność jednej z już posiadanych przez siebie modlitw o 1."
+    }
   ]
 }

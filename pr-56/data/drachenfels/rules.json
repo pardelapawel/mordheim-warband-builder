@@ -1,0 +1,33 @@
+{
+  "source": "Mordheim SN Drachenfels, strony 14, 19, 25, 31, 35 i 36",
+  "specialSkills": {
+    "awanturnicy": [
+      {"name":"Znak Sigmar","templates":["Kapłan Sigmara","Siostra Sigmara"]},
+      {"name":"Całkowita Determinacja","templates":["Łowca Czarownic"]},
+      {"name":"Szczególnie wytrzymały","races":["Krasnolud"],"templates":["Kapitan Najemników"]},
+      {"name":"Prawdziwie hardy","races":["Krasnolud"]},
+      {"name":"Twarda czaszka","races":["Krasnolud"]},
+      {"name":"Okrutna Szarża","templates":["Krasnoludzki Pogromca"]},
+      {"name":"Zabójca potworów","templates":["Krasnoludzki Pogromca"]},
+      {"name":"Berserker","templates":["Krasnoludzki Pogromca"]},
+      {"name":"Przysięga krwi","templates":["Kapitan Najemników"]},
+      {"name":"Infiltracja","templates":["Elfi Wędrowiec","Niziołek Zwiadowca"]}
+    ],
+    "sludzy_ciemnosci": [
+      {"name":"Walka ogonem","races":["Skaven"]},
+      {"name":"Ścianobiegacz","races":["Skaven"]},
+      {"name":"Infiltracja","races":["Skaven"],"templates":["Mroczny Elf"]},
+      {"name":"Tfardy Łep","templates":["Szef Orkóf","Szaman Orkóf","Ork","Upadły Krasnolud","Zwierzoczłek"]},
+      {"name":"ŁAAA!","allHeroes":true},
+      {"name":"Wielkolud","templates":["Czempion Areny","Szef Orkóf","Szaman Orkóf","Ork","Zwierzoczłek"]},
+      {"name":"Poważne groźby","leaderOnly":true}
+    ]
+  },
+  "skillRestrictions": {
+    "Język bitewny":{"leaderOnly":true},
+    "Wiedza tajemna":{"excludedTemplates":["Łowca Czarownic","Siostra Sigmara"]},
+    "Mag bitewny":{"casterOnly":true},
+    "Siłacz":{"excludedRaces":["Ogr"]},
+    "Wielkolud":{"excludedRaces":["Ogr"]}
+  }
+}

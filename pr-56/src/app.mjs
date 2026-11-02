@@ -5,6 +5,10 @@ import {validateBand,equipmentIssue} from './rules.mjs';
 import * as Skills from './skills.mjs';
 import {racialMaxima,racialMaximumProfile,canBuyMutations,mutationFor,skillCost,synchronizeMutationPrices} from './progression.mjs';
 import {countedNoun,warningCount,errorCount} from './polish.mjs';
+import {equipmentChoices,purchaseCost,purchaseEquipment} from './equipment.mjs';
+import {recruitmentOptions,setRecruitmentAdvance,recruitmentCost} from './recruitment.mjs';
+import {reconcileRules} from './migration.mjs';
+import {spellInfo,difficultyText,skillDisplay} from './spells.mjs';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -47,7 +51,7 @@ function rowMarkup(f,index){
     <div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div>
     <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map(k=>`<td>${esc(f.stats[k])}</td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
     <div class="profile-bottom"><span class="role-stamp">${esc(t?.type || f.race || 'Wojownik')}</span><span class="maxima-label">↑ Maksimum rasowe</span><strong>${cost} zk</strong></div></div>
-    <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(label(s))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
+    <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(skillDisplay(s,catalog))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
     <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika ↗</button></div></div>
     <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${Array.from({length:90},(_,n)=>`<button class="exp-box ${n<f.exp?'earned':''} ${advances.includes(n+1)?'advance':''}" data-xp="${n+1}" data-fighter="${esc(f.id)}" aria-label="Ustaw doświadczenie: ${n+1}" aria-pressed="${n<f.exp}" title="${n+1} PD"></button>`).join('')}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
   </article></div>`;
@@ -55,15 +59,15 @@ function rowMarkup(f,index){
 function renderGlossary(){
   const entries=glossaryEntries(band,catalog);
   $('glossary-list').className='glossary-grid';
-  $('glossary-list').innerHTML=entries.length?entries.map(e=>`<div class="glossary-entry"><h3>${esc(e.name)}</h3><label class="sr-only" for="glossary-${esc(e.name)}">Opis: ${esc(e.name)}</label><textarea id="glossary-${esc(e.name)}" data-description="${esc(e.name)}">${esc(e.description)}</textarea><p class="print-text">${esc(e.description)}</p></div>`).join(''):'<p class="muted">Opisy pojawią się po dodaniu wojowników i ekwipunku.</p>';
+  $('glossary-list').innerHTML=entries.length?entries.map(e=>`<div class="glossary-entry"><h3>${esc(e.name)}</h3>${e.difficulty!==undefined?`<p class="spell-difficulty">${e.difficulty==='X'?'':'Trudność: '}${esc(difficultyText(e.difficulty))}</p>`:''}<label class="sr-only" for="glossary-${esc(e.name)}">Opis: ${esc(e.name)}</label><textarea id="glossary-${esc(e.name)}" data-description="${esc(e.name)}">${esc(e.description)}</textarea><p class="print-text">${esc(e.description)}</p></div>`).join(''):'<p class="muted">Opisy pojawią się po dodaniu wojowników i ekwipunku.</p>';
 }
 function renderAll(){
   $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
-  renderRoster();$('library-count').textContent=bands.length;document.title=`${band.name} — Mordheim`;
+  $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title=`${band.name} — Mordheim`;
 }
 async function activate(raw){
   if(loading)return false;loading=true;document.body.setAttribute('aria-busy','true');
-  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId);band=next;catalog=nextCatalog;notice('');save();renderAll();return true;}
+  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId);band=next;catalog=nextCatalog;const update=reconcileRules(band,catalog);notice(update);save();renderAll();return true;}
   catch(error){notice(error.message);return false;}
   finally{loading=false;document.body.removeAttribute('aria-busy');}
 }
@@ -75,6 +79,8 @@ function renderPicker(){
 }
 function field(name,title,value,type='text'){return `<label class="editor-field">${title}<input name="${name}" type="${type}" value="${esc(value)}" ${type==='number'?'min="0" max="1000000"':''}></label>`;}
 function openEditor(id){
+  const expanded=selectedId===id && $('editor').open?[...$('editor-body').querySelectorAll('details[open]')].map(details=>details.querySelector('summary')?.textContent):[];
+  const scroll=selectedId===id?$('editor').scrollTop:0;
   selectedId=id;const f=selected();if(!f)return;const t=templateFor(f,catalog),maxima=racialMaxima(f,catalog);
   $('editor-title').textContent=f.customName;
   $('editor-body').innerHTML=`${field('customName','Imię wojownika',f.customName)}<div class="editor-pair">${field('type','Typ (nazwa wyświetlana)',f.type)}${field('race','Rasa',f.race || '')}</div>
@@ -82,12 +88,14 @@ function openEditor(id){
     <h3>Profil wojownika</h3><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="stat.${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}"></label>`).join('')}</div>
     <details class="editor-details"><summary>Maksimum rasowe</summary><p id="maxima-source" class="editor-hint"></p><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="max.${k}" value="${esc(maxima[k] ?? '')}" aria-label="Maksimum ${STAT_LABELS[i]}"></label>`).join('')}</div><p class="editor-hint">Możesz wpisać wyjątek wynikający z zasad wojownika. Wyczyszczenie pola przywraca wartość z tabeli.</p><button id="reset-maxima" type="button">Przywróć maksimum rasowe</button></details>
     <div class="editor-pair">${field('baseCost','Koszt podstawowy (zk)',f.baseCost,'number')}${field('exp','Doświadczenie (PD)',f.exp,'number')}</div><label><input name="is_large" type="checkbox" ${f.is_large?'checked':''}> Duży model (20 pkt do siły bandy)</label><p class="editor-hint">Profil obsługuje też wartości takie jak 2k6.</p>
-    <h3>Ekwipunek</h3><div id="equipment-entries"></div><form id="equipment-form" class="add-entry-form"><label class="sr-only" for="equipment-choice">Dodaj ekwipunek</label><select id="equipment-choice"><option value="">Wybierz ekwipunek…</option>${Object.entries(Object.groupBy?Object.groupBy(catalog.equipment,e=>e.originCategory):catalog.equipment.reduce((a,e)=>((a[e.originCategory]??=[]).push(e),a),{})).map(([category,items])=>`<optgroup label="${esc(categories[category] || 'Przedmioty')}">${items.map(e=>`<option value="${esc(e.name)}">${esc(e.name)} (${e.cost} zk)${equipmentIssue(e,f,catalog)?' · niedozwolony':''}</option>`).join('')}</optgroup>`).join('')}</select><button type="submit">Dodaj</button></form>
+    ${recruitmentOptions(f,catalog).length || canBuyMutations(f,catalog)?`<details class="editor-details"><summary>Rozwój przy werbunku</summary><p class="editor-hint">Opcjonalne zakupy przy rekrutacji. Koszt, PD i profil aktualizują się razem. Koszt ulepszeń: ${recruitmentCost(f)} zk.</p>${recruitmentOptions(f,catalog).map(option=>option.key==='mercenaryAdvance'?`<label>${esc(option.label)}<select data-recruitment="mercenaryAdvance" ${f.recruitmentComplete?'disabled':''}><option value="">Bez rozwinięcia</option><option value="ws" ${f.recruitmentUpgrades?.mercenaryAdvance==='ws'?'selected':''}>+1 WS</option><option value="bs" ${f.recruitmentUpgrades?.mercenaryAdvance==='bs'?'selected':''}>+1 BS</option></select></label>`:`<label><input type="checkbox" data-recruitment="${option.key}" ${f.recruitmentUpgrades?.[option.key]?'checked':''} ${f.recruitmentComplete?'disabled':''}> ${esc(option.label)}</label>`).join('')}<label class="editor-field"><input name="recruitmentComplete" type="checkbox" ${f.recruitmentComplete?'checked':''}> Rekrutacja tego wojownika zakończona</label><p class="editor-hint">Zakończenie rekrutacji blokuje nowe mutacje i powyższe zakupy. Nowy wojownik w kampanii zaczyna z otwartą rekrutacją.</p></details>`:''}
+    <h3>Ekwipunek</h3><p class="editor-hint">Ceny nowych zakupów: ${band.phase==='campaign'?'kampania':'tworzenie bandy'}. Zmiana etapu nie zmienia cen już kupionych przedmiotów. Premie z ekwipunku i umiejętności wpisuj do profilu ręcznie.</p><div id="equipment-entries"></div><form id="equipment-form" class="add-entry-form"><label class="sr-only" for="equipment-choice">Dodaj ekwipunek</label><select id="equipment-choice"><option value="">Wybierz ekwipunek…</option>${Object.entries(equipmentChoices(f,catalog).reduce((a,e)=>((a[e.originCategory]??=[]).push(e),a),{})).map(([category,items])=>`<optgroup label="${esc(categories[category] || 'Przedmioty')}">${items.map(e=>`<option value="${esc(e.name)}">${esc(e.name)} (${purchaseCost(e,band.phase)} zk)${equipmentIssue(e,f,catalog)?' · niedozwolony':''}</option>`).join('')}</optgroup>`).join('')}</select><button type="submit">Dodaj</button></form>
+    <details class="editor-details"><summary>Znaleziony artefakt</summary><p class="editor-hint">Artefakty z eksploracji nie mają ceny zakupu. Dodanie zapisuje 0 wydanych zk; premie do profilu wpisz ręcznie.</p><form id="artifact-form" class="add-entry-form"><select name="artifact" aria-label="Znaleziony artefakt">${catalog.artifacts.map(item=>`<option>${esc(item.name)}</option>`).join('')}</select><button type="submit">Dodaj znaleziony</button></form></details>
     <details class="editor-details"><summary>Własny przedmiot</summary><form id="custom-equipment-form" class="add-entry-form"><input name="name" aria-label="Nazwa własnego przedmiotu" placeholder="Nazwa przedmiotu" required maxlength="120"><input name="cost" type="number" aria-label="Koszt własnego przedmiotu" min="0" value="0"><select name="category" aria-label="Kategoria własnego przedmiotu"><option value="miscellaneous">Przedmiot</option><option value="melee_weapons">Broń wręcz</option><option value="ranged_weapons">Broń strzelecka</option><option value="armor">Pancerz</option></select><button type="submit">Dodaj własny</button></form></details>
     <h3>Umiejętności i czary</h3><p class="editor-hint">Ścieżki rozwoju: ${esc((t?.skills || []).join(', ') || 'brak')}. Wybierz konkretny czar lub umiejętność z listy.</p>${canBuyMutations(f,catalog)?'<p class="editor-hint">Mutacje kupuje się wyłącznie podczas rekrutacji. Pierwsza kosztuje cenę z listy; każda kolejna dwukrotność swojej ceny. Koszty są obliczane automatycznie w kolejności dodawania.</p>':''}<div id="skill-entries"></div><form id="skill-form" class="add-entry-form"><label class="sr-only" for="skill-choice">Dodaj umiejętność lub czar</label><select id="skill-choice"></select><button type="submit">Dodaj</button></form>
     <details class="editor-details"><summary>Własna zasada</summary><form id="custom-skill-form" class="add-entry-form"><input name="name" aria-label="Nazwa własnej zasady" placeholder="Nazwa zasady" required maxlength="180"><button type="submit">Dodaj zasadę</button></form></details>
     <label class="editor-field">Obrażenia i trwałe urazy<textarea name="injuries" rows="3">${esc(f.injuries)}</textarea></label><label class="editor-field">Uwagi<textarea name="notes" rows="3">${esc(f.notes)}</textarea></label><div id="editor-validation"></div>`;
-  updateMaximaEditor(f);renderEditorEntries();if(!$('editor').open)$('editor').showModal();
+  updateMaximaEditor(f);renderEditorEntries();$('editor-body').querySelectorAll('details').forEach(details=>{if(expanded.includes(details.querySelector('summary')?.textContent))details.open=true;});if(!$('editor').open)$('editor').showModal();$('editor').scrollTop=scroll;
 }
 function updateMaximaEditor(f){
   const profile=racialMaximumProfile(f,catalog),maxima=racialMaxima(f,catalog);
@@ -97,7 +105,7 @@ function updateMaximaEditor(f){
 function renderEditorEntries(){
   const f=selected();if(!f)return;
   $('equipment-entries').innerHTML=f.equipment.map((e,i)=>`<div class="editor-item"><span class="entry-name">${esc(e.name)}</span><input type="number" min="0" value="${number(e.cost)}" data-eq-cost="${i}" aria-label="Koszt: ${esc(e.name)}"><small>zk</small><button class="remove-entry" data-remove-eq="${i}" aria-label="Usuń przedmiot: ${esc(e.name)}">×</button></div>`).join('') || '<p class="editor-hint">Brak ekwipunku.</p>';
-  $('skill-entries').innerHTML=f.skills.map((s,i)=>`<div class="editor-item"><span class="entry-name">${esc(s.label || s.name)}${mutationFor(s,catalog)?' <small>· mutacja</small>':''}</span><input type="number" min="0" value="${skillCost(f,i,catalog)}" ${mutationFor(s,catalog)?'readonly title="Koszt obliczany automatycznie według kolejności mutacji"':''} data-skill-cost="${i}" aria-label="Koszt zasady: ${esc(s.label || s.name)}"><small>zk</small><button class="remove-entry" data-remove-skill="${i}" aria-label="Usuń zasadę: ${esc(s.label || s.name)}">×</button>${s.kind==='group'?`<select data-skill-option="${i}" aria-label="Opcja: ${esc(s.groupKey)}"><option value="">Wybierz opcję…</option>${Skills.getGroupedSkillOptions(s,catalog).map(o=>`<option value="${esc(o.name)}" ${o.name===s.selectedKey?'selected':''}>${esc(o.name)}${o.cost?` (${o.cost} zk)`:''}</option>`).join('')}</select>`:''}</div>`).join('') || '<p class="editor-hint">Brak umiejętności.</p>';
+  $('skill-entries').innerHTML=f.skills.map((s,i)=>`<div class="editor-item"><span class="entry-name">${esc(s.label || s.name)}${mutationFor(s,catalog)?' <small>· mutacja</small>':''}</span><input type="number" min="0" value="${skillCost(f,i,catalog)}" ${mutationFor(s,catalog)?'readonly title="Koszt obliczany automatycznie według kolejności mutacji"':''} data-skill-cost="${i}" aria-label="Koszt zasady: ${esc(s.label || s.name)}"><small>zk</small><button class="remove-entry" data-remove-skill="${i}" aria-label="Usuń zasadę: ${esc(s.label || s.name)}">×</button>${s.kind==='group'?`<select data-skill-option="${i}" aria-label="Opcja: ${esc(s.groupKey)}"><option value="">Wybierz opcję…</option>${Skills.getGroupedSkillOptions(s,catalog).map(o=>`<option value="${esc(o.name)}" ${o.name===s.selectedKey?'selected':''}>${esc(o.name)}${o.difficulty!==undefined?` · ${difficultyText(o.difficulty)}`:''}${o.cost?` (${o.cost} zk)`:''}</option>`).join('')}</select>`:''}${typeof spellInfo(s,catalog)?.difficulty==='number'?`<label>Trudność <input type="number" min="1" value="${spellInfo(s,catalog).difficulty}" data-spell-difficulty="${i}" aria-label="Trudność: ${esc(spellInfo(s,catalog).name)}"></label>`:''}</div>`).join('') || '<p class="editor-hint">Brak umiejętności.</p>';
   $('skill-choice').innerHTML='<option value="">Wybierz umiejętność lub grupę…</option>'+skillChoices(f,catalog).map(s=>`<option value="${esc(s.name)}">${esc(s.name)}${s.mutation?` (${s.cost} zk)`:''}${s.kind==='group'?' · wybór opcji':''}</option>`).join('');
   renderEditorValidation();
 }
@@ -160,33 +168,38 @@ editor.addEventListener('click',event=>{
 });
 editor.addEventListener('close',()=>{editorBackdropPress=false;});
 $('fighter-search').addEventListener('input',renderPicker);
+$('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
 $('band-name').addEventListener('input',()=>{band.name=$('band-name').value;save();document.title=`${band.name} — Mordheim`;});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
 $('editor-body').addEventListener('change',event=>{
   const input=event.target,f=selected();if(!f)return;
-  if(input.dataset.eqCost!==undefined)f.equipment[number(input.dataset.eqCost)].cost=number(input.value);
+  if(input.dataset.recruitment){setRecruitmentAdvance(f,input.dataset.recruitment,input.type==='checkbox'?input.checked:input.value,catalog);changed();openEditor(f.id);return;}
+  if(input.dataset.spellDifficulty!==undefined)f.skills[number(input.dataset.spellDifficulty)].difficulty=Math.max(1,number(input.value));
+  else if(input.dataset.eqCost!==undefined)f.equipment[number(input.dataset.eqCost)].cost=number(input.value);
   else if(input.dataset.skillCost!==undefined)f.skills[number(input.dataset.skillCost)].cost=number(input.value);
-  else if(input.dataset.skillOption!==undefined){const i=number(input.dataset.skillOption);f.skills[i]=Skills.selectGroupedSkillOption(f.skills[i],input.value,catalog);}
+  else if(input.dataset.skillOption!==undefined){const i=number(input.dataset.skillOption);f.skills[i]=Skills.selectGroupedSkillOption(f.skills[i],input.value,catalog);delete f.skills[i].difficulty;}
   else if(input.name){
     if(input.name.startsWith('stat.'))f.stats[input.name.slice(5)]=input.value;
     else if(input.name.startsWith('max.'))f.maxStats[input.name.slice(4)]=input.value;
     else if(['baseCost','exp'].includes(input.name))f[input.name]=number(input.value);
-    else if(input.name==='is_large')f.is_large=input.checked;
+    else if(['is_large','recruitmentComplete'].includes(input.name))f[input.name]=input.checked;
     else if(['customName','type','race','injuries','notes'].includes(input.name))f[input.name]=input.value;
     else return;
   }else return;
   changed();$('editor-title').textContent=f.customName;
+  if(input.name==='recruitmentComplete'){openEditor(f.id);return;}
   if(input.name==='race' || input.name?.startsWith('max.'))updateMaximaEditor(f);
   if(input.dataset.skillOption!==undefined)renderEditorEntries();else renderEditorValidation();
 });
 $('editor-body').addEventListener('submit',event=>{
   event.preventDefault();const f=selected(),form=event.target,values=new FormData(form);
-  if(form.id==='equipment-form'){const item=catalog.equipment.find(e=>e.name===$('equipment-choice').value);if(!item)return;f.equipment.push({...item});}
+  if(form.id==='equipment-form'){const item=catalog.equipment.find(e=>e.name===$('equipment-choice').value);if(!item)return;f.equipment.push(purchaseEquipment(item,band.phase));}
+  if(form.id==='artifact-form'){const item=catalog.artifacts.find(e=>e.name===values.get('artifact'));if(!item)return;f.equipment.push({...item,acquired:'exploration'});}
   if(form.id==='custom-equipment-form')f.equipment.push({name:String(values.get('name')).trim(),cost:number(values.get('cost')),originCategory:values.get('category')});
   if(form.id==='skill-form'){const name=$('skill-choice').value;if(!name)return;f.skills.push(Skills.createAddableSkillEntry(name,templateFor(f,catalog),catalog));}
-  if(form.id==='custom-skill-form')f.skills.push(Skills.createSimpleSkillEntry(String(values.get('name')).trim()));
+  if(form.id==='custom-skill-form'){const entry=Skills.createSimpleSkillEntry(String(values.get('name')).trim());if(f.recruitmentComplete && mutationFor(entry,catalog)){notice('Mutacje można kupować tylko podczas rekrutacji.');return;}f.skills.push(entry);}
   changed();renderEditorEntries();form.reset();
 });
 $('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
