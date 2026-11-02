@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#243b35">
+  <title>Mordheim — Księga bandy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead no-print">
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">M</span><span>MORDHEIM<small>KSIĘGA BANDY · DRACHENFELS</small></span></a>
+    <div class="header-actions"><span id="save-status" role="status">Wczytywanie…</span><button id="library-button" class="quiet">Zapisane bandy <span id="library-count">0</span></button><button id="new-band">+ Nowa banda</button></div>
+  </header>
+  <main>
+    <section class="band-heading">
+      <div><p class="eyebrow">REJESTR WYPRAW DO MIASTA POTĘPIONYCH</p><label class="sr-only" for="band-name">Nazwa bandy</label><input id="band-name" class="band-name" value="Nowa banda" maxlength="120"><div class="band-type-line"><span class="seal" aria-hidden="true">✦</span><span id="band-type-label">Drachenfels</span><span class="edition">ZASADY DRACHENFELS</span></div></div>
+      <div class="totals"><div><span>Wojownicy</span><strong id="total-count">0</strong></div><div><span>Wartość bandy</span><strong id="total-cost">0 <small>zk</small></strong></div><div><span>Siła bandy</span><strong id="total-rating">0</strong></div></div>
+    </section>
+    <div class="toolbar no-print"><div class="toolbar-title"><span class="section-number">01</span><h1>Rozpiska bandy</h1><span id="roster-count" class="muted"></span></div><div class="toolbar-actions"><button id="share-button" class="quiet">Udostępnij</button><details class="export-menu"><summary>Eksportuj ▾</summary><div><button id="export-json">Plik JSON</button><button id="export-text">Plik tekstowy</button><button id="import-button">Importuj JSON</button></div></details><button id="print-button" class="quiet">Drukuj / PDF</button><button id="add-fighter" class="primary">+ Dodaj wojownika</button></div></div>
+    <div id="notice" class="notice no-print" role="status" hidden></div>
+    <div class="roster-scroll"><section id="roster" aria-label="Lista wojowników"></section></div>
+    <button id="add-another" class="add-row no-print">+ Dodaj wojownika do rozpiski</button>
+    <section class="ledger" aria-label="Podsumowanie bandy">
+      <div><h2>Siła bandy</h2><div id="rating-breakdown"></div></div>
+      <div><h2>Skarbiec</h2><div class="treasury-inputs"><label>Złote korony <input id="treasury-gold" type="number" min="0" value="0"> zk</label><label>Spaczeń <input id="treasury-shards" type="number" min="0" value="0"> szt.</label></div><label class="sr-only" for="treasury-notes">Notatki skarbca</label><textarea id="treasury-notes" placeholder="Skarby i notatki…" rows="2"></textarea></div>
+      <div><h2>Magazyn bandy</h2><label class="sr-only" for="stored-equipment">Ekwipunek w magazynie</label><textarea id="stored-equipment" placeholder="Ekwipunek przechowywany w obozie…" rows="5"></textarea></div>
+    </section>
+    <details id="validation" class="validation no-print" open><summary id="validation-title">Sprawdzenie rozpiski</summary><div id="validation-list"></div></details>
+    <details id="glossary" class="glossary"><summary><span class="section-number">02</span> Zasady i opisy</summary><label class="print-option no-print"><input id="print-glossary" type="checkbox"> Dołącz opisy do wydruku</label><div id="glossary-list"></div></details>
+    <footer><span>MORDHEIM / DRACHENFELS</span><span>Każdy wojownik ma swoją historię.</span><span class="no-print">Zapis lokalny w tej przeglądarce</span></footer>
+  </main>
+  <dialog id="picker"><div class="dialog-heading"><div><p class="eyebrow">REKRUTACJA</p><h2>Dodaj wojownika</h2></div><button data-close="picker" class="icon-button" aria-label="Zamknij rekrutację">×</button></div><label class="sr-only" for="fighter-search">Szukaj wojownika</label><input id="fighter-search" type="search" placeholder="Szukaj typu lub rasy…"><div id="template-list"></div></dialog>
+  <dialog id="editor" class="editor"><div class="dialog-heading"><div><p class="eyebrow">KARTA WOJOWNIKA</p><h2 id="editor-title">Edycja wojownika</h2></div><button data-close="editor" class="icon-button" aria-label="Zamknij edycję">×</button></div><div id="editor-body"></div><div class="editor-footer"><button id="duplicate-fighter">Powiel</button><button id="delete-fighter" class="danger">Usuń wojownika</button><button data-close="editor" class="primary">Gotowe</button></div></dialog>
+  <dialog id="library"><div class="dialog-heading"><div><p class="eyebrow">LOKALNE ARCHIWUM</p><h2>Zapisane bandy</h2></div><button data-close="library" class="icon-button" aria-label="Zamknij zapisane bandy">×</button></div><div id="library-list"></div><button id="library-import">Importuj bandę z pliku</button></dialog>
+  <dialog id="create-band"><div class="dialog-heading"><h2>Nowa banda</h2><button data-close="create-band" class="icon-button" aria-label="Zamknij nową bandę">×</button></div><form id="create-band-form"><label>Nazwa bandy<input name="name" required maxlength="120" value="Nowa banda"></label><label>Typ bandy<select name="type"><option value="awanturnicy">Awanturnicy</option><option value="sludzy_ciemnosci">Słudzy Ciemności</option></select></label><button class="primary" type="submit">Utwórz bandę</button></form></dialog>
+  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <script src="lz-string.min.js"></script>
+  <script type="module" src="src/app.mjs"></script>
+</body>
+</html>
