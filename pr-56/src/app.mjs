@@ -42,7 +42,7 @@ function renderRoster(){
 function rowMarkup(f,index){
   const t=templateFor(f,catalog),issues=messages.filter(m=>m.fighterId===f.id),cost=fighterCost(f,catalog),maxima=racialMaxima(f,catalog);
   const advances=[2,4,6,8,11,14,17,20,24,28,32,36,41,46,51,57,63,69,76,83,90];
-  return `<article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
+  return `<div class="fighter-entry"><div class="fighter-order no-print" role="group" aria-label="Kolejność: ${esc(f.customName)}"><button type="button" data-move-fighter="${esc(f.id)}" data-direction="-1" ${index===0?'disabled':''} aria-label="Przesuń w górę: ${esc(f.customName)}" title="Przesuń w górę">↑</button><button type="button" data-move-fighter="${esc(f.id)}" data-direction="1" ${index===band.fighters.length-1?'disabled':''} aria-label="Przesuń w dół: ${esc(f.customName)}" title="Przesuń w dół">↓</button></div><article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
     <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
     <div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div>
     <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map(k=>`<td>${esc(f.stats[k])}</td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
@@ -50,7 +50,7 @@ function rowMarkup(f,index){
     <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(label(s))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
     <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika ↗</button></div></div>
     <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${Array.from({length:90},(_,n)=>`<button class="exp-box ${n<f.exp?'earned':''} ${advances.includes(n+1)?'advance':''}" data-xp="${n+1}" data-fighter="${esc(f.id)}" aria-label="Ustaw doświadczenie: ${n+1}" aria-pressed="${n<f.exp}" title="${n+1} PD"></button>`).join('')}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
-  </article>`;
+  </article></div>`;
 }
 function renderGlossary(){
   const entries=glossaryEntries(band,catalog);
@@ -109,6 +109,16 @@ function download(content,type,extension){const blob=new Blob([content],{type}),
 
 document.addEventListener('click',async event=>{
   const button=event.target.closest('button');if(!button)return;
+  if(button.dataset.moveFighter){
+    const id=button.dataset.moveFighter,direction=Number(button.dataset.direction);
+    const index=band.fighters.findIndex(fighter=>fighter.id===id),target=index+direction;
+    if(index<0 || ![-1,1].includes(direction) || target<0 || target>=band.fighters.length)return;
+    const [fighter]=band.fighters.splice(index,1);band.fighters.splice(target,0,fighter);changed();
+    const controls=[...document.querySelectorAll('[data-move-fighter]')].filter(control=>control.dataset.moveFighter===id);
+    const focus=controls.find(control=>control.dataset.direction===String(direction) && !control.disabled) || controls.find(control=>!control.disabled);
+    focus?.focus({preventScroll:true});focus?.scrollIntoView({block:'nearest',inline:'nearest'});
+    return;
+  }
   if(button.dataset.close){$(button.dataset.close).close();return;}
   if(button.dataset.edit){openEditor(button.dataset.edit);return;}
   if(button.dataset.xp){const f=band.fighters.find(x=>x.id===button.dataset.fighter);const xp=number(button.dataset.xp);f.exp=f.exp===xp?xp-1:xp;changed();return;}
@@ -134,7 +144,7 @@ document.addEventListener('click',async event=>{
     }
     case 'duplicate-fighter':{const copy=duplicateFighter(selected());band.fighters.splice(band.fighters.findIndex(f=>f.id===selectedId)+1,0,copy);changed();openEditor(copy.id);break;}
     case 'delete-fighter':{const i=band.fighters.findIndex(f=>f.id===selectedId),removed=band.fighters.splice(i,1)[0];$('editor').close();changed();notice(`Usunięto: ${removed.customName}.`,()=>{band.fighters.splice(i,0,removed);changed();});break;}
-    case 'apply-template':{const t=catalog.fighters.find(x=>x.name===$('replace-template').value);if(!t)return;const old=structuredClone(selected()),i=band.fighters.findIndex(f=>f.id===selectedId);const replacement=createFighter(t,catalog);replacement.id=old.id;replacement.customName=old.customName;band.fighters[i]=replacement;changed();openEditor(old.id);notice('Zmieniono szablon wojownika.',()=>{band.fighters[i]=old;changed();if($('editor').open)openEditor(old.id);});break;}
+    case 'apply-template':{const t=catalog.fighters.find(x=>x.name===$('replace-template').value);if(!t)return;const old=structuredClone(selected()),i=band.fighters.findIndex(f=>f.id===selectedId);const replacement=createFighter(t,catalog);replacement.id=old.id;replacement.customName=old.customName;band.fighters[i]=replacement;changed();openEditor(old.id);notice('Zmieniono szablon wojownika.',()=>{const index=band.fighters.findIndex(f=>f.id===old.id);if(index>=0)band.fighters[index]=old;changed();if($('editor').open)openEditor(old.id);});break;}
   }
 });
 const editor=$('editor');
