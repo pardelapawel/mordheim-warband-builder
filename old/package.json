@@ -1,0 +1,9 @@
+{
+  "name": "mordheim-warband-builder",
+  "version": "1.0.0",
+  "description": "Mordheim Warband Builder",
+  "scripts": {
+    "prepare:pages": "node ./scripts/preparePages.js",
+    "test": "node --test ./tests/*.test.js"
+  }
+}
