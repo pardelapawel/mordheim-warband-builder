@@ -1,11 +1,4 @@
-(function (root, factory) {
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory();
-    } else {
-        root.FighterSkillUtils = factory();
-    }
-}(typeof self !== 'undefined' ? self : this, function () {
-    'use strict';
+
 
     function normalizeSkillName(name) {
         return String(name || '').trim().toLowerCase();
@@ -199,7 +192,7 @@
         return getSkillEntryNames(skillName).some(name => allowedNames.has(name));
     }
 
-    return {
+export {
         normalizeSkillName,
         createSimpleSkillEntry,
         createGroupedSkillEntry,
@@ -215,4 +208,3 @@
         getTemplateAllowedSkillNames,
         isSkillAllowedForTemplate
     };
-}));
