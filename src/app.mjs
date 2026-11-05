@@ -1,4 +1,4 @@
-import {normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
@@ -19,7 +19,7 @@ let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedSto
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
 function notice(message,undo=null){$('notice').hidden=!message;$('notice').textContent=message;undoAction=undo;if(undo){const button=document.createElement('button');button.textContent='Cofnij';button.style.marginLeft='12px';button.onclick=()=>{const action=undoAction;undoAction=null;action?.();notice('Przywrócono.');};$('notice').append(button);}}
 function shareNotice(url,copied){
-  notice(copied?'Skopiowano link do bandy. Link zawiera bieżącą wersję rozpiski.':'Nie udało się skopiować linku. Możesz zaznaczyć i skopiować go poniżej.');
+  notice(copied?'Skopiowano link do bandy. Link zawiera bieżącą wersję rozpiski, bez zdjęć.':'Nie udało się skopiować linku. Możesz zaznaczyć i skopiować go poniżej.');
   const label=document.createElement('label');label.className='share-link';label.textContent='Link';
   const input=document.createElement('input');input.id='share-link';input.type='text';input.readOnly=true;input.value=url;input.setAttribute('aria-label','Link do bandy');
   input.addEventListener('click',()=>input.select());label.append(input);$('notice').append(label);
@@ -198,7 +198,7 @@ document.addEventListener('click',async event=>{
     case 'new-band':$('create-band').showModal();break;
     case 'library-button':renderLibrary();$('library').showModal();break;
     case 'import-button':case 'library-import':$('import-file').click();break;
-    case 'export-json':download(JSON.stringify(band,null,2),'application/json','json');break;
+    case 'export-json':download(JSON.stringify(exportBand(band),null,2),'application/json','json');break;
     case 'export-text':download(textExport(band,catalog),'text/plain;charset=utf-8','txt');break;
     case 'print-button':document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();window.print();break;
     case 'share-button':{

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {normalizePictureCrop,newBand,createFighter,duplicateFighter,normalizeBand,summary,fighterCost,glossaryEntries,textExport,skillChoices,slug} from '../src/model.mjs';
+import {exportBand,normalizePictureCrop,newBand,createFighter,duplicateFighter,normalizeBand,summary,fighterCost,glossaryEntries,textExport,skillChoices,slug} from '../src/model.mjs';
 import {validateBand,equipmentIssue} from '../src/rules.mjs';
 import {readLibrary,writeLibrary,STORAGE_KEY,encodeShare,decodeShare} from '../src/storage.mjs';
 import {selectGroupedSkillOption} from '../src/skills.mjs';
@@ -108,14 +108,14 @@ test('deployment packages only active Polish runtime',()=>{
   const {preparePages}=require('../scripts/preparePages.cjs');const rootDir=fileURLToPath(new URL('..',import.meta.url));const outDir=fileURLToPath(new URL('../tmp/test-pages',import.meta.url));fs.mkdirSync(outDir+'/data/mordheimer',{recursive:true});fs.writeFileSync(outDir+'/data/mordheimer/stale.json','{}');const result=preparePages({rootDir,outDir});assert.ok(fs.existsSync(result+'/src/app.mjs'));assert.ok(fs.existsSync(result+'/data/drachenfels/equipment.json'));assert.ok(!fs.existsSync(result+'/old'));assert.ok(!fs.existsSync(result+'/data/mordheimer'));const html=fs.readFileSync(result+'/index.html','utf8');assert.match(html,/<html lang="pl">/);assert.throws(()=>preparePages({rootDir,outDir:rootDir+'/src'}));
 });
 
-test('fighter pictures and their visibility survive save, import, sharing and duplication',()=>{
+test('fighter pictures survive local save, legacy import and duplication, while sharing omits them',()=>{
   const b=newBand();b.showPictures=false;b.fighters=[recruit('Kapitan Najemników')];
   b.fighters[0].picture='data:image/jpeg;base64,/9j/';
   const imported=normalizeBand(JSON.parse(JSON.stringify(b)));
   assert.equal(imported.showPictures,false);assert.equal(imported.fighters[0].picture,b.fighters[0].picture);
   const store=storage();writeLibrary(store,[imported],imported.id);
   assert.equal(readLibrary(store).bands[0].fighters[0].picture,b.fighters[0].picture);
-  assert.equal(decodeShare(encodeShare(imported,codec),codec).fighters[0].picture,b.fighters[0].picture);
+  assert.equal(decodeShare(encodeShare(imported,codec),codec).fighters[0].picture,'');
   const copy=duplicateFighter(imported.fighters[0]);copy.picture='';assert.equal(imported.fighters[0].picture,b.fighters[0].picture);
   delete b.showPictures;delete b.fighters[0].picture;const legacy=normalizeBand(b);
   assert.equal(legacy.showPictures,true);assert.equal(legacy.fighters[0].picture,'');
@@ -127,13 +127,29 @@ test('imported pictures accept bounded embedded raster data and discard other so
   }
 });
 
-test('portrait framing is bounded and preserved across import, duplication and sharing',()=>{
+test('portrait framing is bounded and preserved locally but omitted from sharing',()=>{
   assert.deepEqual(normalizePictureCrop(),{x:50,y:50,zoom:1});
   assert.deepEqual(normalizePictureCrop({x:-10,y:120,zoom:9}),{x:0,y:100,zoom:3});
   assert.deepEqual(normalizePictureCrop({x:NaN,y:'40',zoom:Infinity}),{x:50,y:50,zoom:1});
   const b=newBand();b.fighters=[recruit('Kapitan Najemników')];
   b.fighters[0].pictureCrop={x:23,y:78,zoom:1.65};
   const imported=normalizeBand(b);assert.deepEqual(imported.fighters[0].pictureCrop,b.fighters[0].pictureCrop);
-  assert.deepEqual(decodeShare(encodeShare(imported,codec),codec).fighters[0].pictureCrop,b.fighters[0].pictureCrop);
+  assert.deepEqual(decodeShare(encodeShare(imported,codec),codec).fighters[0].pictureCrop,{x:50,y:50,zoom:1});
   const copy=duplicateFighter(imported.fighters[0]);copy.pictureCrop.x=99;assert.equal(imported.fighters[0].pictureCrop.x,23);
+});
+
+test('all outbound formats omit pictures and cropping without changing local fighter data',()=>{
+  const b=newBand(),c=catalog();b.fighters=[recruit('Kapitan Najemników',c),recruit('Ludzki Młodzik',c)];
+  b.fighters[0].picture='data:image/jpeg;base64,/9j/';b.fighters[0].pictureCrop={x:20,y:80,zoom:2};
+  b.fighters[0].notes='Notatki wojownika';const original=structuredClone(b);
+  const exported=exportBand(b),json=JSON.stringify(exported),shared=encodeShare(b,codec),source=shared.replace(/-/g,'+').replace(/_/g,'/');
+  const sharedData=JSON.parse(codec.decompressFromBase64(source.padEnd(Math.ceil(source.length/4)*4,'=')));
+  for(const outgoing of [exported,sharedData]){
+    assert.deepEqual(outgoing.fighters.map(f=>f.customName),b.fighters.map(f=>f.customName));
+    for(const fighter of outgoing.fighters){assert.ok(!Object.hasOwn(fighter,'picture'));assert.ok(!Object.hasOwn(fighter,'pictureCrop'));}
+  }
+  for(const output of [json,textExport(b,c)])assert.ok(!output.includes('data:image/'));
+  assert.equal(normalizeBand(exported).fighters[0].picture,'');assert.deepEqual(b,original);
+  const store=storage();writeLibrary(store,[b],b.id);assert.equal(readLibrary(store).bands[0].fighters[0].picture,b.fighters[0].picture);
+  exported.fighters[0].stats.m=99;assert.equal(b.fighters[0].stats.m,original.fighters[0].stats.m);
 });
