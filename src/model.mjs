@@ -9,12 +9,17 @@ export const BAND_TYPES = {awanturnicy:'Awanturnicy', sludzy_ciemnosci:'Słudzy 
 export const uid = () => globalThis.crypto.randomUUID();
 export const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ł/g,'l').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
 export const number = value => Math.max(0, Math.min(1000000, Number(value) || 0));
+export const normalizePicture = value => typeof value==='string' && value.length<=200000 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
+export function normalizePictureCrop(crop) {
+  const bounded=(value,min,max,fallback)=>typeof value==='number' && Number.isFinite(value)?Math.max(min,Math.min(max,value)):fallback;
+  return {x:bounded(crop?.x,0,100,50),y:bounded(crop?.y,0,100,50),zoom:bounded(crop?.zoom,1,3,1)};
+}
 export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy') {
-  return {schemaVersion:2,rulesRevision:3,id:uid(),name:'Nowa banda',phase:'recruitment',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
+  return {schemaVersion:2,rulesRevision:3,id:uid(),name:'Nowa banda',showPictures:true,phase:'recruitment',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
 }
 export function createFighter(template, catalog) {
-  const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:''};
+  const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:'',picture:'',pictureCrop:normalizePictureCrop()};
   if (template.type !== 'Zwierzak' && template.race !== 'Ogr' && !template.requirements?.noEquipment) fighter.equipment.push({name:'Sztylet',cost:0,originCategory:'melee_weapons'});
   return fighter;
 }
@@ -36,13 +41,13 @@ export function normalizeBand(raw) {
     let id = typeof f.id === 'string' && f.id ? f.id : uid();
     if (usedIds.has(id)) id = uid();
     usedIds.add(id);
-    const cleaned = {...f};
+    const cleaned = {...f,picture:normalizePicture(f.picture),pictureCrop:normalizePictureCrop(f.pictureCrop)};
     delete cleaned.save;
     cleaned.recruitmentComplete=f.recruitmentComplete===true;
     cleaned.recruitmentUpgrades={extraWound:f.recruitmentUpgrades?.extraWound===true,weaponSkill:f.recruitmentUpgrades?.weaponSkill===true,mercenaryAdvance:['ws','bs'].includes(f.recruitmentUpgrades?.mercenaryAdvance)?f.recruitmentUpgrades.mercenaryAdvance:''};
     return {...cleaned,id,customName:String(f.customName || f.type || 'Wojownik'),type:String(f.type || f.templateName || ''),templateName:String(f.templateName || f.typeId || f.type || ''),baseCost:number(f.baseCost),exp:number(f.exp),stats:Object.fromEntries(STAT_KEYS.map(k=>[k,String(f.stats[k] ?? 0)])),maxStats:f.maxStats && typeof f.maxStats === 'object'?f.maxStats:{},equipment:f.equipment.map(e=>{if(!e || typeof e !== 'object') throw new Error('Nieprawidłowy ekwipunek.'); return {...e,name:String(e.name || ''),cost:number(e.cost)};}),skills:(f.skills || []).map(s=>typeof s==='string'?{name:s}:s).filter(s=>s && typeof s==='object'),injuries:String(f.injuries || ''),notes:String(f.notes || '')};
   });
-  return {...base,...raw,schemaVersion:2,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId:'Drachenfels',name:String(raw.name || 'Nowa banda'),fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury},storedEquipment:String(raw.storedEquipment || '')};
+  return {...base,...raw,schemaVersion:2,showPictures:raw.showPictures!==false,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId:'Drachenfels',name:String(raw.name || 'Nowa banda'),fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury},storedEquipment:String(raw.storedEquipment || '')};
 }
 export function templateFor(fighter,catalog) { return catalog.fighters.find(t=>[fighter.templateName,fighter.typeId,fighter.type].includes(t.name)); }
 export function skillChoices(fighter,catalog) {
