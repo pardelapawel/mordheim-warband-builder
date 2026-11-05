@@ -1,0 +1,46 @@
+{
+  "sources": {
+    "racialMaxima": "Mordheim SN Drachenfels.pdf, str. 34",
+    "comparison": "https://mordheimer.net/docs/campaigns/experience#racial-maximum-characteristics",
+    "difference": "Zwierzoczłek: Drachenfels M 4; Mordheimer Other Beastmen M 5. Używamy Drachenfels.",
+    "mutations": "Mordheim SN Drachenfels.pdf, str. 31; extracted_markdown/page_31.md"
+  },
+  "racialMaxima": {
+    "Człowiek": {"m":4,"ws":6,"bs":6,"s":4,"t":4,"w":3,"i":6,"a":4,"ld":9},
+    "Elf": {"m":5,"ws":7,"bs":7,"s":4,"t":4,"w":3,"i":9,"a":4,"ld":10},
+    "Krasnolud": {"m":3,"ws":7,"bs":6,"s":4,"t":5,"w":3,"i":5,"a":4,"ld":10},
+    "Ogr": {"m":6,"ws":6,"bs":5,"s":5,"t":5,"w":5,"i":6,"a":5,"ld":9},
+    "Niziołek": {"m":4,"ws":5,"bs":7,"s":3,"t":3,"w":3,"i":9,"a":4,"ld":10},
+    "Ork": {"m":4,"ws":6,"bs":6,"s":4,"t":5,"w":3,"i":5,"a":4,"ld":9},
+    "Goblin": {"m":4,"ws":5,"bs":6,"s":4,"t":4,"w":3,"i":6,"a":4,"ld":7},
+    "Zwierzoczłek": {"m":4,"ws":7,"bs":6,"s":4,"t":5,"w":4,"i":6,"a":4,"ld":9},
+    "Opętany": {"m":6,"ws":8,"bs":0,"s":6,"t":6,"w":4,"i":7,"a":5,"ld":10},
+    "Wampir": {"m":6,"ws":8,"bs":6,"s":7,"t":6,"w":4,"i":9,"a":4,"ld":10},
+    "Ghoul": {"m":5,"ws":5,"bs":2,"s":4,"t":5,"w":3,"i":5,"a":5,"ld":7},
+    "Skaven": {"m":6,"ws":6,"bs":6,"s":4,"t":4,"w":3,"i":7,"a":4,"ld":7}
+  },
+  "templateProfiles": {
+    "Wampir": "Wampir",
+    "Wampir Renegat": "Wampir",
+    "Szef Orkóf": "Ork",
+    "Szaman Orkóf": "Ork",
+    "Ork": "Ork",
+    "Goblin": "Goblin",
+    "Ghoul": "Ghoul"
+  },
+  "mutationEligibleTemplates": ["Mutant", "Opętany"],
+  "mutationRequiredTemplates": ["Mutant"],
+  "mutationRulesDescription": "Mutacje można kupować wyłącznie podczas rekrutacji Mutanta lub Opętanego, nie Wulfena. Mutant musi rozpocząć grę z co najmniej jedną mutacją; Opętany może je wybrać. Pierwsza mutacja ma cenę z listy, każda kolejna kosztuje dwukrotność swojej ceny.",
+  "mutations": [
+    {"name":"Dusza demona","cost":20,"description":"Rzut obronny na 4+ przeciw efektom czarów lub modlitw."},
+    {"name":"Wielki Szpon","cost":50,"description":"Szpon lub szczypce zamiast ręki: nie może nic w niej trzymać; daje dodatkowy atak z +1 Siły."},
+    {"name":"Rozszczepione kopyta","cost":40,"description":"Model otrzymuje +1 Szybkości."},
+    {"name":"Macka","cost":35,"description":"Macka zamiast ręki łapie broń przeciwnika. Przeciwnik traci 1 wybrany atak, do minimum 1; maksymalnie 1 atak w całej rundzie walki."},
+    {"name":"Czarna posoka","cost":30,"description":"Po utracie rany w walce wręcz wszystkie modele w kontakcie otrzymują uderzenie z Siłą 3 od kwasowej krwi, bez trafień krytycznych."},
+    {"name":"Kolce","cost":35,"description":"Każdy model w kontakcie otrzymuje uderzenie z Siłą 1 na początku każdej fazy walki. Kolce nie zadają trafień krytycznych."},
+    {"name":"Ogon skorpiona","cost":40,"description":"Dodatkowy Atak z Siłą 5 w każdej rundzie walki; Siła 2 przeciw modelowi odpornemu na trucizny."},
+    {"name":"Dodatkowe ramię","cost":40,"description":"Dodatkowa ręka może używać broni ręcznej, tarczy lub puklerza, dodając +1 Atak tą bronią wraz z jej bonusami. Opętany otrzymuje +1 Atak, ale nie może nic trzymać w dodatkowej ręce."},
+    {"name":"Ohydny","cost":40,"description":"Model budzi Strach."},
+    {"name":"Różki","cost":10,"description":"Nie dają żadnego efektu, ale ładnie wyglądają."}
+  ]
+}
