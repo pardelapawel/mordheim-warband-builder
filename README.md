@@ -1,5 +1,7 @@
 # Mordheim — Księga bandy
 
+Wersja online: [Mordheim — Księga bandy](https://pardelapawel.github.io/mordheim-warband-builder/).
+
 Polska rozpiska bandy dla zasad Drachenfels. Interfejs odtwarza układ wpisów z dołączonego pustego arkusza: jeden wojownik to jeden szeroki wiersz, z profilem, umiejętnościami, ekwipunkiem, obrażeniami i torem doświadczenia. Skróty statystyk pozostają angielskie.
 
 Uruchom `npm start`, następnie otwórz http://127.0.0.1:4173. Nie otwieraj aplikacji przez `file://` — moduły i katalogi wymagają serwera HTTP. Wystarczy Node.js 20 lub nowszy; instalowanie zależności nie jest konieczne.
@@ -14,11 +16,12 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 
 ## Obsługa
 
-- Dodaj wojownika z katalogu i edytuj jego profil w panelu. Zmiany zapisują się lokalnie. Wojowników można powielać; usunięcie i zastąpienie szablonu można cofnąć.
+- Dodaj wojownika z katalogu. Imię i charakterystyki można zmieniać bezpośrednio w rozpisce; pełny profil pozostaje dostępny w panelu edycji. Zmiany zapisują się lokalnie. Przyciski + i × po lewej stronie wiersza powielają i usuwają wojownika; usunięcie można cofnąć.
+- Zdjęcie wojownika dodaje się po lewej stronie wiersza. Kadrowanie pozwala zmieniać powiększenie i położenie; ustawienia zapisują się razem z wojownikiem. Przełącznik „Zdjęcia wojowników” pokazuje lub ukrywa całą kolumnę bez usuwania zdjęć.
 - Strzałki po lewej stronie każdego wiersza przesuwają wojownika o jedno miejsce w górę lub w dół. Kolejność zapisuje się automatycznie i obowiązuje także przy drukowaniu, eksporcie i udostępnianiu.
 - Zachowane są dwa typy band: Awanturnicy i Słudzy Ciemności. Każda nowa banda otrzymuje osobny identyfikator; identyczne nazwy nie nadpisują zapisów.
 - Eksport JSON służy jako przenośna kopia zapasowa. Import i otwieranie linku tworzą osobny zapis i ładują właściwy katalog. Eksport tekstowy pobiera plik bez opuszczania aplikacji.
-- „Drukuj / PDF” używa drukowania przeglądarki w formacie A4. Opisy zasad można dołączyć do wydruku. Długie wpisy rosną wraz z treścią; wpis wojownika nie jest dzielony między strony, o ile mieści się na jednej stronie.
+- „Drukuj / PDF” używa drukowania przeglądarki w formacie A4. Sekcja „Zasady i opisy” jest domyślnie otwarta, a opisy dołączane do wydruku; można je wyłączyć. Tor doświadczenia mieści się w jednym wierszu, gdy pozwala na to szerokość; na A4 w pionie drukuje się w dwóch równych wierszach. Długie wpisy rosną wraz z treścią; wpis wojownika nie jest dzielony między strony, o ile mieści się na jednej stronie.
 - Profil zawiera dziewięć charakterystyk: M, WS, BS, S, T, W, I, A i Ld. Program nie zmienia profilu automatycznie po dodaniu ekwipunku lub umiejętności.
 - Maksima rasowe uzupełniają się automatycznie według tabeli Drachenfels ze str. 34, również dla istniejących zapisów. Można zachować ręczne wyjątki i przywrócić wartości z tabeli. Zwierzaki bez własnego profilu w tej tabeli pozostają bez automatycznych limitów; ghoul ma własny profil. Zwierzoczłek ma M 4 zgodnie z Drachenfels (Mordheimer podaje M 5).
 - Ceny mutacji pochodzą ze str. 31 Drachenfels: pierwsza ma cenę podstawową, każda następna dwukrotność swojej ceny, w kolejności dodawania. Usunięcie mutacji przelicza pozostałe koszty. Wczytanie starego zapisu aktualizuje ceny mutacji, zachowując ich kolejność. Mutacje są dostępne dla Mutanta i Opętanego, nie dla Wulfena; zgodnie z podręcznikiem kupuje się je podczas rekrutacji. Mutant musi wybrać co najmniej jedną; u Opętanego są opcjonalne.
