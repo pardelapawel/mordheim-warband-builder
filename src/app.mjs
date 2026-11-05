@@ -1,4 +1,4 @@
-import {STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
@@ -14,6 +14,7 @@ const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths=[['Bojowe','Bojowe'],['Strzeleckie','Strzeleckie'],['Akademickie','Akademickie'],['Siłowe','Siłowe'],['Szybkościowe','Szybkościowe'],['Specjalne','Specjalne']];
 const categories={melee_weapons:'Broń do walki wręcz',ranged_weapons:'Broń strzelecka',armor:'Pancerz',miscellaneous:'Przedmioty',items:'Przedmioty'};
+let pictureTarget=null,pictureCropId=null;
 let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedStorage=false,undoAction=null;
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
 function notice(message,undo=null){$('notice').hidden=!message;$('notice').textContent=message;undoAction=undo;if(undo){const button=document.createElement('button');button.textContent='Cofnij';button.style.marginLeft='12px';button.onclick=()=>{const action=undoAction;undoAction=null;action?.();notice('Przywrócono.');};$('notice').append(button);}}
@@ -31,12 +32,15 @@ function save(){
   $('library-count').textContent=bands.length;
 }
 function changed(){save();renderRoster();}
-function renderRoster(){
+function renderRoster(refreshRows=true){
   if(!band||!catalog)return;
+  $('show-pictures').checked=band.showPictures!==false;
+  $('roster').classList.toggle('pictures-visible',band.showPictures!==false);
   const totals=summary(band,catalog);messages=validateBand(band,catalog);
   $('total-count').textContent=totals.count;$('total-cost').innerHTML=`${totals.cost} <small>zk</small>`;$('total-rating').textContent=totals.rating;
   $('roster-count').textContent=totals.count?`/ ${totals.count}`:'';$('band-type-label').textContent=BAND_TYPES[band.warbandTypeId];
-  $('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):`<div class="empty-roster"><span class="empty-symbol" aria-hidden="true">✦</span><h2>Tu zaczyna się historia twojej bandy.</h2><p>Zwerbuj lidera, dobierz wojowników i przygotuj ich na wyprawę.<br>Każdy z nich otrzyma własny wiersz w rozpisce.</p></div>`;
+  if(refreshRows)$('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):`<div class="empty-roster"><span class="empty-symbol" aria-hidden="true">✦</span><h2>Tu zaczyna się historia twojej bandy.</h2><p>Zwerbuj lidera, dobierz wojowników i przygotuj ich na wyprawę.<br>Każdy z nich otrzyma własny wiersz w rozpisce.</p></div>`;
+  else $('roster').querySelectorAll('.fighter-row').forEach(row=>{const count=messages.filter(m=>m.fighterId===row.dataset.id).length;row.querySelector('.row-warning').textContent=count?warningCount(count):'';});
   $('rating-breakdown').innerHTML=`<div class="rating-line"><span>Wojownicy (${totals.count-totals.large} × 5)</span><span>${(totals.count-totals.large)*5}</span></div><div class="rating-line"><span>Duże modele (${totals.large} × 20)</span><span>${totals.large*20}</span></div><div class="rating-line"><span>Doświadczenie łącznie</span><span>${totals.exp}</span></div><div class="rating-line"><span>Siła bandy</span><span>${totals.rating}</span></div>`;
   const errors=messages.filter(m=>m.severity==='error').length;
   $('validation-title').textContent=`Sprawdzenie rozpiski · ${errors?errorCount(errors):'bez błędów'}${messages.length-errors?` · ${warningCount(messages.length-errors)}`:''}`;
@@ -46,15 +50,43 @@ function renderRoster(){
 function rowMarkup(f,index){
   const t=templateFor(f,catalog),issues=messages.filter(m=>m.fighterId===f.id),cost=fighterCost(f,catalog),maxima=racialMaxima(f,catalog);
   const advances=[2,4,6,8,11,14,17,20,24,28,32,36,41,46,51,57,63,69,76,83,90];
-  return `<div class="fighter-entry"><div class="fighter-order no-print" role="group" aria-label="Kolejność: ${esc(f.customName)}"><button type="button" data-move-fighter="${esc(f.id)}" data-direction="-1" ${index===0?'disabled':''} aria-label="Przesuń w górę: ${esc(f.customName)}" title="Przesuń w górę">↑</button><button type="button" data-move-fighter="${esc(f.id)}" data-direction="1" ${index===band.fighters.length-1?'disabled':''} aria-label="Przesuń w dół: ${esc(f.customName)}" title="Przesuń w dół">↓</button></div><article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
-    <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
-    <div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div>
-    <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map(k=>`<td>${esc(f.stats[k])}</td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
+  return `<div class="fighter-entry"><div class="fighter-order no-print" role="group" aria-label="Akcje wojownika: ${esc(f.customName)}"><button type="button" data-move-fighter="${esc(f.id)}" data-direction="-1" ${index===0?'disabled':''} aria-label="Przesuń w górę: ${esc(f.customName)}" title="Przesuń w górę">↑</button><button type="button" data-move-fighter="${esc(f.id)}" data-direction="1" ${index===band.fighters.length-1?'disabled':''} aria-label="Przesuń w dół: ${esc(f.customName)}" title="Przesuń w dół">↓</button><button type="button" data-duplicate-fighter="${esc(f.id)}" aria-label="Duplikuj: ${esc(f.customName)}" title="Duplikuj wojownika">+</button><button type="button" class="danger" data-delete-fighter="${esc(f.id)}" aria-label="Usuń: ${esc(f.customName)}" title="Usuń wojownika">×</button></div><article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
+    <div class="fighter-portrait"><button type="button" class="portrait-upload" ${f.picture?'data-crop-picture':'data-picture'}="${esc(f.id)}" aria-label="${f.picture?'Kadruj':'Dodaj'} zdjęcie: ${esc(f.customName)}">${f.picture?`<img src="${esc(f.picture)}" style="${pictureStyle(f)}" alt="${esc(f.customName)}"><span class="portrait-caption no-print">Kadruj zdjęcie</span>`:'<span class="portrait-placeholder no-print" aria-hidden="true">+<small>Dodaj zdjęcie</small></span>'}</button>${f.picture?`<button type="button" class="portrait-remove no-print" data-remove-picture="${esc(f.id)}" aria-label="Usuń zdjęcie: ${esc(f.customName)}" title="Usuń zdjęcie">×</button>`:''}</div>
+    <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name" contenteditable="plaintext-only" data-fighter-name role="textbox" aria-label="Imię wojownika: ${esc(f.customName)}" aria-multiline="false" spellcheck="false">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
+    <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map((k,i)=>`<td><input class="stat-input no-print" data-stat="${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}: ${esc(f.customName)}" title="Zmień ${STAT_LABELS[i]}" autocomplete="off" spellcheck="false"><span class="stat-print">${esc(f.stats[k])}</span></td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
     <div class="profile-bottom"><span class="role-stamp">${esc(t?.type || f.race || 'Wojownik')}</span><span class="maxima-label">↑ Maksimum rasowe</span><strong>${cost} zk</strong></div></div>
-    <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(skillDisplay(s,catalog))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
+    <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(skillDisplay(s,catalog))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
     <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika ↗</button></div></div>
-    <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${Array.from({length:90},(_,n)=>`<button class="exp-box ${n<f.exp?'earned':''} ${advances.includes(n+1)?'advance':''}" data-xp="${n+1}" data-fighter="${esc(f.id)}" aria-label="Ustaw doświadczenie: ${n+1}" aria-pressed="${n<f.exp}" title="${n+1} PD"></button>`).join('')}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
+    <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${experienceMarkup(f,advances)}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
   </article></div>`;
+}
+function experienceMarkup(f,advances){
+  const boxes=Array.from({length:90},(_,n)=>`<button class="exp-box ${n<f.exp?'earned':''} ${advances.includes(n+1)?'advance':''}" data-xp="${n+1}" data-fighter="${esc(f.id)}" aria-label="Ustaw doświadczenie: ${n+1}" aria-pressed="${n<f.exp}" title="${n+1} PD"></button>`);
+  return [boxes.slice(0,45),boxes.slice(45)].map(half=>`<div class="experience-half">${half.join('')}</div>`).join('');
+}
+function pictureStyle(fighter){
+  const {x,y,zoom}=normalizePictureCrop(fighter.pictureCrop);
+  return `--portrait-x:${x}%;--portrait-y:${y}%;--portrait-zoom:${zoom}`;
+}
+function updatePictureCrop(){
+  const fighter=band.fighters.find(f=>f.id===pictureCropId);if(!fighter)return;
+  const crop=normalizePictureCrop(fighter.pictureCrop);
+  for(const key of ['x','y','zoom']){
+    $(`picture-${key}`).value=crop[key];
+    $(`picture-${key}-value`).textContent=key==='zoom'?`${Math.round(crop.zoom*100)}%`:`${crop[key]}%`;
+  }
+  $('picture-crop-image').style.cssText=pictureStyle(fighter);
+  const row=[...$('roster').querySelectorAll('.fighter-row')].find(row=>row.dataset.id===fighter.id);
+  const image=row?.querySelector('.fighter-portrait img');if(image)image.style.cssText=pictureStyle(fighter);
+}
+function openPictureCrop(id){
+  const fighter=band.fighters.find(f=>f.id===id);if(!fighter?.picture)return;
+  pictureCropId=id;$('picture-crop-image').src=fighter.picture;$('picture-crop-image').alt=fighter.customName;
+  const row=[...$('roster').querySelectorAll('.fighter-row')].find(row=>row.dataset.id===id);
+  const bounds=row.querySelector('.portrait-upload').getBoundingClientRect();
+  const scale=Math.min(260/bounds.width,340/bounds.height,innerWidth*0.7/bounds.width,innerHeight*0.4/bounds.height);
+  $('picture-crop-preview').style.width=`${bounds.width*scale}px`;$('picture-crop-preview').style.height=`${bounds.height*scale}px`;
+  updatePictureCrop();if(!$('picture-crop').open)$('picture-crop').showModal();
 }
 function renderGlossary(){
   const entries=glossaryEntries(band,catalog);
@@ -127,6 +159,31 @@ document.addEventListener('click',async event=>{
     focus?.focus({preventScroll:true});focus?.scrollIntoView({block:'nearest',inline:'nearest'});
     return;
   }
+  if(button.dataset.cropPicture){openPictureCrop(button.dataset.cropPicture);return;}
+  if(button.id==='replace-picture'){pictureTarget={bandId:band.id,fighterId:pictureCropId};$('fighter-picture-file').click();return;}
+  if(button.id==='reset-picture-crop'){
+    const fighter=band.fighters.find(f=>f.id===pictureCropId);if(fighter){fighter.pictureCrop=normalizePictureCrop();updatePictureCrop();save();}return;
+  }
+  if(button.dataset.picture){pictureTarget={bandId:band.id,fighterId:button.dataset.picture};$('fighter-picture-file').click();return;}
+  if(button.dataset.removePicture){
+    const fighter=band.fighters.find(f=>f.id===button.dataset.removePicture);if(!fighter)return;
+    const previous=fighter.picture;fighter.picture='';changed();
+    notice('Usunięto zdjęcie wojownika.',()=>{fighter.picture=previous;changed();});return;
+  }
+  if(button.dataset.duplicateFighter){
+    const index=band.fighters.findIndex(f=>f.id===button.dataset.duplicateFighter);if(index<0)return;
+    const copy=duplicateFighter(band.fighters[index]);band.fighters.splice(index+1,0,copy);changed();
+    [...document.querySelectorAll('[data-duplicate-fighter]')].find(control=>control.dataset.duplicateFighter===copy.id)?.focus({preventScroll:true});
+    return;
+  }
+  if(button.dataset.deleteFighter){
+    const index=band.fighters.findIndex(f=>f.id===button.dataset.deleteFighter);if(index<0)return;
+    const [removed]=band.fighters.splice(index,1);changed();
+    notice(`Usunięto: ${removed.customName}.`,()=>{band.fighters.splice(index,0,removed);changed();});
+    const controls=$('roster').querySelectorAll('[data-delete-fighter]');
+    (controls[Math.min(index,controls.length-1)] || $('add-fighter')).focus({preventScroll:true});
+    return;
+  }
   if(button.dataset.close){$(button.dataset.close).close();return;}
   if(button.dataset.edit){openEditor(button.dataset.edit);return;}
   if(button.dataset.xp){const f=band.fighters.find(x=>x.id===button.dataset.fighter);const xp=number(button.dataset.xp);f.exp=f.exp===xp?xp-1:xp;changed();return;}
@@ -167,6 +224,57 @@ editor.addEventListener('click',event=>{
   editorBackdropPress=false;
 });
 editor.addEventListener('close',()=>{editorBackdropPress=false;});
+function updateInlineName(input,commit=false){
+  const row=input.closest('.fighter-row'),fighter=band.fighters.find(f=>f.id===row?.dataset.id);if(!fighter)return;
+  let name=input.textContent.replace(/[\r\n]+/g,' ');
+  if(commit)name=name.trim() || fighter.type || 'Wojownik';
+  if(input.textContent!==name)input.textContent=name;
+  fighter.customName=name;row.setAttribute('aria-label',name);
+  const entry=row.closest('.fighter-entry');
+  entry.querySelector('.fighter-order').setAttribute('aria-label',`Akcje wojownika: ${name}`);
+  const controls=entry.querySelectorAll('[data-fighter-name],[data-edit],[data-stat],[data-move-fighter],[data-duplicate-fighter],[data-delete-fighter],[data-picture],[data-crop-picture],[data-remove-picture]');
+  controls.forEach(control=>{const label=control.getAttribute('aria-label');if(label?.includes(':'))control.setAttribute('aria-label',`${label.slice(0,label.indexOf(':')+1)} ${name}`);});
+  const image=row.querySelector('.fighter-portrait img');if(image)image.alt=name;
+  save();renderRoster(false);
+}
+$('roster').addEventListener('keydown',event=>{
+  if(event.target.hasAttribute('data-fighter-name') && event.key==='Enter' && !event.isComposing){event.preventDefault();event.target.blur();}
+});
+$('roster').addEventListener('focusout',event=>{if(event.target.hasAttribute('data-fighter-name'))updateInlineName(event.target,true);});
+$('roster').addEventListener('input',event=>{
+  const input=event.target,key=input.dataset.stat;
+  if(input.hasAttribute('data-fighter-name')){updateInlineName(input);return;}
+  if(!STAT_KEYS.includes(key))return;
+  const fighter=band.fighters.find(f=>f.id===input.closest('.fighter-row')?.dataset.id);if(!fighter)return;
+  fighter.stats[key]=input.value;input.nextElementSibling.textContent=input.value;
+  save();renderRoster(false);
+});
+$('picture-crop').addEventListener('input',event=>{
+  const key=event.target.dataset.cropField;if(!['x','y','zoom'].includes(key))return;
+  const fighter=band.fighters.find(f=>f.id===pictureCropId);if(!fighter)return;
+  fighter.pictureCrop=normalizePictureCrop({...normalizePictureCrop(fighter.pictureCrop),[key]:Number(event.target.value)});
+  updatePictureCrop();save();
+});
+$('show-pictures').addEventListener('change',()=>{band.showPictures=$('show-pictures').checked;save();renderRoster();});
+$('fighter-picture-file').addEventListener('change',async event=>{
+  const file=event.target.files[0],target=pictureTarget;event.target.value='';pictureTarget=null;if(!file || !target)return;
+  try{
+    if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw new Error('Wybierz plik JPG, PNG, WebP lub GIF.');
+    if(file.size>10000000)throw new Error('Zdjęcie jest zbyt duże (maks. 10 MB).');
+    const bitmap=await createImageBitmap(file);
+    let picture;
+    try{
+      const scale=Math.min(1,256/bitmap.width,320/bitmap.height),canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+      const context=canvas.getContext('2d');context.fillStyle='#fffdf7';context.fillRect(0,0,canvas.width,canvas.height);
+      context.drawImage(bitmap,0,0,canvas.width,canvas.height);picture=canvas.toDataURL('image/jpeg',0.85);
+    }finally{bitmap.close();}
+    if(band.id!==target.bandId)return;
+    const fighter=band.fighters.find(f=>f.id===target.fighterId);if(!fighter)return;
+    fighter.picture=picture;fighter.pictureCrop=normalizePictureCrop();changed();
+    openPictureCrop(fighter.id);
+  }catch(error){notice(`Nie udało się dodać zdjęcia. ${error.message}`);}
+});
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
 $('band-name').addEventListener('input',()=>{band.name=$('band-name').value;save();document.title=`${band.name} — Mordheim`;});

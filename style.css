@@ -352,7 +352,7 @@ main {
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:6px;
+  gap:4px;
   position:sticky;
   left:0;
   z-index:1;
@@ -360,9 +360,9 @@ main {
 }
 
 .fighter-order button {
-  padding:6px 0;
+  padding:4px 0;
   width:32px;
-  min-height:36px;
+  min-height:28px;
   font-size:18px;
   line-height:1;
 }
@@ -374,19 +374,203 @@ main {
 
 .fighter-row {
   display:grid;
-  grid-template-columns:33% 33% 34%;
-  grid-template-rows:minmax(137px,auto) auto;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:auto auto;
   background:var(--sheet);
   border:1.5px solid var(--ink);
-  border-radius:8px;
+  border-radius:5px;
   margin-bottom:13px;
   position:relative;
   min-width:850px;
   overflow:hidden
 }
 
-.fighter-profile {
+.picture-switch {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  cursor:pointer;
+  white-space:nowrap
+}
+
+.picture-switch input {
+  appearance:none;
+  flex-shrink:0;
+  padding:0;
+  width:30px;
+  height:18px;
+  margin:0;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--line);
+  cursor:pointer
+}
+
+.picture-switch input::before {
+  content:'';
+  display:block;
+  width:12px;
+  height:12px;
+  margin:2px;
+  border-radius:50%;
+  background:var(--sheet)
+}
+
+.picture-switch input:checked {
+  background:var(--green);
+  border-color:var(--green)
+}
+
+.picture-switch input:checked::before {
+  transform:translateX(12px)
+}
+
+.picture-switch input:focus-visible {
+  outline:2px solid var(--accent);
+  outline-offset:3px
+}
+
+.fighter-portrait {
+  display:none
+}
+
+.pictures-visible .fighter-entry {
+  grid-template-columns:32px minmax(980px,1fr);
+  min-width:1020px
+}
+
+.pictures-visible .fighter-row {
+  grid-template-columns:128px repeat(3,minmax(0,1fr))
+}
+
+.pictures-visible .fighter-portrait {
+  display:flex;
+  grid-column:1;
   grid-row:1/3;
+  position:relative;
+  border-right:1px solid var(--ink);
+  padding:0;
+  overflow:hidden;
+  background:var(--paper)
+}
+
+.pictures-visible .fighter-profile {
+  grid-column:2
+}
+
+.pictures-visible .skills-cell {
+  grid-column:3;
+  grid-row:1
+}
+
+.pictures-visible .equipment-cell {
+  grid-column:4;
+  grid-row:1
+}
+
+.pictures-visible .experience-cell {
+  grid-column:2/5
+}
+
+.portrait-upload {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  padding:0;
+  border:0;
+  border-radius:0;
+  overflow:hidden;
+  font-weight:400
+}
+
+.portrait-upload img,.crop-preview img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:var(--portrait-x,50%) var(--portrait-y,50%);
+  transform:scale(var(--portrait-zoom,1));
+  transform-origin:var(--portrait-x,50%) var(--portrait-y,50%)
+}
+
+.portrait-placeholder {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100%;
+  gap:8px;
+  color:var(--muted);
+  font-size:28px
+}
+
+.portrait-placeholder small,.portrait-caption {
+  font:10px Inter,Arial,sans-serif
+}
+
+.portrait-caption {
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:8px 3px;
+  background:#fffdf7df;
+  color:var(--ink)
+}
+
+.picture-crop {
+  width:min(460px,calc(100vw - 24px))
+}
+
+.crop-preview-area {
+  display:flex;
+  justify-content:center;
+  margin:16px 0
+}
+
+.crop-preview {
+  overflow:hidden;
+  background:var(--paper);
+  border:1px solid var(--line)
+}
+
+.crop-control {
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:6px;
+  margin:14px 0
+}
+
+.crop-control input {
+  grid-column:1/-1;
+  width:100%;
+  padding:0;
+  accent-color:var(--green)
+}
+
+.crop-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px
+}
+
+.fighter-portrait .portrait-remove {
+  position:absolute;
+  top:4px;
+  right:4px;
+  width:26px;
+  height:26px;
+  padding:0;
+  background:var(--sheet);
+  font-size:18px;
+  color:var(--red)
+}
+
+.fighter-profile {
+  grid-row:1;
   border-right:1px solid var(--ink);
   display:flex;
   flex-direction:column
@@ -395,26 +579,40 @@ main {
 .identity-line {
   display:flex;
   align-items:baseline;
-  gap:8px;
-  padding:7px 10px;
+  gap:6px;
+  padding:5px 8px;
   border-bottom:1px solid var(--line);
-  min-height:34px
+  min-height:0
 }
 
 .identity-line>span {
   font-family:'IM Fell English',Georgia,serif;
-  font-size:18px;
+  font-size:16px;
   flex-shrink:0
 }
 
 .fighter-name {
+  flex:1;
+  min-width:3ch;
+  cursor:text;
   font-family:'IM Fell English',Georgia,serif;
-  font-size:22px;
+  font-size:20px;
+  line-height:1.15;
   overflow-wrap:anywhere
 }
 
+.fighter-name[contenteditable]:hover {
+  background:var(--paper)
+}
+
+.fighter-name[contenteditable]:focus {
+  outline:1px solid var(--accent);
+  outline-offset:2px
+}
+
 .fighter-type {
-  font-size:12px
+  font-size:11px;
+  line-height:1.3
 }
 
 .row-number {
@@ -425,17 +623,20 @@ main {
 }
 
 .paths {
-  display:flex;
-  gap:7px;
-  padding:7px 10px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:4px 6px;
+  padding:0 0 6px;
   font:11px 'Barlow Condensed',Arial,sans-serif;
-  flex-wrap:wrap
+  margin-bottom:6px;
+  border-bottom:1px solid var(--line)
 }
 
 .path {
   display:flex;
   align-items:center;
-  gap:3px
+  gap:3px;
+  white-space:nowrap
 }
 
 .path::before {
@@ -461,14 +662,41 @@ main {
   font:11px 'Barlow Condensed',Arial,sans-serif;
   background:var(--ink);
   color:var(--sheet);
-  height:17px
+  height:15px
 }
 
 .stats td {
   border-right:1px solid var(--line);
   border-bottom:1px solid var(--line);
-  font:23px 'IM Fell English',Georgia,serif;
-  height:35px
+  font:21px/1.1 'IM Fell English',Georgia,serif;
+  height:29px
+}
+
+.stats .stat-input {
+  display:block;
+  width:100%;
+  min-width:0;
+  height:100%;
+  padding:2px 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  font:inherit;
+  text-align:center
+}
+
+.stats .stat-input:hover {
+  background:var(--paper)
+}
+
+.stats .stat-input:focus {
+  outline:2px solid var(--accent);
+  outline-offset:-2px;
+  background:var(--sheet)
+}
+
+.stat-print {
+  display:none
 }
 
 .stats td:last-child {
@@ -477,18 +705,18 @@ main {
 
 .stats tr.maxima td {
   font:11px Inter,Arial;
-  height:23px;
+  height:18px;
   color:var(--muted)
 }
 
 .profile-bottom {
-  padding:7px 10px;
+  padding:5px 8px;
   display:flex;
   justify-content:space-between;
   gap:7px;
   align-items:center;
   font-size:10px;
-  margin-top:auto
+  margin-top:0
 }
 
 .role-stamp {
@@ -504,16 +732,16 @@ main {
 }
 
 .row-section {
-  padding:10px 12px;
+  padding:8px 10px;
   min-width:0
 }
 
 .row-section h3 {
   font:11px 'Barlow Condensed',Arial,sans-serif;
   text-transform:uppercase;
-  letter-spacing:1.4px;
+  letter-spacing:1px;
   color:var(--muted);
-  margin-bottom:9px
+  margin-bottom:7px
 }
 
 .skills-cell {
@@ -521,7 +749,7 @@ main {
 }
 
 .row-content {
-  font:13px/1.7 'Barlow Condensed',Arial,sans-serif;
+  font:13px/1.45 'Barlow Condensed',Arial,sans-serif;
   overflow-wrap:anywhere
 }
 
@@ -545,13 +773,13 @@ main {
 }
 
 .equipment-cell .row-content {
-  flex:1
+  flex:0
 }
 
 .injury-line {
   border-top:1px solid var(--line);
-  padding-top:6px;
-  margin-top:10px;
+  padding-top:5px;
+  margin-top:7px;
   font-size:11px;
   white-space:pre-wrap
 }
@@ -562,20 +790,40 @@ main {
 }
 
 .experience-cell {
-  grid-column:2/4;
+  container:experience / inline-size;
+  grid-column:1/4;
+  grid-row:2;
   border-top:1px solid var(--ink);
   display:flex;
-  gap:15px;
+  gap:12px;
   align-items:center;
-  padding:10px 12px
+  padding:6px 8px
 }
 
 .experience-grid {
-  flex:1;
+  flex:0 0 auto;
+  width:max-content;
   display:grid;
-  grid-template-columns:repeat(30,minmax(0,1fr));
-  gap:3px;
-  max-width:590px
+  grid-template-columns:repeat(15,10px);
+  gap:2px;
+  max-width:100%
+}
+
+.experience-half {
+  display:contents
+}
+
+/* Keep all 90 boxes in equal rows, retaining their physical size. */
+@container experience (min-width:482px) {
+  .experience-grid { grid-template-columns:repeat(30,10px) }
+}
+
+@container experience (min-width:662px) {
+  .experience-grid { grid-template-columns:repeat(45,10px) }
+}
+
+@container experience (min-width:1202px) {
+  .experience-grid { grid-template-columns:repeat(90,10px) }
 }
 
 .exp-box {
@@ -590,7 +838,7 @@ main {
 
 .exp-box.earned {
   background:var(--green);
-  box-shadow:inset 0 0 0 2px var(--sheet)
+  box-shadow:inset 0 0 0 1px var(--sheet)
 }
 
 .exp-box.advance {
@@ -598,17 +846,23 @@ main {
 }
 
 .experience-total {
-  min-width:67px;
-  text-align:center;
+  flex:0 0 112px;
+  min-width:0;
+  margin-left:0;
+  order:-1;
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  text-align:left;
   font-size:9px;
   color:var(--muted);
   text-transform:uppercase;
-  letter-spacing:1px
+  letter-spacing:0
 }
 
 .experience-total strong {
   display:block;
-  font:25px 'IM Fell English',Georgia,serif;
+  font:20px/1 'IM Fell English',Georgia,serif;
   color:var(--ink)
 }
 
@@ -1122,17 +1376,6 @@ dialog::backdrop {
     padding-top:48px
   }
 
-  .fighter-row {
-    grid-template-rows:minmax(155px,auto) auto
-  }
-
-  .identity-line {
-    padding:9px 12px
-  }
-
-  .stats td {
-    height:40px
-  }
 
 }
 
@@ -1403,16 +1646,16 @@ dialog::backdrop {
 
   .fighter-row {
     min-width:0;
-    grid-template-columns:33% 33% 34%;
-    grid-template-rows:minmax(29mm,auto) auto;
-    margin-bottom:3mm;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-rows:auto auto;
+    margin-bottom:0;
     break-inside:avoid;
     border-radius:4px;
     background:white
   }
 
   .identity-line {
-    padding:3px 6px;
+    padding:3px 5px;
     min-height:0
   }
 
@@ -1421,22 +1664,38 @@ dialog::backdrop {
   }
 
   .fighter-name {
-    font-size:15px
+    outline:0!important;
+    background:transparent!important;
+    font-size:14px;
+    line-height:1.15
   }
 
   .fighter-type {
-    font-size:9px
+    font-size:10px
   }
 
   .paths {
-    padding:4px 5px;
-    gap:4px;
-    font-size:8px
+    padding:0 0 4px;
+    margin-bottom:4px;
+    gap:3px 4px;
+    font-size:8.5px
   }
 
   .path::before {
-    width:6px;
-    height:6px
+    flex-shrink:0;
+    width:7px;
+    height:7px
+  }
+
+  .path.active::before {
+    content:'×';
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent!important;
+    border-color:#111;
+    color:#111;
+    font:bold 8px/1 Arial,sans-serif
   }
 
   .stats th {
@@ -1448,17 +1707,21 @@ dialog::backdrop {
   }
 
   .stats td {
-    height:22px;
+    height:20px;
     font-size:16px
   }
 
+  .stats .stat-print {
+    display:inline
+  }
+
   .stats tr.maxima td {
-    height:13px;
+    height:12px;
     font-size:8px
   }
 
   .profile-bottom {
-    padding:4px 5px;
+    padding:3px 5px;
     font-size:8px
   }
 
@@ -1471,17 +1734,17 @@ dialog::backdrop {
   }
 
   .row-section {
-    padding:5px 7px
+    padding:5px 6px
   }
 
   .row-section h3 {
-    font-size:8px;
+    font-size:9px;
     margin-bottom:5px
   }
 
   .row-content {
-    font-size:10px;
-    line-height:1.4
+    font-size:11px;
+    line-height:1.35
   }
 
   .injury-line {
@@ -1491,12 +1754,25 @@ dialog::backdrop {
   }
 
   .experience-cell {
-    gap:8px;
-    padding:5px 7px
+    gap:3mm;
+    padding:1.4mm 1.5mm
   }
 
+  /* Two equal halves wrap using the actual printable width, without print queries. */
   .experience-grid {
-    gap:2px
+    display:flex;
+    flex:1;
+    flex-wrap:wrap;
+    width:auto;
+    min-width:0;
+    gap:0.4mm
+  }
+
+  .experience-half {
+    display:grid;
+    flex:0 0 auto;
+    grid-template-columns:repeat(45,2mm);
+    gap:0.4mm
   }
 
   .exp-box {
@@ -1505,12 +1781,14 @@ dialog::backdrop {
   }
 
   .experience-total {
-    font-size:6px;
-    min-width:37px
+    font-size:8px;
+    flex-basis:25mm;
+    min-width:0;
+    gap:1.5mm
   }
 
   .experience-total strong {
-    font-size:17px
+    font-size:16px
   }
 
   .ledger {
@@ -1637,6 +1915,22 @@ dialog::backdrop {
 
   .row-number::after {
     content:''
+  }
+
+}
+
+@media print {
+  .pictures-visible .fighter-entry {
+    min-width:0
+  }
+
+  .pictures-visible .fighter-row {
+    grid-template-columns:20mm repeat(3,minmax(0,1fr))
+  }
+
+  .pictures-visible .fighter-portrait {
+    padding:0;
+    background:white
   }
 
 }
