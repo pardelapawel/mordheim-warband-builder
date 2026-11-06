@@ -14,10 +14,52 @@ const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths=[['Bojowe','Bojowe'],['Strzeleckie','Strzeleckie'],['Akademickie','Akademickie'],['Siłowe','Siłowe'],['Szybkościowe','Szybkościowe'],['Specjalne','Specjalne']];
 const categories={melee_weapons:'Broń do walki wręcz',ranged_weapons:'Broń strzelecka',armor:'Pancerz',miscellaneous:'Przedmioty',items:'Przedmioty'};
+const headingPhrases=[
+  'KRONIKA TYCH, KTÓRZY WRÓCILI',
+  'ZAPISKI SPOD ZŁAMANEJ KOMETY',
+  'MIĘDZY RUINAMI A LEGENDĄ',
+  'KSIĘGA DŁUGÓW I DAWNYCH RAN',
+  'ŚLADEM SPACZENIA I ZŁOTA',
+  'IMIONA OCALONE OD ZAPOMNIENIA',
+  'WYPRAWY, KTÓRYCH NIKT NIE ZLECAŁ',
+  'Z RUIN WRACAJĄ TYLKO OPOWIEŚCI'
+];
+const footerPhrases=[
+  'Nie każdy wraca. Każdy zostawia ślad.',
+  'Złoto się kończy. Blizny zostają.',
+  'W ruinach nawet szczęście nosi sztylet.',
+  'Dziś łup. Jutro legenda.',
+  'Za tę historię zapłacono z góry.',
+  'Nie pytaj, skąd mamy ten spaczeń.',
+  'Jeszcze jeden skarb. Jeszcze jedna wyprawa.',
+  'Najpierw policz monety. Potem ocalałych.'
+];
+const emptyRosterPhrases=[
+  ['Zaraz będzie ciemno','Zbierz bandę i zapal pochodnie. W ruinach lepiej nie sprawdzać samotnie, co porusza się w mroku.'],
+  ['Tu zaczyna się historia twojej bandy.','Zwerbuj lidera, dobierz wojowników i przygotuj ich na wyprawę.'],
+  ['Twoja banda jest jeszcze pusta.','Dodaj lidera i wojowników, a następnie wybierz ich wyposażenie.'],
+  ['Zacznij od składu.','Wybierz dowódcę, zwerbuj wojowników i rozdziel ekwipunek.'],
+  ['Ktoś musi po ten spaczeń pójść.','Zwerbuj lidera i kilku śmiałków o rozsądnie niskich oczekiwaniach. Broń, pancerz i szanse przeżycia dobierzesz później.'],
+  ['Na razie masz tylko dobre chęci.','Przyda się jeszcze lider, kilku wojowników i coś ostrego. Udział w łupach obiecasz im później.'],
+  ['Ruiny czekają. Nikt nie powinien iść sam.','Znajdź kogoś, kto poprowadzi bandę, i tych, którzy pójdą za nim. Rozdaj broń. Wkrótce zapadnie zmrok.'],
+  ['Każda banda zaczyna od kilku imion.','Zapisz pierwsze. Zwerbuj lidera, zbierz wojowników i przygotuj ich na wyprawę do Mordheim. Na razie wszyscy są cali.']
+];
+function emptyRosterMarkup(){
+  const [title,description]=emptyRosterPhrases[Math.floor(Math.random()*emptyRosterPhrases.length)];
+  return `<div class="empty-roster"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
+}
 let pictureTarget=null,pictureCropId=null;
 let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedStorage=false,undoAction=null;
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
-function notice(message,undo=null){$('notice').hidden=!message;$('notice').textContent=message;undoAction=undo;if(undo){const button=document.createElement('button');button.textContent='Cofnij';button.style.marginLeft='12px';button.onclick=()=>{const action=undoAction;undoAction=null;action?.();notice('Przywrócono.');};$('notice').append(button);}}
+function notice(message,undo=null){
+  const box=$('notice');box.hidden=!message;box.textContent=message;undoAction=undo;if(!message)return;
+  if(undo){
+    const button=document.createElement('button');button.type='button';button.className='notice-undo';button.textContent='Cofnij';
+    button.onclick=()=>{const action=undoAction;undoAction=null;action?.();notice('Przywrócono.');};box.append(button);
+  }
+  const close=document.createElement('button');close.type='button';close.className='notice-close';close.textContent='×';
+  close.setAttribute('aria-label','Zamknij powiadomienie');close.title='Zamknij powiadomienie';close.onclick=()=>notice('');box.append(close);
+}
 function shareNotice(url,copied){
   notice(copied?'Skopiowano link do bandy. Link zawiera bieżącą wersję rozpiski, bez zdjęć.':'Nie udało się skopiować linku. Możesz zaznaczyć i skopiować go poniżej.');
   const label=document.createElement('label');label.className='share-link';label.textContent='Link';
@@ -39,7 +81,7 @@ function renderRoster(refreshRows=true){
   const totals=summary(band,catalog);messages=validateBand(band,catalog);
   $('total-count').textContent=totals.count;$('total-cost').innerHTML=`${totals.cost} <small>zk</small>`;$('total-rating').textContent=totals.rating;
   $('roster-count').textContent=totals.count?`/ ${totals.count}`:'';$('band-type-label').textContent=BAND_TYPES[band.warbandTypeId];
-  if(refreshRows)$('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):`<div class="empty-roster"><span class="empty-symbol" aria-hidden="true">✦</span><h2>Tu zaczyna się historia twojej bandy.</h2><p>Zwerbuj lidera, dobierz wojowników i przygotuj ich na wyprawę.<br>Każdy z nich otrzyma własny wiersz w rozpisce.</p></div>`;
+  if(refreshRows)$('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):emptyRosterMarkup();
   else $('roster').querySelectorAll('.fighter-row').forEach(row=>{const count=messages.filter(m=>m.fighterId===row.dataset.id).length;row.querySelector('.row-warning').textContent=count?warningCount(count):'';});
   $('rating-breakdown').innerHTML=`<div class="rating-line"><span>Wojownicy (${totals.count-totals.large} × 5)</span><span>${(totals.count-totals.large)*5}</span></div><div class="rating-line"><span>Duże modele (${totals.large} × 20)</span><span>${totals.large*20}</span></div><div class="rating-line"><span>Doświadczenie łącznie</span><span>${totals.exp}</span></div><div class="rating-line"><span>Siła bandy</span><span>${totals.rating}</span></div>`;
   const errors=messages.filter(m=>m.severity==='error').length;
@@ -94,6 +136,7 @@ function renderGlossary(){
   $('glossary-list').innerHTML=entries.length?entries.map(e=>`<div class="glossary-entry"><h3>${esc(e.name)}</h3>${e.difficulty!==undefined?`<p class="spell-difficulty">${e.difficulty==='X'?'':'Trudność: '}${esc(difficultyText(e.difficulty))}</p>`:''}<label class="sr-only" for="glossary-${esc(e.name)}">Opis: ${esc(e.name)}</label><textarea id="glossary-${esc(e.name)}" data-description="${esc(e.name)}">${esc(e.description)}</textarea><p class="print-text">${esc(e.description)}</p></div>`).join(''):'<p class="muted">Opisy pojawią się po dodaniu wojowników i ekwipunku.</p>';
 }
 function renderAll(){
+  $('band-name-print').textContent=band.name;
   $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
   $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title=`${band.name} — Mordheim`;
 }
@@ -277,7 +320,7 @@ $('fighter-picture-file').addEventListener('change',async event=>{
 });
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
-$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;save();document.title=`${band.name} — Mordheim`;});
+$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title=`${band.name} — Mordheim`;});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
@@ -315,6 +358,8 @@ $('import-file').addEventListener('change',async event=>{const file=event.target
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
 async function init(){
+  $('band-eyebrow').textContent=headingPhrases[Math.floor(Math.random()*headingPhrases.length)];
+  $('footer-motto').textContent=footerPhrases[Math.floor(Math.random()*footerPhrases.length)];
   let raw=null,notices=[];
   try{const library=readLibrary(localStorage);notices=library.notices || [];for(const entry of library.bands){try{bands.push(normalizeBand(entry));}catch(error){protectedStorage=true;notices.push(error.message);}}raw=bands.find(b=>b.id===library.activeId) || bands[0];}catch(error){protectedStorage=true;notices.push(error.message);}
   const shared=new URLSearchParams(location.search).get('band');
