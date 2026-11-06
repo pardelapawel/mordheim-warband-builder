@@ -27,7 +27,7 @@ try{
   await page.locator('.exp-box[data-xp="24"]').click();assert.equal(await page.locator('#total-rating').innerText(),'29');
   await page.reload();await page.locator('.fighter-row').waitFor();assert.match(await page.locator('.fighter-row').innerText(),/Blizna nad lewym okiem/);assert.equal(await page.locator('.experience-total strong').innerText(),'24');
   await page.locator('.row-actions button').click();await page.locator('#duplicate-fighter').click();await closeEditor();assert.equal(await page.locator('.fighter-row').count(),2);
-  await page.locator('.row-actions button').last().click();await page.locator('#delete-fighter').click();assert.equal(await page.locator('.fighter-row').count(),1);await page.locator('#notice button').click();assert.equal(await page.locator('.fighter-row').count(),2);
+  await page.locator('.row-actions button').last().click();await page.locator('#delete-fighter').click();assert.equal(await page.locator('.fighter-row').count(),1);await page.locator('#notice .notice-undo').click();assert.equal(await page.locator('.fighter-row').count(),2);
   await recruit('Kapłan Sigmara');const spellSelect=page.locator('[data-skill-option]');await spellSelect.selectOption('Młot Sigmara');await closeEditor();
   assert.match(await page.locator('.fighter-row').last().innerText(),/Młot Sigmara/);
   await page.locator('#glossary summary').click();const desc=page.locator('[data-description="Młot Sigmara"]');await desc.fill('Własny opis modlitwy.');await desc.press('Tab');

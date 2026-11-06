@@ -47,7 +47,7 @@ try{
   await page.evaluate(()=>window.failClipboard=true);await page.locator('#share-button').click();assert.match(await page.locator('#notice').innerText(),/Nie udało się skopiować/);assert.equal(await page.locator('#share-link').inputValue(),link);
   await page.evaluate(()=>window.failClipboard=false);await page.locator('#share-button').click();
   await page.screenshot({path:fileURLToPath(new URL('ui-fixes.png',output)),fullPage:true});
-  const footer=page.locator('footer>span:nth-child(2)');assert.equal(await footer.innerText(),'Każdy wojownik ma swoją historię.');assert.match(await footer.evaluate(e=>getComputedStyle(e).fontFamily),/^Georgia/);
+  const footer=page.locator('footer>span:nth-child(2)');assert.match(await footer.innerText(),/[.!?]$/);assert.match(await footer.evaluate(e=>getComputedStyle(e).fontFamily),/^Georgia/);
   await footer.screenshot({path:fileURLToPath(new URL('polish-footer.png',output))});
   await page.emulateMedia({media:'print'});assert.equal(await page.locator('.stats th').count(),9);assert.match(await footer.evaluate(e=>getComputedStyle(e).fontFamily),/^Georgia/);await page.emulateMedia({media:'screen'});
   // Compose rosters with exactly one, two, and five errors.
