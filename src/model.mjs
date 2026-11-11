@@ -9,7 +9,7 @@ export const BAND_TYPES = {awanturnicy:'Awanturnicy', sludzy_ciemnosci:'Słudzy 
 export const uid = () => globalThis.crypto.randomUUID();
 export const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ł/g,'l').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
 export const number = value => Math.max(0, Math.min(1000000, Number(value) || 0));
-export const normalizePicture = value => typeof value==='string' && value.length<=200000 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
+export const normalizePicture = value => typeof value==='string' && value.length<=14000000 && /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
 export function normalizePictureCrop(crop) {
   const bounded=(value,min,max,fallback)=>typeof value==='number' && Number.isFinite(value)?Math.max(min,Math.min(max,value)):fallback;
   return {x:bounded(crop?.x,0,100,50),y:bounded(crop?.y,0,100,50),zoom:bounded(crop?.zoom,1,3,1)};

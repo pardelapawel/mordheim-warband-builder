@@ -566,10 +566,16 @@ main {
 }
 
 .crop-preview {
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
   overflow:hidden;
   background:var(--paper);
   border:1px solid var(--line)
 }
+
+.crop-preview.dragging {cursor:grabbing}
+.crop-preview img {pointer-events:none}
 
 .crop-control {
   display:grid;

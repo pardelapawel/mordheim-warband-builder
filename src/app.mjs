@@ -1,4 +1,5 @@
 import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {panPictureCrop} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
@@ -48,7 +49,7 @@ function emptyRosterMarkup(){
   const [title,description]=emptyRosterPhrases[Math.floor(Math.random()*emptyRosterPhrases.length)];
   return `<div class="empty-roster"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
 }
-let pictureTarget=null,pictureCropId=null;
+let pictureTarget=null,pictureCropId=null,pictureDrag=null;
 let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedStorage=false,undoAction=null;
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
 function notice(message,undo=null){
@@ -115,7 +116,7 @@ function updatePictureCrop(){
   const crop=normalizePictureCrop(fighter.pictureCrop);
   for(const key of ['x','y','zoom']){
     $(`picture-${key}`).value=crop[key];
-    $(`picture-${key}-value`).textContent=key==='zoom'?`${Math.round(crop.zoom*100)}%`:`${crop[key]}%`;
+    $(`picture-${key}-value`).textContent=key==='zoom'?`${Math.round(crop.zoom*100)}%`:`${Math.round(crop[key])}%`;
   }
   $('picture-crop-image').style.cssText=pictureStyle(fighter);
   const row=[...$('roster').querySelectorAll('.fighter-row')].find(row=>row.dataset.id===fighter.id);
@@ -138,7 +139,7 @@ function renderGlossary(){
 function renderAll(){
   $('band-name-print').textContent=band.name;
   $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
-  $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title=`${band.name} — Mordheim`;
+  $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title='Mordheim - Długobrody';
 }
 async function activate(raw){
   if(loading)return false;loading=true;document.body.setAttribute('aria-busy','true');
@@ -298,20 +299,49 @@ $('picture-crop').addEventListener('input',event=>{
   fighter.pictureCrop=normalizePictureCrop({...normalizePictureCrop(fighter.pictureCrop),[key]:Number(event.target.value)});
   updatePictureCrop();save();
 });
+const cropPreview=$('picture-crop-preview');
+cropPreview.addEventListener('pointerdown',event=>{
+  if(event.button!==0 || pictureDrag)return;
+  const fighter=band.fighters.find(f=>f.id===pictureCropId),image=$('picture-crop-image');
+  if(!fighter || !image.naturalWidth)return;
+  event.preventDefault();
+  pictureDrag={pointerId:event.pointerId,x:event.clientX,y:event.clientY,crop:normalizePictureCrop(fighter.pictureCrop)};
+  cropPreview.setPointerCapture(event.pointerId);cropPreview.classList.add('dragging');
+});
+cropPreview.addEventListener('pointermove',event=>{
+  if(!pictureDrag || event.pointerId!==pictureDrag.pointerId)return;
+  const fighter=band.fighters.find(f=>f.id===pictureCropId);if(!fighter)return;
+  const image=$('picture-crop-image');
+  fighter.pictureCrop=panPictureCrop(pictureDrag.crop,event.clientX-pictureDrag.x,event.clientY-pictureDrag.y,cropPreview.clientWidth,cropPreview.clientHeight,image.naturalWidth,image.naturalHeight);
+  updatePictureCrop();
+});
+function finishPictureDrag(event){
+  if(!pictureDrag || event.pointerId!==pictureDrag.pointerId)return;
+  pictureDrag=null;cropPreview.classList.remove('dragging');
+  if(cropPreview.hasPointerCapture(event.pointerId))cropPreview.releasePointerCapture(event.pointerId);
+  save();
+}
+for(const type of ['pointerup','pointercancel','lostpointercapture'])cropPreview.addEventListener(type,finishPictureDrag);
+$('picture-crop').addEventListener('close',()=>{if(pictureDrag)finishPictureDrag({pointerId:pictureDrag.pointerId});});
+cropPreview.addEventListener('wheel',event=>{
+  event.preventDefault();if(pictureDrag)return;
+  const fighter=band.fighters.find(f=>f.id===pictureCropId);if(!fighter)return;
+  const crop=normalizePictureCrop(fighter.pictureCrop);
+  fighter.pictureCrop=normalizePictureCrop({...crop,zoom:Math.round((crop.zoom+(event.deltaY<0?0.1:event.deltaY>0?-0.1:0))*100)/100});
+  updatePictureCrop();save();
+},{passive:false});
 $('show-pictures').addEventListener('change',()=>{band.showPictures=$('show-pictures').checked;save();renderRoster();});
 $('fighter-picture-file').addEventListener('change',async event=>{
   const file=event.target.files[0],target=pictureTarget;event.target.value='';pictureTarget=null;if(!file || !target)return;
   try{
     if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw new Error('Wybierz plik JPG, PNG, WebP lub GIF.');
     if(file.size>10000000)throw new Error('Zdjęcie jest zbyt duże (maks. 10 MB).');
-    const bitmap=await createImageBitmap(file);
-    let picture;
-    try{
-      const scale=Math.min(1,256/bitmap.width,320/bitmap.height),canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-      const context=canvas.getContext('2d');context.fillStyle='#fffdf7';context.fillRect(0,0,canvas.width,canvas.height);
-      context.drawImage(bitmap,0,0,canvas.width,canvas.height);picture=canvas.toDataURL('image/jpeg',0.85);
-    }finally{bitmap.close();}
+    // Keep the original pixels, as in the Warcry image uploader. Cropping is display-only.
+    const picture=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>reject(new Error('Nie można odczytać pliku.'));reader.readAsDataURL(file);
+    });
+    const image=new Image();image.src=picture;await image.decode();
     if(band.id!==target.bandId)return;
     const fighter=band.fighters.find(f=>f.id===target.fighterId);if(!fighter)return;
     fighter.picture=picture;fighter.pictureCrop=normalizePictureCrop();changed();
@@ -320,7 +350,7 @@ $('fighter-picture-file').addEventListener('change',async event=>{
 });
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
-$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title=`${band.name} — Mordheim`;});
+$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title='Mordheim - Długobrody';});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
@@ -354,7 +384,7 @@ $('editor-body').addEventListener('submit',event=>{
   changed();renderEditorEntries();form.reset();
 });
 $('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
-$('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>5000000)throw new Error('Plik jest zbyt duży (maks. 5 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
+$('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
 async function init(){
