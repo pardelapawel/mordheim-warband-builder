@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PREVIEW_PATH: pr-${{ github.event.pull_request.number }}
-      PREVIEW_URL: https://pardelapawel.github.io/mordheim-warband-builder/pr-${{ github.event.pull_request.number }}/
+      PREVIEW_URL: https://dlugobrody.eu/pr-${{ github.event.pull_request.number }}/
     steps:
       - name: Checkout PR commit
         uses: actions/checkout@v4

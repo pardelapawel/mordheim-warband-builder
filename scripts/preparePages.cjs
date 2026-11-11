@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs');
 const path=require('node:path');
-const FILES=['index.html','style.css','logo.svg','lz-string.min.js'];
+const FILES=['index.html','style.css','logo.svg','lz-string.min.js','CNAME'];
 function preparePages({rootDir=path.resolve(__dirname,'..'),outDir=path.join(rootDir,'dist-pages')}={}){
   const root=path.resolve(rootDir),output=path.resolve(outDir);
   if(output!==path.join(root,'dist-pages') && !output.startsWith(path.join(root,'tmp')+path.sep))throw new Error('Output must be dist-pages or a temporary project subdirectory.');

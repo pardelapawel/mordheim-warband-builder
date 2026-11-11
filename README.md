@@ -1,6 +1,6 @@
 # Mordheim — Księga bandy
 
-Wersja online: [Mordheim — Księga bandy](https://pardelapawel.github.io/mordheim-warband-builder/).
+Wersja online: [Mordheim — Księga bandy](https://dlugobrody.eu/).
 
 Polska rozpiska bandy dla zasad Drachenfels. Interfejs odtwarza układ wpisów z dołączonego pustego arkusza: jeden wojownik to jeden szeroki wiersz, z profilem, umiejętnościami, ekwipunkiem, obrażeniami i torem doświadczenia. Skróty statystyk pozostają angielskie.
 
