@@ -13,5 +13,5 @@ export function readLibrary(storage) {
   return {bands,activeId:selected?.id || bands[0]?.id || null,notices};
 }
 export function writeLibrary(storage,bands,activeId){storage.setItem(STORAGE_KEY,JSON.stringify({schemaVersion:2,bands,activeId}));}
-export function encodeShare(band,codec){return codec.compressToBase64(JSON.stringify(exportBand(band))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+export function encodeShare(band,codec){return codec.compressToBase64(JSON.stringify(exportBand(band,{includePictures:false}))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 export function decodeShare(value,codec){if(!value || value.length>250000) throw new Error('Nieprawidłowy link bandy.');const source=value.replace(/-/g,'+').replace(/_/g,'/');const json=codec.decompressFromBase64(source.padEnd(Math.ceil(source.length/4)*4,'='));if(!json) throw new Error('Nie udało się odczytać linku bandy.');return normalizeBand(JSON.parse(json));}
