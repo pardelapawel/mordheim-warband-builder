@@ -17,7 +17,7 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 ## Obsługa
 
 - Dodaj wojownika z katalogu. Imię i charakterystyki można zmieniać bezpośrednio w rozpisce; pełny profil pozostaje dostępny w panelu edycji. Zmiany zapisują się lokalnie. Przyciski + i × po lewej stronie wiersza powielają i usuwają wojownika; usunięcie można cofnąć.
-- Zdjęcie wojownika dodaje się po lewej stronie wiersza. Kadrowanie pozwala zmieniać powiększenie i położenie; ustawienia zapisują się razem z wojownikiem tylko w tej przeglądarce. Zdjęcia i kadrowanie nie trafiają do linków udostępnienia ani eksportów JSON i tekstowych. Przełącznik „Zdjęcia wojowników” pokazuje lub ukrywa całą kolumnę bez usuwania zdjęć.
+- Zdjęcie wojownika dodaje się po lewej stronie wiersza. Kadrowanie pozwala zmieniać powiększenie i położenie; ustawienia zapisują się razem z wojownikiem w przeglądarce oraz w eksporcie JSON. Zdjęcia są osadzone w JSON jako dane Base64 i przywracane wraz z kadrowaniem podczas importu. Zdjęcia i kadrowanie nie trafiają do linków udostępnienia ani eksportów tekstowych. Przełącznik „Zdjęcia wojowników” pokazuje lub ukrywa całą kolumnę bez usuwania zdjęć.
 - Strzałki po lewej stronie każdego wiersza przesuwają wojownika o jedno miejsce w górę lub w dół. Kolejność zapisuje się automatycznie i obowiązuje także przy drukowaniu, eksporcie i udostępnianiu.
 - Zachowane są dwa typy band: Awanturnicy i Słudzy Ciemności. Każda nowa banda otrzymuje osobny identyfikator; identyczne nazwy nie nadpisują zapisów.
 - Eksport JSON służy jako przenośna kopia zapasowa. Import i otwieranie linku tworzą osobny zapis i ładują właściwy katalog. Eksport tekstowy pobiera plik bez opuszczania aplikacji.

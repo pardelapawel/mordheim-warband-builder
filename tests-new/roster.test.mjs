@@ -138,7 +138,7 @@ test('portrait framing is bounded and preserved locally but omitted from sharing
   const copy=duplicateFighter(imported.fighters[0]);copy.pictureCrop.x=99;assert.equal(imported.fighters[0].pictureCrop.x,23);
 });
 
-test('all outbound formats omit pictures and cropping without changing local fighter data',()=>{
+test('JSON export restores pictures and cropping while links and text omit them without changing local data',()=>{
   const b=newBand(),c=catalog();b.fighters=[recruit('Kapitan Najemników',c),recruit('Ludzki Młodzik',c)];
   b.fighters[0].picture='data:image/jpeg;base64,/9j/';b.fighters[0].pictureCrop={x:20,y:80,zoom:2};
   b.fighters[0].notes='Notatki wojownika';const original=structuredClone(b);
@@ -146,10 +146,14 @@ test('all outbound formats omit pictures and cropping without changing local fig
   const sharedData=JSON.parse(codec.decompressFromBase64(source.padEnd(Math.ceil(source.length/4)*4,'=')));
   for(const outgoing of [exported,sharedData]){
     assert.deepEqual(outgoing.fighters.map(f=>f.customName),b.fighters.map(f=>f.customName));
-    for(const fighter of outgoing.fighters){assert.ok(!Object.hasOwn(fighter,'picture'));assert.ok(!Object.hasOwn(fighter,'pictureCrop'));}
   }
-  for(const output of [json,textExport(b,c)])assert.ok(!output.includes('data:image/'));
-  assert.equal(normalizeBand(exported).fighters[0].picture,'');assert.deepEqual(b,original);
+  for(const fighter of sharedData.fighters){assert.ok(!Object.hasOwn(fighter,'picture'));assert.ok(!Object.hasOwn(fighter,'pictureCrop'));}
+  assert.ok(!textExport(b,c).includes('data:image/'));
+  const imported=normalizeBand(JSON.parse(json));
+  assert.equal(imported.fighters[0].picture,b.fighters[0].picture);
+  assert.deepEqual(imported.fighters[0].pictureCrop,b.fighters[0].pictureCrop);
+  assert.equal(imported.fighters[1].picture,'');assert.deepEqual(b,original);
   const store=storage();writeLibrary(store,[b],b.id);assert.equal(readLibrary(store).bands[0].fighters[0].picture,b.fighters[0].picture);
   exported.fighters[0].stats.m=99;assert.equal(b.fighters[0].stats.m,original.fighters[0].stats.m);
+  exported.fighters[0].pictureCrop.x=99;assert.equal(b.fighters[0].pictureCrop.x,20);
 });

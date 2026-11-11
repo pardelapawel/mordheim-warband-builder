@@ -49,9 +49,9 @@ export function normalizeBand(raw) {
   });
   return {...base,...raw,schemaVersion:2,showPictures:raw.showPictures!==false,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId:'Drachenfels',name:String(raw.name || 'Nowa banda'),fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury},storedEquipment:String(raw.storedEquipment || '')};
 }
-export function exportBand(band) {
+export function exportBand(band,{includePictures=true}={}) {
   const exported=structuredClone(band);
-  exported.fighters.forEach(fighter=>{delete fighter.picture;delete fighter.pictureCrop;});
+  if(!includePictures)exported.fighters.forEach(fighter=>{delete fighter.picture;delete fighter.pictureCrop;});
   return exported;
 }
 export function templateFor(fighter,catalog) { return catalog.fighters.find(t=>[fighter.templateName,fighter.typeId,fighter.type].includes(t.name)); }
