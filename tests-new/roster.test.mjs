@@ -120,9 +120,17 @@ test('fighter pictures survive local save, legacy import and duplication, while 
   delete b.showPictures;delete b.fighters[0].picture;const legacy=normalizeBand(b);
   assert.equal(legacy.showPictures,true);assert.equal(legacy.fighters[0].picture,'');
 });
+test('full-resolution uploaded pictures survive JSON and local library round trips',()=>{
+  const b=newBand();b.fighters=[recruit('Kapitan Najemników')];
+  b.fighters[0].picture='data:image/png;base64,'+'a'.repeat(300000);
+  const imported=normalizeBand(JSON.parse(JSON.stringify(exportBand(b))));
+  assert.equal(imported.fighters[0].picture,b.fighters[0].picture);
+  const store=storage();writeLibrary(store,[imported],imported.id);
+  assert.equal(normalizeBand(readLibrary(store).bands[0]).fighters[0].picture,b.fighters[0].picture);
+});
 test('imported pictures accept bounded embedded raster data and discard other sources',()=>{
   const b=newBand();b.fighters=[recruit('Kapitan Najemników')];
-  for(const picture of ['https://example.com/fighter.jpg','javascript:alert(1)','data:image/svg+xml;base64,PHN2Zz4=',{},'data:image/jpeg;base64,'+'a'.repeat(200000)]){
+  for(const picture of ['https://example.com/fighter.jpg','javascript:alert(1)','data:image/svg+xml;base64,PHN2Zz4=',{},'data:image/jpeg;base64,'+'a'.repeat(14000000)]){
     b.fighters[0].picture=picture;assert.equal(normalizeBand(b).fighters[0].picture,'');
   }
 });
