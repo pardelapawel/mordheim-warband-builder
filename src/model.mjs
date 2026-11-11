@@ -6,7 +6,20 @@ import {spellInfo,skillDisplay} from './spells.mjs';
 export const STAT_KEYS = ['m','ws','bs','s','t','w','i','a','ld'];
 export const STAT_LABELS = ['M','WS','BS','S','T','W','I','A','Ld'];
 export const BAND_TYPES = {awanturnicy:'Awanturnicy', sludzy_ciemnosci:'Słudzy Ciemności'};
-export const uid = () => globalThis.crypto.randomUUID();
+let fallbackIdSequence=0;
+export function uid() {
+  const crypto=globalThis.crypto;
+  if(typeof crypto?.randomUUID==='function')return crypto.randomUUID();
+  // getRandomValues also works on HTTP, where randomUUID is unavailable.
+  if(typeof crypto?.getRandomValues==='function'){
+    const bytes=crypto.getRandomValues(new Uint8Array(16));
+    bytes[6]=(bytes[6]&0x0f)|0x40;bytes[8]=(bytes[8]&0x3f)|0x80;
+    const hex=Array.from(bytes,byte=>byte.toString(16).padStart(2,'0')).join('');
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+  // These IDs identify local records; they are not authentication tokens.
+  return `local-${Date.now().toString(36)}-${(++fallbackIdSequence).toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
 export const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ł/g,'l').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
 export const number = value => Math.max(0, Math.min(1000000, Number(value) || 0));
 export const normalizePicture = value => typeof value==='string' && value.length<=14000000 && /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : '';
