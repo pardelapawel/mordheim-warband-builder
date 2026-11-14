@@ -1,9 +1,9 @@
 {
   "sources": {
-    "racialMaxima": "Mordheim SN Drachenfels.pdf, str. 34",
+    "racialMaxima": "Mordheim SN Długobrody.pdf, str. 34",
     "comparison": "https://mordheimer.net/docs/campaigns/experience#racial-maximum-characteristics",
-    "difference": "Zwierzoczłek: Drachenfels M 4; Mordheimer Other Beastmen M 5. Używamy Drachenfels.",
-    "mutations": "Mordheim SN Drachenfels.pdf, str. 31; extracted_markdown/page_31.md"
+    "difference": "Zwierzoczłek: Długobrody M 4; Mordheimer Other Beastmen M 5. Używamy Długobrody.",
+    "mutations": "Mordheim SN Długobrody.pdf, str. 31; extracted_markdown/page_31.md"
   },
   "racialMaxima": {
     "Człowiek": {"m":4,"ws":6,"bs":6,"s":4,"t":4,"w":3,"i":6,"a":4,"ld":9},

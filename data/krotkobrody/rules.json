@@ -1,5 +1,5 @@
 {
-  "source": "Mordheim SN Drachenfels, strony 14, 19, 25, 31, 35 i 36",
+  "source": "Krótkobrody: na razie kopia zasad Długobrody (Mordheim SN Długobrody, strony 14, 19, 25, 31, 35 i 36), do uproszczenia",
   "specialSkills": {
     "awanturnicy": [
       {"name":"Znak Sigmar","templates":["Kapłan Sigmara","Siostra Sigmara"]},
