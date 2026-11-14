@@ -1637,6 +1637,70 @@ dialog::backdrop {
 
 }
 
+/* Phones and tablets (where the wide row would need side scrolling): each fighter wraps into four stacked sections
+   (picture/stats/name, skills, equipment, experience) instead of one wide row. */
+@media screen and (max-width:1080px) {
+  .fighter-entry,.pictures-visible .fighter-entry {
+    grid-template-columns:32px minmax(0,1fr);
+    min-width:0
+  }
+
+  .fighter-row,.pictures-visible .fighter-row {
+    min-width:0;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:none
+  }
+
+  .pictures-visible .fighter-row {
+    grid-template-columns:84px minmax(0,1fr)
+  }
+
+  .fighter-profile,.pictures-visible .fighter-profile {
+    grid-column:1/-1;
+    grid-row:1;
+    border-right:0
+  }
+
+  .pictures-visible .fighter-profile {
+    grid-column:2
+  }
+
+  .pictures-visible .fighter-portrait {
+    grid-row:1;
+    min-height:120px
+  }
+
+  .skills-cell,.pictures-visible .skills-cell,
+  .equipment-cell,.pictures-visible .equipment-cell,
+  .experience-cell,.pictures-visible .experience-cell {
+    grid-column:1/-1;
+    border-right:0;
+    border-top:1px solid var(--ink)
+  }
+
+  .skills-cell,.pictures-visible .skills-cell { grid-row:2 }
+  .equipment-cell,.pictures-visible .equipment-cell { grid-row:3 }
+  .experience-cell,.pictures-visible .experience-cell { grid-row:4 }
+
+  .experience-cell {
+    flex-wrap:wrap;
+    gap:6px
+  }
+
+  .experience-total {
+    flex:1 0 100%
+  }
+
+  .stats td {
+    font-size:18px
+  }
+
+  .roster-scroll {
+    margin-right:0;
+    padding-right:1px
+  }
+}
+
 @page {
   size:A4 portrait;
   margin:10mm
