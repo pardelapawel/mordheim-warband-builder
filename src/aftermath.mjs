@@ -1,6 +1,6 @@
 // Post-battle sequence (book pp. 32-43): pure rules, no DOM.
 // Resolvers return {text, needs, actions}: book text so far, rolls still missing, and action drafts.
-import {fighterTemplate} from './eligibility.mjs';
+import {fighterTemplate, isLeader} from './eligibility.mjs';
 import {ADVANCE_THRESHOLDS, racialMaxima} from './progression.mjs';
 import {STAT_KEYS, STAT_LABELS, skillChoices} from './model.mjs';
 import * as Skills from './skills.mjs';
@@ -296,4 +296,177 @@ export function warpstoneSalePrice(sold, bandSize, catalog) {
   const {bandSizes, rows} = catalog.aftermath.warpstoneSale;
   const column = Math.max(0, bandSizes.findIndex(([min, max]) => bandSize >= min && (max === null || bandSize <= max)));
   return rows[Math.min(sold, rows.length) - 1][column];
+}
+
+// --- The whole sequence ---
+
+export function newAftermathState(band) {
+  const each = value => Object.fromEntries(band.fighters.map(f => [f.id, value]));
+  return {setup: {took: each(true), ooa: each(false), won: false, opponentRating: null}, rolls: {}, choices: {}, inputs: {}, dice: [], removed: new Set()};
+}
+
+const sourceOf = id => id.slice(0, id.lastIndexOf('#'));
+
+// Re-enable removed actions whose inputs just changed; 'dice' touches every exploration result.
+export function clearRemovedFor(state, changedKey) {
+  for (const id of [...state.removed]) {
+    const source = sourceOf(id);
+    const hit = changedKey === 'dice'
+      ? source === 'exploration' || source.startsWith('find:') || source === 'sale'
+      : changedKey === source || changedKey.startsWith(`${source}/`);
+    if (hit) state.removed.delete(id);
+  }
+}
+
+const scoped = (record, source) => Object.fromEntries(Object.entries(record)
+  .filter(([key]) => key.startsWith(`${source}/`)).map(([key, value]) => [key.slice(source.length + 1), value]));
+
+const signed = n => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);
+
+function actionLabel(action, band, catalog) {
+  const name = band.fighters.find(f => f.id === action.fighterId)?.customName || '';
+  switch (action.kind) {
+    case 'remove': return `${name}: usunięty z bandy${action.keepEquipment ? ' (ekwipunek do magazynu)' : ''}`;
+    case 'stat': return `${name}: ${statLabel(action.stat)} ${signed(action.delta)}`;
+    case 'exp': return `${name}: ${signed(action.delta)} PD`;
+    case 'addSkill': return `${name}: ${Skills.formatSkillEntry(action.entry, catalog)}`;
+    case 'spellDifficulty': return `${name}: ${action.spell} — trudność ${signed(action.delta)}`;
+    case 'note': return `${name}: ${action.text}`;
+    case 'treasury': return [
+      action.gold && `${signed(action.gold)} zk`,
+      action.shards && `${signed(action.shards)} Spaczenia`,
+      action.armourFragments && `${signed(action.armourFragments)} fragm. pancerza`,
+    ].filter(Boolean).join(', ');
+    case 'storeItem': return `Magazyn: ${action.text}`;
+    case 'bandNote': return `Notatka: ${action.text}`;
+    default: return action.kind;
+  }
+}
+
+export function buildAftermath(band, catalog, state) {
+  const {setup} = state, actions = [];
+  const took = band.fighters.filter(f => setup.took[f.id] !== false);
+  const tookIds = new Set(took.map(f => f.id));
+  const rating = battleRating(band, tookIds);
+  const underdog = underdogBonus(rating, setup.opponentRating, catalog);
+  const card = (source, step, extra, res, fighterId) => {
+    const own = res.actions.map((draft, index) => {
+      const action = {...draft, id: `${source}#${index}`, source, step, ...(fighterId && !draft.fighterId && !['treasury', 'storeItem', 'bandNote'].includes(draft.kind) ? {fighterId} : {})};
+      return {...action, label: actionLabel(action, band, catalog), removed: state.removed.has(action.id)};
+    });
+    actions.push(...own);
+    return {source, fighterId, ...extra, result: res, actions: own};
+  };
+  const keptWhere = test => actions.filter(a => !a.removed && test(a));
+
+  // 1. Injuries
+  const injuries = took.filter(f => setup.ooa[f.id]).map(f =>
+    card(`injury:${f.id}`, 'injuries', {title: f.customName, pet: isPet(f, catalog)}, resolveInjury(f, scoped(state.rolls, `injury:${f.id}`), catalog), f.id));
+  const gone = new Set(keptWhere(a => a.kind === 'remove').map(a => a.fighterId));
+
+  // 2. Experience and advances
+  const experience = [];
+  for (const f of took.filter(f => !isPet(f, catalog) && !gone.has(f.id))) {
+    const source = `exp:${f.id}`, inputs = scoped(state.inputs, source);
+    const injuryExp = keptWhere(a => a.step === 'injuries' && a.kind === 'exp' && a.fighterId === f.id).reduce((s, a) => s + a.delta, 0);
+    const gain = experienceGain({participated: true, isLeader: isLeader(f, catalog), won: setup.won, kills: inputs.kills, warpstone: inputs.warpstone, scenario: inputs.scenario, underdog, injuryExp});
+    const drafts = [];
+    // Injury experience is already its own action; this one adds the rest.
+    if (gain.total - injuryExp) drafts.push({kind: 'exp', delta: gain.total - injuryExp});
+    if (Number(inputs.warpstone) > 0) drafts.push({kind: 'treasury', shards: Number(inputs.warpstone)});
+    const expCard = card(source, 'experience', {type: 'exp', title: f.customName, gain}, {text: gain.parts.map(p => `${p.label}: +${p.value}`), needs: [], actions: drafts}, f.id);
+    experience.push(expCard);
+    const oldExp = Number(f.exp) || 0;
+    const newExp = oldExp + keptWhere(a => a.kind === 'exp' && a.fighterId === f.id).reduce((s, a) => s + a.delta, 0);
+    const pending = {};
+    for (const threshold of crossedThresholds(oldExp, newExp)) {
+      const advSource = `advance:${f.id}:${threshold}`;
+      const adv = card(advSource, 'experience', {type: 'advance', threshold, title: `${f.customName} — rozwój (${threshold} PD)`},
+        resolveAdvance(f, scoped(state.rolls, advSource), scoped(state.choices, advSource), catalog, {...pending}), f.id);
+      experience.push(adv);
+      for (const a of adv.actions) if (!a.removed && a.kind === 'stat') pending[a.stat] = (pending[a.stat] || 0) + a.delta;
+    }
+  }
+
+  // 3. Exploration
+  const explorers = took.filter(f => !isPet(f, catalog) && !setup.ooa[f.id] && !gone.has(f.id));
+  const eyeBonus = explorers.some(f => f.equipment.some(e => e.name === 'Wszystkowidzące oko')) ? 1 : 0;
+  const count = explorationDiceCount({heroes: explorers.length, won: setup.won, eyeBonus, adjust: state.inputs['exploration/adjust']}, catalog);
+  const dice = Array.from({length: count}, (_, i) => Number(state.dice[i]) || null);
+  const complete = count > 0 && dice.every(Boolean);
+  const groups = complete ? groupDice(dice) : [];
+  const sum = complete ? dice.reduce((s, v) => s + v, 0) : 0;
+  const warpstone = warpstoneFromSum(sum, catalog);
+  if (warpstone) card('exploration', 'exploration', {}, {text: [], needs: [], actions: [{kind: 'treasury', shards: warpstone}]});
+  const heroes = band.fighters.filter(f => !isPet(f, catalog) && !gone.has(f.id)).map(f => ({
+    id: f.id, name: f.customName,
+    exp: (Number(f.exp) || 0) + keptWhere(a => a.kind === 'exp' && a.fighterId === f.id).reduce((s, a) => s + a.delta, 0),
+  }));
+  const leaderId = band.fighters.find(f => !gone.has(f.id) && isLeader(f, catalog))?.id || null;
+  const cards = groups.map(group => {
+    const find = findFor(group, catalog), source = `find:${group.size}x${group.value}`;
+    return card(source, 'exploration', {title: find.name, group}, resolveFind(find, scoped(state.rolls, source), scoped(state.choices, source), {leaderId, heroes}, catalog));
+  });
+
+  // 4. Warpstone sale
+  const gained = keptWhere(a => a.kind === 'treasury' && a.shards > 0).reduce((s, a) => s + a.shards, 0);
+  const available = (Number(band.treasury.shards) || 0) + gained;
+  const bandSize = band.fighters.length - gone.size;
+  const sold = Math.max(0, Math.min(available, Number(state.inputs['sale/sold']) || 0));
+  const price = warpstoneSalePrice(sold, bandSize, catalog);
+  if (sold) card('sale', 'sale', {}, {text: [], needs: [], actions: [{kind: 'treasury', gold: price, shards: -sold}]});
+
+  return {rating, underdog, injuries, experience, exploration: {count, dice, groups, cards, sum, warpstone, eyeBonus}, sale: {available, bandSize, sold, price}, actions, leaderDied: band.fighters.some(f => gone.has(f.id) && isLeader(f, catalog))};
+}
+
+export function battleSummary(built, state) {
+  const kept = built.actions.filter(a => !a.removed);
+  const total = key => kept.filter(a => a.kind === 'treasury').reduce((s, a) => s + (a[key] || 0), 0);
+  const shards = kept.filter(a => a.kind === 'treasury' && a.shards > 0).reduce((s, a) => s + a.shards, 0);
+  const parts = [state.setup.won ? 'wygrana' : 'przegrana'];
+  if (shards) parts.push(`+${shards} Spaczenia`);
+  if (total('gold')) parts.push(`${signed(total('gold'))} zk`);
+  if (total('armourFragments')) parts.push(`+${total('armourFragments')} fragm. pancerza`);
+  const dead = kept.filter(a => a.kind === 'remove').map(a => a.label.split(':')[0]);
+  if (dead.length) parts.push(`odeszli: ${dead.join(', ')}`);
+  return `bitwa: ${parts.join(', ')}`;
+}
+
+const appendLine = (text, line) => (text ? `${text}\n${line}` : line);
+const ORDER = ['exp', 'stat', 'addSkill', 'spellDifficulty', 'note', 'remove', 'treasury', 'storeItem', 'bandNote'];
+
+export function applyActions(band, actions, catalog, {date, summary}) {
+  const next = structuredClone(band);
+  const fighter = id => next.fighters.find(f => f.id === id);
+  const sorted = [...actions].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+  for (const action of sorted) {
+    const f = action.fighterId ? fighter(action.fighterId) : null;
+    switch (action.kind) {
+      case 'exp': if (f) f.exp = Math.max(0, (Number(f.exp) || 0) + action.delta); break;
+      case 'stat': if (f) f.stats[action.stat] = String(Math.max(1, (Number(f.stats[action.stat]) || 0) + action.delta)); break;
+      case 'addSkill': if (f) f.skills.push(structuredClone(action.entry)); break;
+      case 'spellDifficulty': {
+        const entry = f?.skills.find(s => Skills.getSkillEntryNames(s).includes(Skills.normalizeSkillName(action.spell)));
+        const base = Number(entry?.difficulty ?? catalog.spells.find(s => s.name === action.spell)?.difficulty);
+        if (entry && Number.isFinite(base)) entry.difficulty = Math.max(2, base + action.delta);
+        break;
+      }
+      case 'note': if (f) {
+        const lines = (f.injuries || '').split('\n').filter(line => line && !(action.replaces && line.startsWith(action.replaces)));
+        f.injuries = [...lines, action.text].join('\n');
+      } break;
+      case 'remove': if (f) {
+        if (action.keepEquipment && f.equipment.length) next.storedEquipment = appendLine(next.storedEquipment, f.equipment.map(e => e.name).join(', '));
+        next.fighters = next.fighters.filter(x => x.id !== f.id);
+      } break;
+      case 'treasury':
+        for (const key of ['gold', 'shards', 'armourFragments']) if (action[key]) next.treasury[key] = Math.max(0, (Number(next.treasury[key]) || 0) + action[key]);
+        break;
+      case 'storeItem': next.storedEquipment = appendLine(next.storedEquipment, action.text); break;
+      case 'bandNote': next.treasury.notes = appendLine(next.treasury.notes, action.text); break;
+    }
+  }
+  const day = `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+  next.treasury.notes = appendLine(next.treasury.notes, `${day} — ${summary}`);
+  return next;
 }

@@ -215,3 +215,121 @@ test('warpstone sells by pieces and band size',()=>{
   const c=catalog();
   for(const [sold,size,price] of [[1,3,45],[1,4,40],[5,10,90],[7,11,110],[8,1,155],[12,20,120],[0,5,0]])assert.equal(A.warpstoneSalePrice(sold,size,c),price,`${sold}/${size}`);
 });
+
+// --- Task 7: building and applying ---
+function battle(){
+  const c=catalog(),b=newBand();b.name='Test';
+  b.fighters=[recruit('Kapitan Najemników',c),recruit('Ludzki Najemnik',c),recruit('Pies bojowy',c)];
+  const [captain,merc,dog]=b.fighters;return {c,b,captain,merc,dog,state:A.newAftermathState(b)};
+}
+test('a new state has everyone taking part and nobody out of action',()=>{
+  const {b,state}=battle();
+  assert.ok(b.fighters.every(f=>state.setup.took[f.id]===true && state.setup.ooa[f.id]===false));
+  assert.equal(state.setup.won,false);assert.equal(state.setup.opponentRating,null);assert.equal(state.removed.size,0);
+});
+test('a dead fighter skips experience unless the death is removed',()=>{
+  const {c,b,merc,state}=battle();
+  state.setup.ooa[merc.id]=true;state.rolls[`injury:${merc.id}/1`]=1;state.rolls[`injury:${merc.id}/2`]=1;
+  let built=A.buildAftermath(b,c,state);
+  const death=built.actions.find(a=>a.kind==='remove');
+  assert.equal(death.fighterId,merc.id);assert.equal(death.step,'injuries');assert.equal(death.source,`injury:${merc.id}`);assert.match(death.label,/Ludzki Najemnik/);
+  assert.ok(!built.experience.some(card=>card.fighterId===merc.id));
+  assert.equal(built.sale.bandSize,2);
+  state.removed.add(death.id);built=A.buildAftermath(b,c,state);
+  assert.ok(built.experience.some(card=>card.fighterId===merc.id));
+  assert.equal(built.sale.bandSize,3);
+});
+test('changing a roll restores removed actions of that card only',()=>{
+  const {merc,state}=battle();
+  state.removed.add(`injury:${merc.id}#0`);state.removed.add('exp:other#0');
+  A.clearRemovedFor(state,`injury:${merc.id}/1`);
+  assert.deepEqual([...state.removed],['exp:other#0']);
+  state.removed.add('find:2x6#0');state.removed.add('exploration#0');
+  A.clearRemovedFor(state,'dice');
+  assert.deepEqual([...state.removed],['exp:other#0']);
+});
+test('experience gives the leader the win point and pets nothing',()=>{
+  const {c,b,captain,dog,state}=battle();
+  state.setup.won=true;state.inputs[`exp:${captain.id}/kills`]=1;
+  const built=A.buildAftermath(b,c,state);
+  const exp=built.actions.find(a=>a.kind==='exp' && a.fighterId===captain.id);
+  assert.equal(exp.delta,3);
+  assert.ok(!built.experience.some(card=>card.fighterId===dog.id));
+});
+test('crossing thresholds opens one advance card each',()=>{
+  const {c,b,captain,state}=battle();
+  captain.exp=19;state.inputs[`exp:${captain.id}/kills`]=2;
+  assert.deepEqual(A.buildAftermath(b,c,state).experience.filter(card=>card.type==='advance').map(card=>card.threshold),[20]);
+  captain.exp=7;state.inputs[`exp:${captain.id}/kills`]=4;
+  assert.deepEqual(A.buildAftermath(b,c,state).experience.filter(card=>card.type==='advance' && card.fighterId===captain.id).map(card=>card.threshold),[8,11]);
+});
+test('warpstone carried off the table goes to the treasury',()=>{
+  const {c,b,captain,state}=battle();
+  state.inputs[`exp:${captain.id}/warpstone`]=2;
+  const built=A.buildAftermath(b,c,state);
+  assert.ok(built.actions.some(a=>a.kind==='treasury' && a.shards===2 && a.source===`exp:${captain.id}`));
+  assert.equal(built.actions.find(a=>a.kind==='exp' && a.fighterId===captain.id).delta,3);
+});
+test('exploration counts dice and turns the sum into warpstone',()=>{
+  const {c,b,state}=battle();
+  state.setup.won=true;b.fighters[0].equipment.push({name:'Wszystkowidzące oko',cost:0});
+  let built=A.buildAftermath(b,c,state);
+  assert.equal(built.exploration.count,4);
+  state.dice=[3,3,1,6];built=A.buildAftermath(b,c,state);
+  assert.equal(built.exploration.sum,13);assert.equal(built.exploration.warpstone,3);
+  assert.deepEqual(built.exploration.cards.map(card=>card.source),['find:1x1','find:2x3','find:1x6']);
+  assert.ok(built.actions.some(a=>a.source==='exploration' && a.shards===3));
+});
+test('the sale prices pieces from all sources',()=>{
+  const {c,b,state}=battle();
+  b.treasury.shards=2;state.setup.won=true;state.dice=[6,6,1];state.inputs['sale/sold']=4;
+  const built=A.buildAftermath(b,c,state);
+  assert.equal(built.sale.available,2+3);
+  assert.equal(built.sale.price,90);
+  assert.ok(built.actions.some(a=>a.source==='sale' && a.gold===90 && a.shards===-4));
+});
+test('applying actions changes a copy and logs the battle',()=>{
+  const {c,b,captain,merc}=battle();
+  merc.equipment.push({name:'Miecz',cost:8});merc.stats.t='1';
+  b.fighters[0].injuries='Stara rana ×1: nie wychodzi na 1';
+  const before=structuredClone(b);
+  const actions=[
+    {id:'1',kind:'stat',fighterId:merc.id,stat:'t',delta:-1},
+    {id:'2',kind:'stat',fighterId:captain.id,stat:'s',delta:1},
+    {id:'3',kind:'exp',fighterId:captain.id,delta:2},
+    {id:'4',kind:'note',fighterId:captain.id,text:'Stara rana ×2: nie wychodzi na 1–2',replaces:'Stara rana'},
+    {id:'5',kind:'remove',fighterId:merc.id,keepEquipment:true},
+    {id:'6',kind:'treasury',gold:10,shards:-1,armourFragments:2},
+    {id:'7',kind:'storeItem',text:'Mapa ruin'},
+    {id:'8',kind:'bandNote',text:'Dług wdzięczności'},
+  ];
+  const after=A.applyActions(b,actions,c,{date:new Date(2026,10,15),summary:'bitwa: wygrana'});
+  assert.deepEqual(b,before);
+  const cap=after.fighters.find(f=>f.id===captain.id);
+  assert.equal(cap.stats.s,'4');assert.equal(cap.exp,22);assert.equal(cap.injuries,'Stara rana ×2: nie wychodzi na 1–2');
+  assert.ok(!after.fighters.some(f=>f.id===merc.id));
+  assert.match(after.storedEquipment,/Miecz/);assert.match(after.storedEquipment,/Mapa ruin/);
+  assert.deepEqual([after.treasury.gold,after.treasury.shards,after.treasury.armourFragments],[10,0,2]);
+  assert.ok(after.treasury.notes.endsWith('15.11.2026 — bitwa: wygrana'));
+  assert.match(after.treasury.notes,/Dług wdzięczności/);
+});
+test('stats never drop below 1',()=>{
+  const {c,b,merc}=battle();merc.stats.t='1';
+  const after=A.applyActions(b,[{id:'1',kind:'stat',fighterId:merc.id,stat:'t',delta:-1}],c,{date:new Date(2026,10,15),summary:'bitwa'});
+  assert.equal(after.fighters[1].stats.t,'1');
+});
+test('new spells are free and repeated spells get easier',()=>{
+  const c=catalog(),b=newBand(),priest=recruit('Kapłan Sigmara',c);b.fighters=[priest];
+  const spell=c.spellsByList['Modlitwy Sigmara'][0];
+  const [add]=A.resolveAdvance(priest,{'2d6':11,spell:1},{learn:'spell'},c).actions;
+  let after=A.applyActions(b,[{id:'1',fighterId:priest.id,...add}],c,{date:new Date(2026,10,15),summary:'bitwa'});
+  after=A.applyActions(after,[{id:'2',kind:'spellDifficulty',fighterId:priest.id,spell:spell.name,delta:-1}],c,{date:new Date(2026,10,15),summary:'bitwa'});
+  const entry=after.fighters[0].skills.find(s=>s.selectedKey===spell.name);
+  assert.equal(entry.cost,0);assert.equal(entry.difficulty,spell.difficulty-1);
+});
+test('the battle summary names the result and the haul',()=>{
+  const {c,b,state}=battle();
+  state.setup.won=true;state.dice=[6,6,1];
+  const built=A.buildAftermath(b,c,state);
+  assert.match(A.battleSummary(built,state),/^bitwa: wygrana, \+3 Spaczenia/);
+});
