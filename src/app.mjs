@@ -4,7 +4,7 @@ import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
 import * as Skills from './skills.mjs';
-import {racialMaxima,racialMaximumProfile,canBuyMutations,mutationFor,skillCost,synchronizeMutationPrices} from './progression.mjs';
+import {ADVANCE_THRESHOLDS,racialMaxima,racialMaximumProfile,canBuyMutations,mutationFor,skillCost,synchronizeMutationPrices} from './progression.mjs';
 import {countedNoun,warningCount,errorCount} from './polish.mjs';
 import {equipmentChoices,purchaseCost,purchaseEquipment} from './equipment.mjs';
 import {recruitmentOptions,setRecruitmentAdvance,recruitmentCost} from './recruitment.mjs';
@@ -92,7 +92,7 @@ function renderRoster(refreshRows=true){
 }
 function rowMarkup(f,index){
   const t=templateFor(f,catalog),issues=messages.filter(m=>m.fighterId===f.id),cost=fighterCost(f,catalog),maxima=racialMaxima(f,catalog);
-  const advances=[2,4,6,8,11,14,17,20,24,28,32,36,41,46,51,57,63,69,76,83,90];
+  const advances=ADVANCE_THRESHOLDS;
   return `<div class="fighter-entry"><div class="fighter-order no-print" role="group" aria-label="Akcje wojownika: ${esc(f.customName)}"><button type="button" data-move-fighter="${esc(f.id)}" data-direction="-1" ${index===0?'disabled':''} aria-label="Przesuń w górę: ${esc(f.customName)}" title="Przesuń w górę">↑</button><button type="button" data-move-fighter="${esc(f.id)}" data-direction="1" ${index===band.fighters.length-1?'disabled':''} aria-label="Przesuń w dół: ${esc(f.customName)}" title="Przesuń w dół">↓</button><button type="button" data-duplicate-fighter="${esc(f.id)}" aria-label="Duplikuj: ${esc(f.customName)}" title="Duplikuj wojownika">+</button><button type="button" class="danger" data-delete-fighter="${esc(f.id)}" aria-label="Usuń: ${esc(f.customName)}" title="Usuń wojownika">×</button></div><article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
     <div class="fighter-portrait"><button type="button" class="portrait-upload" ${f.picture?'data-crop-picture':'data-picture'}="${esc(f.id)}" aria-label="${f.picture?'Kadruj':'Dodaj'} zdjęcie: ${esc(f.customName)}">${f.picture?`<img src="${esc(f.picture)}" style="${pictureStyle(f)}" alt="${esc(f.customName)}"><span class="portrait-caption no-print">Kadruj zdjęcie</span>`:'<span class="portrait-placeholder no-print" aria-hidden="true">+<small>Dodaj zdjęcie</small></span>'}</button>${f.picture?`<button type="button" class="portrait-remove no-print" data-remove-picture="${esc(f.id)}" aria-label="Usuń zdjęcie: ${esc(f.customName)}" title="Usuń zdjęcie">×</button>`:''}</div>
     <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name" contenteditable="plaintext-only" data-fighter-name role="textbox" aria-label="Imię wojownika: ${esc(f.customName)}" aria-multiline="false" spellcheck="false">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
@@ -138,7 +138,7 @@ function renderGlossary(){
 }
 function renderAll(){
   $('band-name-print').textContent=band.name;
-  $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
+  $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
   $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title='Mordheim - Długobrody';
 }
 async function activate(raw){
@@ -362,7 +362,7 @@ function shrinkPicture(image,original,maxSide=1200,maxLength=400000){
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
 $('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title='Mordheim - Długobrody';});
-for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
+for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-fragments','armourFragments'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
 $('editor-body').addEventListener('change',event=>{
