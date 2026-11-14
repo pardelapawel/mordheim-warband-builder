@@ -1,9 +1,5 @@
 import {getSkillEntryCost, getSkillEntryNames} from './skills.mjs';
-
-function fighterTemplate(fighter, catalog) {
-  return catalog.fighters.find(template =>
-    [fighter.templateName, fighter.typeId, fighter.type].includes(template.name));
-}
+import {fighterTemplate} from './eligibility.mjs';
 
 // Specific profiles distinguish vampires from other undead and orcs from goblins.
 // Animals without a profile in the source table must not inherit humanoid caps.

@@ -12,7 +12,7 @@
     {
       "name": "Ognie U'Zhul",
       "difficulty": 7,
-      "description": "Kula ognia o zasięgu 18 cali, trafia w pierwszy cel na swojej drodze, Siła 4, normalne rzuty pancerza."
+      "description": "Magiczny pocisk. Kula ognia o zasięgu 18 cali, automatyczne trafienie, Siła 4, normalne rzuty pancerza."
     },
     {
       "name": "Lot Zimmerana",
@@ -27,7 +27,7 @@
     {
       "name": "Srebrne Strzały Arhy",
       "difficulty": 7,
-      "description": "Nie może być rzucone w walce wręcz. Przyzywa k6+2 strzały, które mogą być wysłane w jeden model. Zasięg 24 cale. Użyj BS czarodzieja by określić trafienia, zignoruj karne modyfikatory za ruch i osłonę. Każda strzała ma Siłę 3."
+      "description": "Magiczny pocisk. Przyzywa k6+2 strzały, które mogą być wysłane w jeden model. Zasięg 24 cale. Użyj BS czarodzieja by określić trafienia, zignoruj karne modyfikatory za ruch i osłonę. Każda strzała ma Siłę 3."
     },
     {
       "name": "Szczęście Shemteka",
@@ -64,7 +64,7 @@
     {
       "name": "Lecząca Dłoń",
       "difficulty": 5,
-      "description": "Wszystkie modele w 2” łącznie z rzucającym odzyskują pełną pulę Ran. Dodatkowo wszystkie przewrócone i ogłuszone modele w zasięgu podnoszą się automatycznie i mogą normalnie walczyć."
+      "description": "Wszystkie przyjazne modele w 2” łącznie z rzucającym odzyskują pełną pulę Ran. Dodatkowo wszystkie przyjazne przewrócone i ogłuszone modele w zasięgu podnoszą się automatycznie i mogą normalnie walczyć."
     },
     {
       "name": "Zbroja Prawości",
@@ -86,7 +86,7 @@
     {
       "name": "Zzap!",
       "difficulty": 9,
-      "description": "Zasięg 12 cali. D3 trafienia z S4 w najbliższy wrogi cel, bez rzutów pancerza."
+      "description": "Magiczny pocisk. Zasięg 12 cali. D3 automatyczne trafienia z S4, bez rzutów pancerza."
     },
     {
       "name": "Gupole!",
@@ -101,7 +101,7 @@
     {
       "name": "Ogień Gorka",
       "difficulty": 8,
-      "description": "Z nosa szamana lecą dwa płomienne pociski o zasięgu 12 cali, każdy zadający k3 trafienia z S3. Oba mogą trafić w jeden najbliższy model lub być rozdzielone na dwa najbliższe modele."
+      "description": "Magiczny pocisk. Z nosa szamana lecą dwa płomienne pociski o zasięgu 12 cali, każdy zadający k3 automatyczne trafienia z S3. Oba mogą trafić w jeden najbliższy model lub być rozdzielone na dwa najbliższe modele."
     }
   ],
   "Magia Nekromancka": [
@@ -140,7 +140,7 @@
     {
       "name": "Spaczogień",
       "difficulty": 8,
-      "description": "Pocisk lecący na 8 cali i trafiający w pierwszy cel na drodze. Zadaje D3 uderzenia z Siłą 4 celowi i jedno uderzenie z Siłą 3 każdemu modelowi w zasięgu 2 cali od tego celu."
+      "description": "Magiczny pocisk. Zasięg 8 cali. Zadaje D3 automatyczne trafienia z Siłą 4 celowi i jedno uderzenie z Siłą 3 każdemu modelowi w zasięgu 2 cali od tego celu. Można rzucić nawet wtedy, gdy zrani to własne modele."
     },
     {
       "name": "Dzieci Rogatego Szczura",
@@ -182,7 +182,7 @@
     {
       "name": "Mroczna krew",
       "difficulty": 8,
-      "description": "Atak o zasięgu 8 cali, zadający k3 trafienia z Siłą 5. Trafia pierwszy model na swojej drodze. Po użyciu tego czaru model musi rzucić sobie na Obrażenia, ale OOA traktuj jako Ogłuszenie."
+      "description": "Magiczny pocisk. Zasięg 8 cali, k3 automatyczne trafienia z Siłą 5. Po użyciu tego czaru Czarodziej musi rzucić sobie na Obrażenia, ale OOA traktuje jako Ogłuszenie."
     },
     {
       "name": "Pokusa Chaosu",
@@ -224,7 +224,7 @@
     {
       "name": "Przyzwanie gryzoni",
       "difficulty": 7,
-      "description": "Wskaż model przeciwnika w odległości 12 cali od Kapłana. Otrzymuje on 2k6 trafień z Siłą 1, bez rzutów Pancerza."
+      "description": "Wskaż model przeciwnika w odległości 12 cali od Kapłana (nie musi być nawet widoczny). Otrzymuje on 2k6 trafień z Siłą 1 i -2 do rzutów Pancerza."
     },
     {
       "name": "Błogosławieństwo Taala",
