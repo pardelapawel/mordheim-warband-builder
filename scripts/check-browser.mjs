@@ -18,7 +18,7 @@ try{
   assert.equal(await page.locator('.fighter-row').count(),0);
   await recruit('Kapitan Najemników');
   await setField('customName','Konrad „Popiół”');
-  await page.locator('#equipment-choice').selectOption('Miecz');await page.locator('#equipment-form button').click();
+  await page.locator('#equipment-choice').selectOption('Miecz');
   await setField('injuries','Blizna nad lewym okiem');await setField('notes','Dowódca wyprawy');
   await closeEditor();
   assert.match(await page.locator('.fighter-row').innerText(),/Konrad „Popiół”/);

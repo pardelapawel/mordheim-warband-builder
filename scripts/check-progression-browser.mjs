@@ -11,7 +11,7 @@ const page=await context.newPage(),errors=[];
 page.on('pageerror',error=>errors.push(error.message));
 const recruit=async name=>{await page.locator('#add-fighter').click();await page.locator(`button[data-template="${name}"]`).click();};
 const close=()=>page.locator('#editor .editor-footer [data-close="editor"]').click();
-const addSkill=async name=>{await page.locator('#skill-choice').selectOption(name);await page.locator('#skill-form button').click();};
+const addSkill=async name=>{await page.locator('#skill-choice').selectOption(name);};
 const mutationCost=name=>page.getByRole('spinbutton',{name:`Koszt zasady: ${name}`,exact:true});
 try {
   await page.goto('http://127.0.0.1:4173');
