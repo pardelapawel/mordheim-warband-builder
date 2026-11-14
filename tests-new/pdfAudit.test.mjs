@@ -8,7 +8,7 @@ import {purchaseEquipment} from '../src/equipment.mjs';
 import {reconcileRules,RULES_REVISION} from '../src/migration.mjs';
 import {createSimpleSkillEntry} from '../src/skills.mjs';
 
-const read=file=>JSON.parse(fs.readFileSync(new URL(`../data/drachenfels/${file}`,import.meta.url),'utf8'));
+const read=file=>JSON.parse(fs.readFileSync(new URL(`../data/dlugobrody/${file}`,import.meta.url),'utf8'));
 function catalog(type='awanturnicy') {
   return assembleCatalog(type,{equipment:read('equipment.json'),skills:read('skills.json'),spells:read('spells.json'),band:read(`warbands/${type}.json`),progression:read('progression.json'),ruleMetadata:read('rules.json'),artifacts:read('artifacts.json')});
 }
@@ -18,7 +18,7 @@ const bandWith=(fighters,type)=>({...newBand(type),fighters});
 const labels=f=>f.skills.map(s=>s.label || s.name);
 const spell=(c,name)=>Object.values(c.spellsByList).flat().find(s=>s.name===name);
 
-test('rules text follows the Drachenfels PDF (poison, healing, rats, magic missiles)',()=>{
+test('rules text follows the Długobrody PDF (poison, healing, rats, magic missiles)',()=>{
   const c=catalog();
   assert.match(equipment('Mroczny jad',c).description,/ale nie przy modyfikacji pancerza/);
   assert.match(spell(c,'Lecząca Dłoń').description,/przyjazne modele/);

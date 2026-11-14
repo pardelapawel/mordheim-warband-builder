@@ -1,6 +1,6 @@
-# Drachenfels rules corrections
+# Długobrody rules corrections
 
-Checklist for reconciling the roster with the supplied Drachenfels markdown and PDF. Completed entries are crossed out after implementation and verification. Existing player-entered campaign progress is preserved.
+Checklist for reconciling the roster with the supplied Długobrody markdown and PDF. Completed entries are crossed out after implementation and verification. Existing player-entered campaign progress is preserved.
 
 - [x] ~~1. Separate starting rules from learnable special skills; preserve existing saved skills.~~
 - [x] ~~2. Enforce racial and character eligibility for special and general skills.~~

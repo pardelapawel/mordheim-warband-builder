@@ -1,4 +1,4 @@
-import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
 import {panPictureCrop} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
@@ -81,7 +81,7 @@ function renderRoster(refreshRows=true){
   $('roster').classList.toggle('pictures-visible',band.showPictures!==false);
   const totals=summary(band,catalog);messages=validateBand(band,catalog);
   $('total-count').textContent=totals.count;$('total-cost').innerHTML=`${totals.cost} <small>zk</small>`;$('total-rating').textContent=totals.rating;
-  $('roster-count').textContent=totals.count?`/ ${totals.count}`:'';$('band-type-label').textContent=BAND_TYPES[band.warbandTypeId];
+  $('roster-count').textContent=totals.count?`/ ${totals.count}`:'';$('band-type-label').textContent=bandTitle(band);
   if(refreshRows)$('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):emptyRosterMarkup();
   else $('roster').querySelectorAll('.fighter-row').forEach(row=>{const count=messages.filter(m=>m.fighterId===row.dataset.id).length;row.querySelector('.row-warning').textContent=count?warningCount(count):'';});
   $('rating-breakdown').innerHTML=`<div class="rating-line"><span>Wojownicy (${totals.count-totals.large} × 5)</span><span>${(totals.count-totals.large)*5}</span></div><div class="rating-line"><span>Duże modele (${totals.large} × 20)</span><span>${totals.large*20}</span></div><div class="rating-line"><span>Doświadczenie łącznie</span><span>${totals.exp}</span></div><div class="rating-line"><span>Siła bandy</span><span>${totals.rating}</span></div>`;
@@ -143,7 +143,7 @@ function renderAll(){
 }
 async function activate(raw){
   if(loading)return false;loading=true;document.body.setAttribute('aria-busy','true');
-  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId);band=next;catalog=nextCatalog;const update=reconcileRules(band,catalog);notice(update);save();renderAll();return true;}
+  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId,next.ruleSetId);band=next;catalog=nextCatalog;const update=reconcileRules(band,catalog);notice(update);save();renderAll();return true;}
   catch(error){notice(error.message);return false;}
   finally{loading=false;document.body.removeAttribute('aria-busy');}
 }
@@ -175,7 +175,7 @@ function openEditor(id){
 }
 function updateMaximaEditor(f){
   const profile=racialMaximumProfile(f,catalog),maxima=racialMaxima(f,catalog);
-  $('maxima-source').textContent=Object.keys(profile.stats).length?`Wartości automatyczne: ${profile.name}. Źródło: Drachenfels, str. 34.`:'Drachenfels nie podaje maksimum rasowego dla tego modelu. Pola pozostają puste; możesz wpisać uzgodnione wartości.';
+  $('maxima-source').textContent=Object.keys(profile.stats).length?`Wartości automatyczne: ${profile.name}. Źródło: Długobrody, str. 34.`:'Długobrody nie podaje maksimum rasowego dla tego modelu. Pola pozostają puste; możesz wpisać uzgodnione wartości.';
   STAT_KEYS.forEach(key=>{const input=document.querySelector(`[name="max.${key}"]`);input.value=maxima[key] ?? '';});
 }
 function renderEditorEntries(){
@@ -187,7 +187,7 @@ function renderEditorEntries(){
 }
 function renderEditorValidation(){const box=$('editor-validation');if(box)box.innerHTML=messages.filter(m=>m.fighterId===selectedId).map(m=>`<p class="editor-hint">△ ${esc(m.message)}</p>`).join('');}
 function renderLibrary(){
-  $('library-list').innerHTML=bands.map(b=>`<div class="library-item"><div><strong>${esc(b.name)}</strong><small>${esc(BAND_TYPES[b.warbandTypeId])} · ${countedNoun(b.fighters.length,'wojownik','wojowników','wojowników')}${b.id===band.id?' · otwarta':''}</small></div><div><button data-load-band="${esc(b.id)}">Otwórz</button><button data-delete-band="${esc(b.id)}" class="danger" aria-label="Usuń bandę: ${esc(b.name)}">×</button></div></div>`).join('');
+  $('library-list').innerHTML=bands.map(b=>`<div class="library-item"><div><strong>${esc(b.name)}</strong><small>${esc(bandTitle(b))} · ${countedNoun(b.fighters.length,'wojownik','wojowników','wojowników')}${b.id===band.id?' · otwarta':''}</small></div><div><button data-load-band="${esc(b.id)}">Otwórz</button><button data-delete-band="${esc(b.id)}" class="danger" aria-label="Usuń bandę: ${esc(b.name)}">×</button></div></div>`).join('');
 }
 function download(content,type,extension){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${band.name.replace(/[^\p{L}\p{N}_-]+/gu,'_') || 'banda'}.${extension}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
@@ -393,7 +393,7 @@ $('editor-body').addEventListener('submit',event=>{
   if(form.id==='custom-skill-form'){const entry=Skills.createSimpleSkillEntry(String(values.get('name')).trim());if(f.recruitmentComplete && mutationFor(entry,catalog)){notice('Mutacje można kupować tylko podczas rekrutacji.');return;}f.skills.push(entry);}
   changed();renderEditorEntries();form.reset();
 });
-$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
+$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
@@ -414,7 +414,7 @@ window.addEventListener('storage',event=>{
   if(event.key!==STORAGE_KEY || !event.newValue || protectedStorage || loading || !band)return;
   try{
     const library=readLibrary(localStorage),next=library.bands.map(entry=>normalizeBand(entry));
-    const current=next.find(b=>b.id===band.id && b.warbandTypeId===band.warbandTypeId);
+    const current=next.find(b=>b.id===band.id && b.warbandTypeId===band.warbandTypeId && b.ruleSetId===band.ruleSetId);
     bands=next;
     if(current){band=current;renderAll();if(selected() && $('editor').open)openEditor(selectedId);}
     else{bands.push(band);$('library-count').textContent=bands.length;notice('Ta banda została usunięta w innej karcie. Kolejna zmiana zapisze ją ponownie.');}
