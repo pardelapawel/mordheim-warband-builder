@@ -244,6 +244,7 @@ document.addEventListener('click',async event=>{
     case 'import-button':case 'library-import':$('import-file').click();break;
     case 'export-json':download(JSON.stringify(exportBand(band),null,2),'application/json','json');break;
     case 'export-text':download(textExport(band,catalog),'text/plain;charset=utf-8','txt');break;
+    case 'print-cards-button':printCards();break;
     case 'print-button':document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();window.print();break;
     case 'share-button':{
       const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('band',encodeShare(band,globalThis.LZString));
@@ -398,6 +399,24 @@ $('editor-body').addEventListener('submit',event=>{
 $('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
+// Card print: copies of the rows, nine per A4 page, without the band heading, summary or footer.
+function printCards(){
+  const rows=[...$('roster').querySelectorAll('.fighter-row')];
+  if(!rows.length){notice('Brak wojowników do wydruku.');return;}
+  $('card-sheet')?.remove();
+  const sheet=document.createElement('section');sheet.id='card-sheet';sheet.setAttribute('aria-hidden','true');
+  sheet.classList.toggle('pictures-visible',$('roster').classList.contains('pictures-visible'));
+  for(let i=0;i<rows.length;i+=9){
+    const page=document.createElement('div');page.className='card-page';
+    for(const row of rows.slice(i,i+9)){const card=row.cloneNode(true);card.querySelectorAll('[contenteditable]').forEach(el=>el.removeAttribute('contenteditable'));page.append(card);}
+    sheet.append(page);
+  }
+  $('glossary').before(sheet);
+  document.body.classList.add('print-cards');
+  document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;
+  window.print();
+}
+window.addEventListener('afterprint',()=>{document.body.classList.remove('print-cards');$('card-sheet')?.remove();});
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
 async function init(){
   $('band-eyebrow').textContent=headingPhrases[Math.floor(Math.random()*headingPhrases.length)];

@@ -2019,6 +2019,187 @@ dialog::backdrop {
 
 }
 
+/* Drukuj / Karty: the stacked mobile layout as cards, 3 x 3 per A4 page. */
+#card-sheet {
+  display:none
+}
+
+@page cards {
+  size:A4 portrait;
+  margin:0
+}
+
+@media print {
+  body.print-cards main>:not(#card-sheet):not(.glossary) {
+    display:none!important
+  }
+
+  body.print-cards #card-sheet {
+    display:block
+  }
+
+  .card-page {
+    page:cards;
+    box-sizing:border-box;
+    width:210mm;
+    height:297mm;
+    padding:6mm;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-rows:repeat(3,minmax(0,1fr));
+    gap:3mm;
+    overflow:hidden;
+    break-inside:avoid
+  }
+
+  .card-page+.card-page {
+    break-before:page
+  }
+
+  #card-sheet .fighter-row,#card-sheet.pictures-visible .fighter-row {
+    min-width:0;
+    height:100%;
+    margin:0;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr) auto;
+    break-inside:avoid
+  }
+
+  #card-sheet.pictures-visible .fighter-row {
+    grid-template-columns:15mm minmax(0,1fr)
+  }
+
+  #card-sheet .fighter-profile {
+    grid-column:1/-1;
+    grid-row:1;
+    border-right:0;
+    min-width:0
+  }
+
+  #card-sheet.pictures-visible .fighter-profile {
+    grid-column:2
+  }
+
+  #card-sheet.pictures-visible .fighter-portrait {
+    grid-column:1;
+    grid-row:1;
+    border-right:1px solid var(--ink)
+  }
+
+  #card-sheet .skills-cell,#card-sheet .equipment-cell,#card-sheet .experience-cell {
+    grid-column:1/-1;
+    border-right:0;
+    border-top:1px solid var(--ink);
+    min-height:0;
+    overflow:hidden
+  }
+
+  #card-sheet .skills-cell { grid-row:2 }
+  #card-sheet .equipment-cell { grid-row:3 }
+  #card-sheet .experience-cell { grid-row:4 }
+
+  #card-sheet .identity-line {
+    padding:1.5px 4px
+  }
+
+  #card-sheet .identity-line>span {
+    font-size:8px
+  }
+
+  #card-sheet .fighter-name {
+    font-size:11px
+  }
+
+  #card-sheet .fighter-type {
+    font-size:8px
+  }
+
+  #card-sheet .stats th {
+    height:9px;
+    font-size:6.5px
+  }
+
+  #card-sheet .stats td {
+    height:15px;
+    font-size:11px
+  }
+
+  #card-sheet .stats tr.maxima td {
+    height:9px;
+    font-size:6.5px
+  }
+
+  #card-sheet .profile-bottom {
+    padding:1.5px 4px;
+    font-size:7px
+  }
+
+  #card-sheet .role-stamp,#card-sheet .maxima-label {
+    font-size:6px
+  }
+
+  #card-sheet .row-section {
+    padding:3px 4px
+  }
+
+  #card-sheet .row-section h3 {
+    font-size:7px;
+    margin-bottom:2px
+  }
+
+  #card-sheet .paths {
+    font-size:6.5px;
+    gap:1px 3px;
+    padding:0 0 2px;
+    margin-bottom:2px
+  }
+
+  #card-sheet .path::before {
+    width:5px;
+    height:5px
+  }
+
+  #card-sheet .row-content {
+    font-size:8px;
+    line-height:1.3
+  }
+
+  #card-sheet .injury-line {
+    font-size:7px;
+    margin-top:2px;
+    padding-top:2px
+  }
+
+  #card-sheet .experience-cell {
+    flex-wrap:wrap;
+    gap:1mm;
+    padding:1mm 1.2mm
+  }
+
+  #card-sheet .experience-total {
+    flex:1 0 100%;
+    font-size:7px;
+    gap:1.5mm
+  }
+
+  #card-sheet .experience-total strong {
+    font-size:10px
+  }
+
+  /* 90 boxes in three rows of 30 across the card. */
+  #card-sheet .experience-grid {
+    display:grid;
+    flex:1 0 100%;
+    grid-template-columns:repeat(30,minmax(0,1fr));
+    gap:0.3mm;
+    width:100%
+  }
+
+  #card-sheet .experience-half {
+    display:contents
+  }
+}
+
 /* The row shortcut remains visible while the paper roster scrolls horizontally. */
 .row-number {
   border:0;
