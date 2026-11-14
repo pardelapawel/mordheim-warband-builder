@@ -8,7 +8,7 @@ function preparePages({rootDir=path.resolve(__dirname,'..'),outDir=path.join(roo
   fs.rmSync(output,{recursive:true,force:true});
   fs.mkdirSync(output,{recursive:true});
   for(const file of FILES)fs.copyFileSync(path.join(root,file),path.join(output,file));
-  for(const dir of ['src','data/drachenfels'])fs.cpSync(path.join(root,dir),path.join(output,dir),{recursive:true});
+  for(const dir of ['src','data/dlugobrody','data/krotkobrody'])fs.cpSync(path.join(root,dir),path.join(output,dir),{recursive:true});
   fs.writeFileSync(path.join(output,'.nojekyll'),'');
   return output;
 }

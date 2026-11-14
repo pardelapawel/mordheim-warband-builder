@@ -10,7 +10,7 @@ import {reconcileRules} from '../src/migration.mjs';
 import {spellInfo,skillDisplay} from '../src/spells.mjs';
 import {selectGroupedSkillOption} from '../src/skills.mjs';
 
-const read=file=>JSON.parse(fs.readFileSync(new URL(`../data/drachenfels/${file}`,import.meta.url),'utf8'));
+const read=file=>JSON.parse(fs.readFileSync(new URL(`../data/dlugobrody/${file}`,import.meta.url),'utf8'));
 function catalog(type='awanturnicy') {
   return assembleCatalog(type,{equipment:read('equipment.json'),skills:read('skills.json'),spells:read('spells.json'),band:read(`warbands/${type}.json`),progression:read('progression.json'),ruleMetadata:read('rules.json'),artifacts:read('artifacts.json')});
 }

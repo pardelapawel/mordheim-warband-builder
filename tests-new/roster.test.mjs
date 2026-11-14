@@ -10,7 +10,7 @@ import {selectGroupedSkillOption} from '../src/skills.mjs';
 import {racialMaximumProfile,racialMaxima,mutationPrice,skillCost,synchronizeMutationPrices,canBuyMutations} from '../src/progression.mjs';
 import {assembleCatalog} from '../src/catalog.mjs';
 const require=createRequire(import.meta.url),codec=require('../lz-string.min.js');
-const read=file=>JSON.parse(fs.readFileSync(new URL('../data/drachenfels/'+file,import.meta.url),'utf8'));
+const read=file=>JSON.parse(fs.readFileSync(new URL('../data/dlugobrody/'+file,import.meta.url),'utf8'));
 function catalog(type='awanturnicy'){
   return assembleCatalog(type,{equipment:read('equipment.json'),skills:read('skills.json'),spells:read('spells.json'),band:read(`warbands/${type}.json`),progression:read('progression.json'),ruleMetadata:read('rules.json'),artifacts:read('artifacts.json')});
 }
@@ -65,7 +65,7 @@ test('text export preserves original roster and includes Polish fields with Engl
 test('glossary distinguishes rules containing parentheses from grouped skill options',()=>{const c=catalog(),b=newBand();b.fighters=[recruit('Kapitan Najemników',c)];const entries=glossaryEntries(b,c);assert.ok(entries.some(e=>e.name==='Lider (12")' && e.description.includes('12')));assert.ok(!entries.some(e=>e.name==='Lider'));});
 test('mutants can select mutations and are flagged until one is selected',()=>{const c=catalog('sludzy_ciemnosci'),b=newBand('sludzy_ciemnosci'),f=recruit('Mutant',c);b.fighters=[f];assert.ok(skillChoices(f,c).some(s=>s.name==='Macka' && s.cost===35));assert.ok(validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));f.skills.push({label:'Macka',cost:30});assert.ok(!validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));assert.equal(fighterCost(f,c),60);});
 
-test('all twelve racial maxima match the Drachenfels page 34 table',()=>{
+test('all twelve racial maxima match the Długobrody page 34 table',()=>{
   const c=catalog(),keys=['m','ws','bs','s','t','w','i','a','ld'];
   const expected={
     'Człowiek':[4,6,6,4,4,3,6,4,9], 'Elf':[5,7,7,4,4,3,9,4,10],
@@ -105,7 +105,7 @@ test('mutation pricing recognizes legacy grouped choices and eligibility exclude
   const w=recruit('Wulfen',c);assert.equal(canBuyMutations(w,c),false);assert.ok(!skillChoices(w,c).some(s=>s.mutation));w.skills.push({label:'Macka',cost:35});b.fighters=[w];assert.ok(validateBand(b,c).some(m=>m.message.includes('nie Wulfen')));
 });
 test('deployment packages only active Polish runtime',()=>{
-  const {preparePages}=require('../scripts/preparePages.cjs');const rootDir=fileURLToPath(new URL('..',import.meta.url));const outDir=fileURLToPath(new URL('../tmp/test-pages',import.meta.url));fs.mkdirSync(outDir+'/data/mordheimer',{recursive:true});fs.writeFileSync(outDir+'/data/mordheimer/stale.json','{}');const result=preparePages({rootDir,outDir});assert.ok(fs.existsSync(result+'/src/app.mjs'));assert.ok(fs.existsSync(result+'/data/drachenfels/equipment.json'));assert.ok(!fs.existsSync(result+'/old'));assert.ok(!fs.existsSync(result+'/data/mordheimer'));const html=fs.readFileSync(result+'/index.html','utf8');assert.match(html,/<html lang="pl">/);assert.throws(()=>preparePages({rootDir,outDir:rootDir+'/src'}));
+  const {preparePages}=require('../scripts/preparePages.cjs');const rootDir=fileURLToPath(new URL('..',import.meta.url));const outDir=fileURLToPath(new URL('../tmp/test-pages',import.meta.url));fs.mkdirSync(outDir+'/data/mordheimer',{recursive:true});fs.writeFileSync(outDir+'/data/mordheimer/stale.json','{}');const result=preparePages({rootDir,outDir});assert.ok(fs.existsSync(result+'/src/app.mjs'));assert.ok(fs.existsSync(result+'/data/dlugobrody/equipment.json'));assert.ok(!fs.existsSync(result+'/old'));assert.ok(!fs.existsSync(result+'/data/mordheimer'));const html=fs.readFileSync(result+'/index.html','utf8');assert.match(html,/<html lang="pl">/);assert.throws(()=>preparePages({rootDir,outDir:rootDir+'/src'}));
 });
 
 test('fighter pictures survive local save, legacy import and duplication, while sharing omits them',()=>{

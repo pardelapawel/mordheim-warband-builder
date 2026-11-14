@@ -1,8 +1,9 @@
-import {BAND_TYPES} from './model.mjs';
+import {BAND_TYPES,RULE_SETS,DEFAULT_RULE_SET} from './model.mjs';
 import {expandEquipment} from './equipment.mjs';
-export async function loadCatalog(type) {
+export async function loadCatalog(type,ruleSet=DEFAULT_RULE_SET) {
   if(!BAND_TYPES[type]) throw new Error('Nieznany typ bandy.');
-  const read = async file=>{const response=await fetch(`data/drachenfels/${file}`);if(!response.ok) throw new Error('Nie udało się pobrać zasad. Odśwież stronę i spróbuj ponownie.');return response.json();};
+  if(!RULE_SETS[ruleSet]) throw new Error('Nieznany zestaw zasad.');
+  const read = async file=>{const response=await fetch(`data/${ruleSet}/${file}`);if(!response.ok) throw new Error('Nie udało się pobrać zasad. Odśwież stronę i spróbuj ponownie.');return response.json();};
   const [equipment,skills,spells,band,progression,ruleMetadata,artifacts]=await Promise.all([read('equipment.json'),read('skills.json'),read('spells.json'),read(`warbands/${type}.json`),read('progression.json'),read('rules.json'),read('artifacts.json')]);
   return assembleCatalog(type,{equipment,skills,spells,band,progression,ruleMetadata,artifacts});
 }

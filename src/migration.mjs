@@ -33,5 +33,5 @@ export function reconcileRules(band,catalog) {
     }
   }
   band.rulesRevision=RULES_REVISION;
-  return firstUpdate?'Zaktualizowano zasady Drachenfels. Zachowano umiejętności zapisanych wojowników, ponieważ mogły zostać zdobyte w kampanii; nowe rekrutacje korzystają z poprawionych zasad startowych.':'';
+  return firstUpdate?'Zaktualizowano zasady. Zachowano umiejętności zapisanych wojowników, ponieważ mogły zostać zdobyte w kampanii; nowe rekrutacje korzystają z poprawionych zasad startowych.':'';
 }
