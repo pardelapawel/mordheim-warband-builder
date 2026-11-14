@@ -197,3 +197,94 @@ export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDelt
   out.actions.push({kind: 'stat', stat, delta: 1});
   return out;
 }
+
+// --- Exploration ---
+
+export function explorationDiceCount({heroes = 0, won = false, eyeBonus = 0, adjust = 0}, catalog) {
+  const count = heroes + (won ? 1 : 0) + eyeBonus + (Number(adjust) || 0);
+  return Math.max(0, Math.min(catalog.aftermath.exploration.maxDice, count));
+}
+
+export function groupDice(values) {
+  const counts = new Map();
+  for (const value of values) if (value) counts.set(value, (counts.get(value) || 0) + 1);
+  return [...counts].sort(([a], [b]) => a - b).map(([value, size]) => ({value, size}));
+}
+
+export function warpstoneFromSum(sum, catalog) {
+  if (!(sum > 0)) return 0;
+  return catalog.aftermath.warpstoneFromSum.find(row => inRange(sum, row))?.pieces || 0;
+}
+
+export function findFor({size, value}, catalog) {
+  return catalog.aftermath.exploration.finds.find(f => f.size === size && f.value === value);
+}
+
+// Heroes who can take `points` experience without reaching an advance (footnote p. 42).
+export function expTargets(heroes, points) {
+  return heroes.filter(h => crossedThresholds(Number(h.exp) || 0, (Number(h.exp) || 0) + points).length === 0);
+}
+
+const diceText = ({count, sides, times = 1}) => `${count > 1 ? count : ''}k${sides}${times > 1 ? ` × ${times}` : ''}`;
+const TREASURY_KEY = {gold: 'gold', shards: 'shards', armour: 'armourFragments'};
+
+// Returns the dice amount, or null after recording the missing roll.
+function diceAmount(dice, key, rolls, out, label) {
+  if (dice.flat !== undefined) return dice.flat;
+  const roll = rolls[key];
+  if (!roll) { out.needs.push({key, sides: dice.count * dice.sides, min: dice.count, label: `${label}: ${diceText(dice)}`}); return null; }
+  return roll * (dice.times || 1);
+}
+
+function resolveGains(gains, prefix, rolls, choices, context, catalog, out) {
+  gains.forEach((gain, index) => {
+    const key = kind => `${prefix}${kind}${index}`;
+    if (TREASURY_KEY[gain.kind]) {
+      const amount = diceAmount(gain.dice, key('g'), rolls, out, {gold: 'Złote korony', shards: 'Spaczenie', armour: 'Fragmenty pancerza'}[gain.kind]);
+      if (amount) out.actions.push({kind: 'treasury', [TREASURY_KEY[gain.kind]]: amount});
+    } else if (gain.kind === 'item') {
+      const count = gain.dice ? diceAmount(gain.dice, key('g'), rolls, out, gain.text) : 1;
+      if (count) out.actions.push({kind: 'storeItem', text: count > 1 ? `${count}× ${gain.text}` : gain.text});
+    } else if (gain.kind === 'note') {
+      out.actions.push({kind: 'bandNote', text: gain.text});
+    } else if (gain.kind === 'artefact') {
+      const roll = rolls[key('a')];
+      if (!roll) out.needs.push({key: key('a'), sides: 6, label: 'Magiczny artefakt: k6'});
+      else out.actions.push({kind: 'storeItem', text: catalog.aftermath.artefacts[roll - 1]});
+    } else if (gain.kind === 'table' || gain.kind === 'check') {
+      const roll = rolls[key('t')];
+      if (!roll) { out.needs.push({key: key('t'), sides: gain.sides, label: gain.label || `k${gain.sides}`}); return; }
+      const next = gain.kind === 'table' ? gain.results.find(r => inRange(roll, r))?.gains : roll >= gain.min ? gain.gains : null;
+      if (next) resolveGains(next, `${key('t')}.`, rolls, choices, context, catalog, out);
+    } else if (gain.kind === 'exp') {
+      const points = diceAmount(gain.dice, key('g'), rolls, out, 'Punkty doświadczenia');
+      if (!points) return;
+      if (gain.target === 'leader') {
+        const leader = context.heroes.find(h => h.id === context.leaderId);
+        if (leader && expTargets([leader], points).length) out.actions.push({kind: 'exp', fighterId: leader.id, delta: points});
+        else out.text.push('Lider nie może teraz otrzymać PD (dałoby to rozwój) — wybierz inną nagrodę.');
+        return;
+      }
+      const eligible = expTargets(context.heroes, 1), split = choices.heroes || {};
+      const assigned = Object.entries(split).filter(([, value]) => Number(value) > 0);
+      const valid = assigned.reduce((sum, [, value]) => sum + Number(value), 0) === points
+        && assigned.every(([id, value]) => expTargets(context.heroes.filter(h => h.id === id), Number(value)).length === 1)
+        && (gain.target === 'heroes' || assigned.length === 1);
+      if (!valid) { out.choose = {key: 'heroes', label: `Rozdziel ${points} PD`, total: points, options: eligible.map(h => ({value: h.id, label: h.name}))}; return; }
+      for (const [fighterId, value] of assigned) out.actions.push({kind: 'exp', fighterId, delta: Number(value)});
+    }
+  });
+}
+
+export function resolveFind(find, rolls, choices, context, catalog) {
+  const out = result();
+  out.text.push(`${find.name}: ${find.text}`);
+  let option = find.options[0];
+  if (find.options.length > 1) {
+    option = find.options[choices.option];
+    if (!option) { out.choose = {key: 'option', label: 'Wybierz nagrodę', options: find.options.map((o, i) => ({value: i, label: o.label}))}; return out; }
+  }
+  resolveGains(option.gains, '', rolls, choices, context, catalog, out);
+  return out;
+}
+

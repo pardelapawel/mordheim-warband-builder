@@ -150,3 +150,62 @@ test('casters may roll a free spell instead of a skill',()=>{
   assert.equal(A.resolveAdvance(f,{'2d6':11,spell:3},{learn:'spell',duplicateSpell:'reroll'},c).needs[0].key,'spellReroll');
   assert.equal(A.resolveAdvance(f,{'2d6':11,spell:3,spellReroll:1},{learn:'spell',duplicateSpell:'reroll'},c).actions[0].entry.selectedKey,list[0].name);
 });
+
+// --- Task 5: exploration ---
+const find=(size,value,c=catalog())=>A.findFor({size,value},c);
+const ctx={leaderId:'L',heroes:[{id:'L',name:'Kapitan',exp:20},{id:'H',name:'Najemnik',exp:7},{id:'Y',name:'Młodzik',exp:0}]};
+test('exploration dice count is capped',()=>{
+  const c=catalog();
+  assert.equal(A.explorationDiceCount({heroes:5,won:true,eyeBonus:1,adjust:0},c),6);
+  assert.equal(A.explorationDiceCount({heroes:0,won:false,eyeBonus:0,adjust:-1},c),0);
+  assert.equal(A.explorationDiceCount({heroes:2,won:true,eyeBonus:0,adjust:1},c),4);
+});
+test('equal dice form one group',()=>{
+  assert.deepEqual(A.groupDice([3,3,3,3,1]),[{value:1,size:1},{value:3,size:4}]);
+  assert.deepEqual(A.groupDice([]),[]);
+});
+test('dice sum becomes warpstone pieces',()=>{
+  const c=catalog();
+  for(const [sum,pieces] of [[0,0],[5,1],[6,2],[17,3],[18,4],[30,5],[35,6],[36,7]])assert.equal(A.warpstoneFromSum(sum,c),pieces,String(sum));
+});
+test('a dice find waits for its roll, then adds gold',()=>{
+  const c=catalog();
+  const open=A.resolveFind(find(1,1,c),{},{},ctx,c);assert.equal(open.needs[0].key,'g0');assert.equal(open.needs[0].sides,3);
+  assert.deepEqual(A.resolveFind(find(1,1,c),{g0:2},{},ctx,c).actions,[{kind:'treasury',gold:2}]);
+});
+test('items go to the band store and multipliers apply',()=>{
+  const c=catalog();
+  assert.deepEqual(A.resolveFind(find(2,5,c),{g1:7},{},ctx,c).actions,[{kind:'storeItem',text:'Mapa ruin'},{kind:'treasury',gold:7}]);
+  assert.deepEqual(A.resolveFind(find(4,5,c),{g0:4},{option:0},ctx,c).actions,[{kind:'treasury',gold:40}]);
+  assert.deepEqual(A.resolveFind(find(4,1,c),{t0:4,'t0.g0':2},{},ctx,c).actions,[{kind:'storeItem',text:'2× Muszkiet'}]);
+});
+test('finds with a choice ask for it first',()=>{
+  const c=catalog();
+  assert.equal(A.resolveFind(find(2,4,c),{},{},ctx,c).choose.key,'option');
+});
+test('experience from finds cannot cross an advance threshold',()=>{
+  const c=catalog();
+  assert.deepEqual(A.expTargets(ctx.heroes,1).map(h=>h.id),['L','Y']);
+  const open=A.resolveFind(find(2,4,c),{},{option:1},ctx,c);
+  assert.equal(open.choose.key,'heroes');assert.deepEqual(open.choose.options.map(o=>o.value),['L','Y']);
+  assert.deepEqual(A.resolveFind(find(2,4,c),{},{option:1,heroes:{Y:1}},ctx,c).actions,[{kind:'exp',fighterId:'Y',delta:1}]);
+  assert.deepEqual(A.resolveFind(find(1,4,c),{},{option:1},ctx,c).actions,[{kind:'exp',fighterId:'L',delta:1}]);
+});
+test('Sakiewka gives an amulet on a 1',()=>{
+  const c=catalog();
+  assert.deepEqual(A.resolveFind(find(2,2,c),{t0:1},{},ctx,c).actions,[{kind:'storeItem',text:'Szczęśliwy amulet'}]);
+  assert.deepEqual(A.resolveFind(find(2,2,c),{t0:4},{},ctx,c).actions,[{kind:'treasury',gold:4}]);
+});
+test('random artefacts come from the d6 list',()=>{
+  const c=catalog();
+  assert.deepEqual(A.resolveFind(find(6,6,c),{g0:10,a1:3},{},ctx,c).actions,[{kind:'treasury',gold:50},{kind:'storeItem',text:'Runiczna zbroja'}]);
+});
+test('checks give their reward only on a high enough roll',()=>{
+  const c=catalog(),r=A.resolveFind(find(6,4,c),{g0:3,g1:8,g2:6,t3:3,t4:1,t5:1,t6:2,t7:1,t8:1},{},ctx,c);
+  assert.deepEqual(r.needs,[]);
+  assert.deepEqual(r.actions,[{kind:'storeItem',text:'3× Sztylet'},{kind:'treasury',gold:40},{kind:'treasury',armourFragments:6}]);
+});
+test('Nora is only a note',()=>{
+  const c=catalog(),r=A.resolveFind(find(6,1,c),{},{},ctx,c);
+  assert.deepEqual(r.actions.map(a=>a.kind),['bandNote']);
+});
