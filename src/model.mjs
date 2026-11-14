@@ -1,7 +1,8 @@
 import * as Skills from './skills.mjs';
 import {canBuyMutations, mutationPrice, skillCost} from './progression.mjs';
-import {specialSkillNames,skillRestriction} from './eligibility.mjs';
+import {specialSkillNames,skillRestriction,fighterTemplate} from './eligibility.mjs';
 import {recruitmentCost} from './recruitment.mjs';
+import {RULES_REVISION} from './migration.mjs';
 import {spellInfo,skillDisplay} from './spells.mjs';
 export const STAT_KEYS = ['m','ws','bs','s','t','w','i','a','ld'];
 export const STAT_LABELS = ['M','WS','BS','S','T','W','I','A','Ld'];
@@ -29,7 +30,7 @@ export function normalizePictureCrop(crop) {
 }
 export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy') {
-  return {schemaVersion:2,rulesRevision:3,id:uid(),name:'Nowa banda',showPictures:true,phase:'recruitment',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
+  return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:'Nowa banda',showPictures:true,phase:'recruitment',ruleSetId:'Drachenfels',warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,notes:''},storedEquipment:''};
 }
 export function createFighter(template, catalog) {
   const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:'',picture:'',pictureCrop:normalizePictureCrop()};
@@ -67,7 +68,7 @@ export function exportBand(band,{includePictures=true}={}) {
   if(!includePictures)exported.fighters.forEach(fighter=>{delete fighter.picture;delete fighter.pictureCrop;});
   return exported;
 }
-export function templateFor(fighter,catalog) { return catalog.fighters.find(t=>[fighter.templateName,fighter.typeId,fighter.type].includes(t.name)); }
+export function templateFor(fighter,catalog) { return fighterTemplate(fighter,catalog); }
 export function skillChoices(fighter,catalog) {
   const template = templateFor(fighter,catalog), names = Skills.getTemplateAllowedSkillNames(template,catalog);
   const direct = catalog.skills.filter(s=>names.has(Skills.normalizeSkillName(s.name)) && !skillRestriction(s.name,fighter,catalog)).map(s=>({name:s.name,kind:'simple'}));

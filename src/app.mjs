@@ -1,7 +1,7 @@
 import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
 import {panPictureCrop} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
-import {readLibrary,writeLibrary,encodeShare,decodeShare} from './storage.mjs';
+import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
 import * as Skills from './skills.mjs';
 import {racialMaxima,racialMaximumProfile,canBuyMutations,mutationFor,skillCost,synchronizeMutationPrices} from './progression.mjs';
@@ -336,18 +336,28 @@ $('fighter-picture-file').addEventListener('change',async event=>{
   try{
     if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw new Error('Wybierz plik JPG, PNG, WebP lub GIF.');
     if(file.size>10000000)throw new Error('Zdjęcie jest zbyt duże (maks. 10 MB).');
-    // Keep the original pixels, as in the Warcry image uploader. Cropping is display-only.
-    const picture=await new Promise((resolve,reject)=>{
+    const original=await new Promise((resolve,reject)=>{
       const reader=new FileReader();reader.onload=()=>resolve(reader.result);
       reader.onerror=()=>reject(new Error('Nie można odczytać pliku.'));reader.readAsDataURL(file);
     });
-    const image=new Image();image.src=picture;await image.decode();
+    const image=new Image();image.src=original;await image.decode();
+    // The whole library shares one localStorage entry (about 5 MB), so large photos are downscaled.
+    const picture=shrinkPicture(image,original);
     if(band.id!==target.bandId)return;
     const fighter=band.fighters.find(f=>f.id===target.fighterId);if(!fighter)return;
     fighter.picture=picture;fighter.pictureCrop=normalizePictureCrop();changed();
     openPictureCrop(fighter.id);
   }catch(error){notice(`Nie udało się dodać zdjęcia. ${error.message}`);}
 });
+function shrinkPicture(image,original,maxSide=1200,maxLength=400000){
+  const scale=Math.min(1,maxSide/Math.max(image.naturalWidth,image.naturalHeight));
+  if(scale===1 && original.length<=maxLength)return original;
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+  const webp=canvas.toDataURL('image/webp',0.85);
+  return webp.startsWith('data:image/webp')?webp:canvas.toDataURL('image/jpeg',0.85);
+}
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
 $('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title='Mordheim - Długobrody';});
@@ -399,4 +409,16 @@ async function init(){
   else if(shared)history.replaceState(null,'',location.pathname);
   if(notices.length)notice(notices.join('\n'));
 }
+// Another tab saved the library: adopt its list so this tab's next save does not overwrite it.
+window.addEventListener('storage',event=>{
+  if(event.key!==STORAGE_KEY || !event.newValue || protectedStorage || loading || !band)return;
+  try{
+    const library=readLibrary(localStorage),next=library.bands.map(entry=>normalizeBand(entry));
+    const current=next.find(b=>b.id===band.id && b.warbandTypeId===band.warbandTypeId);
+    bands=next;
+    if(current){band=current;renderAll();if(selected() && $('editor').open)openEditor(selectedId);}
+    else{bands.push(band);$('library-count').textContent=bands.length;notice('Ta banda została usunięta w innej karcie. Kolejna zmiana zapisze ją ponownie.');}
+    if($('library').open)renderLibrary();
+  }catch(error){notice(`Nie udało się odczytać zmian z innej karty. ${error.message}`);}
+});
 init();

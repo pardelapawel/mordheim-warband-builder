@@ -16,9 +16,10 @@ export function equipmentIssue(item,fighter,catalog) {
   if(item.prayersOnly && !(/^Modlitwy /.test(t?.spell_list || '') || fighter.skills.some(s=>/^Modlitwy /.test(s.groupKey || ''))))return 'Święta księga jest przeznaczona dla modeli korzystających z modlitw.';
   if(ogre) {
     if(['items','miscellaneous'].includes(category) || item.foundOnly)return 'Ogry nie korzystają z Innego ekwipunku ani znalezionych przedmiotów.';
-    if(item.name==='Sztylet')return 'Ogry nie używają sztyletów.';
+    if([item.name,item.baseName].includes('Sztylet'))return 'Ogry nie używają sztyletów.';
+    if(/tarcz|puklerz/.test(name))return 'Ogry nie używają tarcz ani puklerzy; zamiast nich używają Pancerpiąchy.';
     if(['ranged_weapons','armor'].includes(category) && !item.ogreOnly)return 'Wybierz ogrzą wersję broni strzeleckiej lub pancerza.';
-    if(/^Dwuręczn/.test(item.name) && !item.ogreOnly)return 'Wybierz ogrzą wersję broni z dopłatą 5 zk.';
+    if(item.twoHanded && !item.ogreOnly)return 'Wybierz ogrzą wersję broni z dopłatą 5 zk.';
   }
   if(r.noArmor && category==='armor' && !(isCaster(fighter,catalog) && hasSkill(fighter,'Mag bitewny'))) return 'Ten wojownik nie może używać pancerza.';
   if(category==='ranged_weapons') {
@@ -39,6 +40,11 @@ export function validateBand(band,catalog) {
   const leaders=templates.filter((t,i)=>isLeader(band.fighters[i],catalog));
   if(leaders.length!==1) add('Banda musi mieć dokładnie jednego lidera.');
   const modifiers=Object.assign({},...leaders.map(t=>t?.modifies_limits || {}));
+  // e.g. Nekromanta: with a Wampir in the roster, Wilkory and Ghoule become 0-3.
+  for(const t of templates) {
+    const condition=t?.conditional_limits;
+    if(condition && condition.requires.every(name=>templates.some(x=>x?.name===name)))for(const [key,value] of Object.entries(condition.limits))modifiers[key]=Math.max(modifiers[key] ?? 0,value);
+  }
   const heroCount=templates.filter(t=>t && t.type!=='Zwierzak').length;
   const animals=templates.filter(t=>t?.type==='Zwierzak');
   if(heroCount<1) add('Banda musi mieć co najmniej jednego bohatera.');

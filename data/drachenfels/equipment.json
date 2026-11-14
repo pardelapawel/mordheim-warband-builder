@@ -286,6 +286,14 @@
       "description": "Może być używana jako 'Siłacz' (+2 S) albo 'Wielkolud' (jednoręczna)"
     },
     {
+      "name": "Pancerpiącha",
+      "cost": 10,
+      "tags": [
+        "melee"
+      ],
+      "description": "Tylko Ogry. Liczy się jako broń ręczna (ogr może mieć dwie). Siła użytkownika; Ogłuszanie; Parowanie (4+); Krytyki: obuchowe."
+    },
+    {
       "name": "Ogrze oszczepy",
       "cost": 30,
       "description": "Zasięg 12\" ; Siła Użytkownika +1 ; Rzucana"
@@ -309,7 +317,7 @@
       "tags": [
         "black-powder"
       ],
-      "description": "Tylko Ogry. W walce wręcz działa jak dwuręczna maczuga. Przeładowanie, pancerz przeciwnika -1. Kula: 24 cale, S5, trafienie daje k3 rzutów na ranienie. Siekańce: 18 cali, S3, po trafieniu także po jednym trafieniu we wszystkie modele w promieniu 2 cali. Wybierz pocisk przy ładowaniu, także przed bitwą. Po każdej bitwie koszt utrzymania 10 gc, nawet bez strzelania; bez zapłaty nie może strzelać do uzupełnienia zapasów."
+      "description": "Tylko Ogry (w zasadach Ogrów: Działo okrętowe). Zasięg 24 cale, S5; jedno trafienie to k3 rzuty na ranienie. Przeładowanie, pancerz przeciwnika -1. W walce wręcz działa jak dwuręczna maczuga. Utrzymanie: po każdej bitwie zapłać 10 gc za proch i pociski, nawet jeśli ogr nie strzelał; bez zapłaty nie może strzelać, dopóki ich nie kupi."
     },
     {
       "name": "Ogrza lekka zbroja",
@@ -328,14 +336,6 @@
         "armor"
       ],
       "description": "Pancerz 4+ ; -1 do testów Wspinaczki"
-    },
-    {
-      "name": "Ogrza tarcza",
-      "cost": 14,
-      "tags": [
-        "armor"
-      ],
-      "description": "Pancerz 5+ (lub +1 do zbroi) ; Parowanie (4+) ; Improwizowany cios (sztylet) ; Nieporęczna (-1 I)"
     }
   ],
   "items": [
@@ -397,7 +397,7 @@
     {
       "name": "Mroczny jad",
       "cost": 35,
-      "description": "Jedna porcja trwale zatruwa jedną broń inną niż czarnoprochowa. Broń ma +1 Siły, także przy modyfikacji pancerza. Nie można łączyć dwóch trucizn na jednej broni."
+      "description": "Jedna porcja trwale zatruwa jedną broń inną niż czarnoprochowa. Broń liczy się jakby miała +1 Siły, ale nie przy modyfikacji pancerza. Nie można łączyć dwóch trucizn na jednej broni."
     },
     {
       "name": "Elfi płaszcz",

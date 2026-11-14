@@ -8,8 +8,9 @@ on:
 permissions:
   contents: write
 
+# Previews and cleanups use their own groups; a shared group would let them cancel a pending main deploy.
 concurrency:
-  group: gh-pages
+  group: gh-pages-main
   cancel-in-progress: false
 
 jobs:
@@ -78,4 +79,9 @@ jobs:
           git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C gh-pages add -A
           git -C gh-pages commit -m "Deploy main site"
-          git -C gh-pages push origin gh-pages
+          # Main deploys, previews and cleanups may push to gh-pages at the same time; rebase and retry.
+          for attempt in 1 2 3 4 5; do
+            if git -C gh-pages pull --rebase origin gh-pages && git -C gh-pages push origin gh-pages; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          exit 1

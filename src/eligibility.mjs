@@ -1,7 +1,12 @@
 import {getSkillEntryNames} from './skills.mjs';
 
+// templateName is authoritative; typeId and the editable display name are only fallbacks for old saves.
 export function fighterTemplate(fighter,catalog) {
-  return catalog.fighters.find(t=>[fighter.templateName,fighter.typeId,fighter.type].includes(t.name));
+  for(const key of [fighter.templateName,fighter.typeId,fighter.type]) {
+    const template=key && catalog.fighters.find(t=>t.name===key);
+    if(template)return template;
+  }
+  return undefined;
 }
 
 export function hasSkill(fighter,name) {

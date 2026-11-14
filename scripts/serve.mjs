@@ -7,7 +7,7 @@ const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8',
 const server=http.createServer(async(req,res)=>{
   try{
     const relative=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/,''),target=path.resolve(root,relative || 'index.html');
-    if(!target.startsWith(root+path.sep) || relative.split('/').some(part=>part.startsWith('.'))){res.writeHead(403).end();return;}
+    if(!target.startsWith(root+path.sep) || path.relative(root,target).split(path.sep).some(part=>part.startsWith('.'))){res.writeHead(403).end();return;}
     const info=await stat(target);if(!info.isFile()){res.writeHead(404).end();return;}
     res.writeHead(200,{'Content-Type':mime[path.extname(target)] || 'application/octet-stream','Cache-Control':'no-store'});res.end(await readFile(target));
   }catch{res.writeHead(404).end('Nie znaleziono pliku.');}

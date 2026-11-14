@@ -145,6 +145,9 @@
       "max_quantity": 1,
       "cost": 35,
       "exp_start": 8,
+      "rules": [
+        "Słudzy Cienia"
+      ],
       "stats": {
         "m": 4,
         "ws": 3,
@@ -163,7 +166,16 @@
       "skills": [
         "Akademickie",
         "Szybkościowe"
-      ]
+      ],
+      "conditional_limits": {
+        "requires": [
+          "Wampir"
+        ],
+        "limits": {
+          "wilkor": 3,
+          "ghoul": 3
+        }
+      }
     },
     {
       "name": "Zaklinacz Eshin",
@@ -172,6 +184,9 @@
       "max_quantity": 1,
       "cost": 45,
       "exp_start": 8,
+      "rules": [
+        "Motywator"
+      ],
       "stats": {
         "m": 5,
         "ws": 3,
@@ -227,6 +242,9 @@
       "max_quantity": 1,
       "cost": 40,
       "exp_start": 10,
+      "rules": [
+        "ŁAAA!!! (Szaman)"
+      ],
       "stats": {
         "m": 4,
         "ws": 3,
@@ -522,7 +540,7 @@
         "useOgreEquipment": true
       },
       "rules": [
-        "Strach",
+        "Budzi strach",
         "Duży"
       ],
       "is_large": true,
@@ -585,7 +603,7 @@
         "noEquipment": true
       },
       "rules": [
-        "Budzi strach",
+        "Strach",
         "Mutacje"
       ],
       "skills": [

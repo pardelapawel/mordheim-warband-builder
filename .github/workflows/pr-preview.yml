@@ -12,8 +12,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: gh-pages
-  cancel-in-progress: false
+  group: gh-pages-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   preview:
@@ -67,7 +67,12 @@ jobs:
           git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C gh-pages add -A "${PREVIEW_PATH}"
           git -C gh-pages commit -m "Deploy PR preview for #${{ github.event.pull_request.number }}"
-          git -C gh-pages push origin gh-pages
+          # Main deploys, previews and cleanups may push to gh-pages at the same time; rebase and retry.
+          for attempt in 1 2 3 4 5; do
+            if git -C gh-pages pull --rebase origin gh-pages && git -C gh-pages push origin gh-pages; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          exit 1
 
       - name: Comment preview URL
         uses: actions/github-script@v7
