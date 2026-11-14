@@ -14,6 +14,8 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 
 `node scripts/check-rules-corrections.mjs [ścieżka-do-playwright]` sprawdza poprawione reguły, ceny kampanii, opcjonalne rozwinięcia przy werbunku, artefakty, trudność czarów i zgodność starych zapisów. Lista wdrożonych poprawek i decyzji znajduje się w `RULES_CORRECTIONS.md`.
 
+`node scripts/check-aftermath-browser.mjs [ścieżka-do-playwright]` przechodzi całą sekwencję „Po bitwie” na szerokości komputera i telefonu, łącznie z cofnięciem.
+
 ## Obsługa
 
 - Dodaj wojownika z katalogu. Imię i charakterystyki można zmieniać bezpośrednio w rozpisce; pełny profil pozostaje dostępny w panelu edycji. Zmiany zapisują się lokalnie. Przyciski + i × po lewej stronie wiersza powielają i usuwają wojownika; usunięcie można cofnąć.
@@ -32,6 +34,7 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 - Katalog zawiera warianty broni z gromrilu i ithilmaru oraz ogrze wersje broni i pancerzy. Ogry dopłacają 5 zk do każdej broni dwuręcznej (także halabardy), używają Pancerpiąchy i nie używają sztyletów, tarcz ani puklerzy. Ogrzy sprzęt ma już wliczone dopłaty. Błędna historyczna cena 5 zk ogrzej broni dwuręcznej jest korygowana do pełnych 20 zk.
 - Artefakty z eksploracji dodaje się przez „Znaleziony artefakt”. Nie mają ceny zakupu, więc zapisują 0 wydanych zk; nie jest to ich cena rynkowa. Premie z przedmiotów i umiejętności nadal wpisuje się ręcznie do profilu.
 - Trudność czarów jest widoczna w rozpisce, edytorze i opisach. Pole trudności pozwala zapisać obniżenie uzyskane przy ponownym wylosowaniu czaru.
+- „Po bitwie” prowadzi przez sekwencję pobitewną ze str. 32–43: obrażenia, doświadczenie i rozwoje, eksplorację oraz sprzedaż Spaczenia. Każdą kość można rzucić w aplikacji albo wpisać wynik rzucony przy stole. Każdy wynik tworzy pozycję, którą można pominąć (×) lub przywrócić (↺). Nic nie zmienia się przed „Zastosuj”; potem jeden przycisk „Cofnij” przywraca całą bandę. Zastosowanie zmienia profile, usuwa poległych, dopisuje PD, darmowe umiejętności i czary, złoto, Spaczenie i fragmenty pancerza, a znalezione przedmioty trafiają do magazynu. Rzadkie znaleziska wymagające decyzji (np. Nora, Dług wdzięczności) trafiają do notatek skarbca razem z datowanym wpisem o bitwie. Spaczenie zniesione z planszy przez herosów trafia do skarbca. Skarbiec ma osobne pole „Fragmenty pancerza”.
 - Biblioteka jest przechowywana pod kluczem `mordheim_rosters_v2`. Zmiany zapisane w innej karcie są wczytywane automatycznie, więc karty nie nadpisują sobie band. Stare zapisy Długobrody (`mordheim_current`, `mordheim_saves`) są migrowane przy pierwszym uruchomieniu; stare klucze pozostają bez zmian. Zapisy innych zestawów zasad są pomijane z komunikatem. Migracja wymaga tego samego adresu strony i przeglądarki, w których zapisano poprzednią wersję.
 - Link udostępnienia zawiera migawkę bandy bez zdjęć i ustawień kadrowania. Odbiorca otrzymuje niezależną kopię.
 
@@ -50,6 +53,8 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 `src/progression.mjs` — dobór maksimum rasowego, ręczne wyjątki i ceny mutacji. Dane i źródła: `data/dlugobrody/progression.json`.
 
 `src/equipment.mjs`, `src/eligibility.mjs`, `src/recruitment.mjs`, `src/spells.mjs` i `src/migration.mjs` — warianty i ceny przedmiotów, wymagania umiejętności, opcjonalne rozwinięcia, trudność czarów i zgodność historycznych zapisów.
+
+`src/aftermath.mjs` — sekwencja pobitewna: rzuty, rozwoje, eksploracja, sprzedaż Spaczenia i zastosowanie wyników. Tabele: `data/dlugobrody/aftermath.json`. `src/aftermathDialog.mjs` — okno „Po bitwie”.
 
 `src/app.mjs` — interakcje i renderowanie interfejsu.
 
