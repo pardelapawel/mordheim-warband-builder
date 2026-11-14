@@ -288,3 +288,12 @@ export function resolveFind(find, rolls, choices, context, catalog) {
   return out;
 }
 
+
+// --- Warpstone sale ---
+
+export function warpstoneSalePrice(sold, bandSize, catalog) {
+  if (!(sold > 0)) return 0;
+  const {bandSizes, rows} = catalog.aftermath.warpstoneSale;
+  const column = Math.max(0, bandSizes.findIndex(([min, max]) => bandSize >= min && (max === null || bandSize <= max)));
+  return rows[Math.min(sold, rows.length) - 1][column];
+}

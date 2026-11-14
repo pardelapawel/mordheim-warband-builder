@@ -209,3 +209,9 @@ test('Nora is only a note',()=>{
   const c=catalog(),r=A.resolveFind(find(6,1,c),{},{},ctx,c);
   assert.deepEqual(r.actions.map(a=>a.kind),['bandNote']);
 });
+
+// --- Task 6: warpstone sale ---
+test('warpstone sells by pieces and band size',()=>{
+  const c=catalog();
+  for(const [sold,size,price] of [[1,3,45],[1,4,40],[5,10,90],[7,11,110],[8,1,155],[12,20,120],[0,5,0]])assert.equal(A.warpstoneSalePrice(sold,size,c),price,`${sold}/${size}`);
+});
