@@ -216,7 +216,7 @@
     },
     {
       "name": "Strach",
-      "description": "Model budzi strach i sam jest na niego odporny"
+      "description": "Model budzi Strach (fear)."
     },
     {
       "name": "Duży",
@@ -256,7 +256,7 @@
     },
     {
       "name": "Mutacje",
-      "description": "Model musi zacząć grę z jedną lub więcej mutacji"
+      "description": "Model może kupić mutacje podczas rekrutacji; Mutant musi zacząć grę z co najmniej jedną mutacją."
     },
     {
       "name": "Szalony",
@@ -417,6 +417,18 @@
     {
       "name": "Głupota (Szczuroogr)",
       "description": "Szczuroogr podlega Głupocie tylko wtedy, gdy nie ma przyjaznego skaveńskiego herosa w promieniu 6 cali."
+    },
+    {
+      "name": "Słudzy Cienia",
+      "description": "Jeśli w rozpisce bandy obecny jest Nekromanta i Wampir, Wilkory i Ghoule stają się 0-3."
+    },
+    {
+      "name": "Motywator",
+      "description": "Jeśli przed potyczką w rozpisce bandy jest co najmniej 5 Skavenów (w tym Zaklinacz i Zabójca), Zabójca ma w tej potyczce +1 Ld."
+    },
+    {
+      "name": "ŁAAA!!! (Szaman)",
+      "description": "Jeśli w drużynie Szamana na polu walki są jeszcze co najmniej 3 stojące modele Zielonoskórych, trudność wszystkich jego czarów maleje o 1."
     }
   ]
 }

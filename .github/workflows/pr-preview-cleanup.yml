@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: gh-pages-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
@@ -24,7 +28,12 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git rm -rf "pr-${PR_NUMBER}"
             git commit -m "chore: remove PR #${PR_NUMBER} preview"
-            git push
+            # Main deploys, previews and cleanups may push to gh-pages at the same time; rebase and retry.
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin gh-pages && git push origin gh-pages; then exit 0; fi
+              sleep $((attempt * 5))
+            done
+            exit 1
           else
             echo "No preview directory found for PR #${PR_NUMBER}, skipping."
           fi
