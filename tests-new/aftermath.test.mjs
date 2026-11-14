@@ -333,3 +333,17 @@ test('the battle summary names the result and the haul',()=>{
   const built=A.buildAftermath(b,c,state);
   assert.match(A.battleSummary(built,state),/^bitwa: wygrana, \+3 Spaczenia/);
 });
+
+// --- Task 8: stale answers after an earlier roll changes ---
+test('changing an earlier roll drops the answers that depended on it',()=>{
+  const state={rolls:{'injury:a/1':1,'injury:a/2':4,'injury:a/3':2,'injury:b/2':5,'advance:a:8/2d6':6,'advance:a:8/pair':2,'find:2x2/t0':1,'find:2x2/t0.g0':3,'find:6x2/g0':4},choices:{'advance:a:8/stat':'ws','find:2x4/option':1,'find:2x4/heroes':{x:1}}};
+  A.dropStale(state,'injury:a/1');
+  assert.deepEqual(Object.keys(state.rolls).filter(k=>k.startsWith('injury:')),['injury:a/1','injury:b/2']);
+  A.dropStale(state,'advance:a:8/2d6');
+  assert.deepEqual(Object.keys(state.rolls).filter(k=>k.startsWith('advance:')),['advance:a:8/2d6']);
+  assert.equal(state.choices['advance:a:8/stat'],undefined);
+  A.dropStale(state,'find:2x2/t0');
+  assert.equal(state.rolls['find:2x2/t0.g0'],undefined);assert.equal(state.rolls['find:6x2/g0'],4);
+  A.dropStale(state,'find:2x4/option');
+  assert.deepEqual(state.choices['find:2x4/heroes'],undefined);assert.equal(state.choices['find:2x4/option'],1);
+});

@@ -470,3 +470,22 @@ export function applyActions(band, actions, catalog, {date, summary}) {
   next.treasury.notes = appendLine(next.treasury.notes, `${day} — ${summary}`);
   return next;
 }
+
+// When an earlier roll or choice changes, answers that depended on it no longer apply.
+const RESETS_ALL = ['2d6', 'option', 'learn'];
+export function dropStale(state, fullKey) {
+  const cut = fullKey.lastIndexOf('/'), source = fullKey.slice(0, cut), key = fullKey.slice(cut + 1);
+  const depends = other => {
+    if (other === key) return false;
+    if (RESETS_ALL.includes(key)) return true;
+    if (/^\d+$/.test(key)) return /^\d+$/.test(other) && Number(other) > Number(key);
+    if (key === 'spell') return ['duplicateSpell', 'spellReroll'].includes(other);
+    return other.startsWith(`${key}.`);
+  };
+  for (const record of [state.rolls, state.choices]) {
+    for (const full of Object.keys(record)) {
+      const i = full.lastIndexOf('/');
+      if (full.slice(0, i) === source && depends(full.slice(i + 1))) delete record[full];
+    }
+  }
+}

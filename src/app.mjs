@@ -10,6 +10,8 @@ import {equipmentChoices,purchaseCost,purchaseEquipment} from './equipment.mjs';
 import {recruitmentOptions,setRecruitmentAdvance,recruitmentCost} from './recruitment.mjs';
 import {reconcileRules} from './migration.mjs';
 import {spellInfo,difficultyText,skillDisplay} from './spells.mjs';
+import {applyActions} from './aftermath.mjs';
+import {openAftermath} from './aftermathDialog.mjs';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -75,6 +77,12 @@ function save(){
   $('library-count').textContent=bands.length;
 }
 function changed(){save();renderRoster();}
+// One undo restores the whole band as it was before the post-battle results.
+function applyBattle(actions,summary){
+  const before=structuredClone(band);
+  band=applyActions(band,actions,catalog,{date:new Date(),summary});save();renderAll();
+  notice('Zastosowano wyniki bitwy.',()=>{band=before;save();renderAll();});
+}
 function renderRoster(refreshRows=true){
   if(!band||!catalog)return;
   $('show-pictures').checked=band.showPictures!==false;
@@ -245,6 +253,7 @@ document.addEventListener('click',async event=>{
     case 'export-json':download(JSON.stringify(exportBand(band),null,2),'application/json','json');break;
     case 'export-text':download(textExport(band,catalog),'text/plain;charset=utf-8','txt');break;
     case 'print-cards-button':printCards();break;
+    case 'after-battle':if(catalog)openAftermath({band,catalog,onApply:applyBattle});break;
     case 'print-button':document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();window.print();break;
     case 'share-button':{
       const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('band',encodeShare(band,globalThis.LZString));
