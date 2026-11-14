@@ -83,3 +83,70 @@ test('old wounds stack in the note',()=>{
   assert.equal(A.resolveInjury(f,{1:3,2:1},c).actions[0].text,'Stara rana ×2: nie wychodzi na 1–2');
   f.injuries='';assert.equal(A.resolveInjury(f,{1:3,2:1},c).actions[0].text,'Stara rana ×1: nie wychodzi na 1');
 });
+
+// --- Task 4: experience and advances ---
+test('crossed thresholds lie between old and new experience',()=>{
+  assert.deepEqual(A.crossedThresholds(7,12),[8,11]);assert.deepEqual(A.crossedThresholds(20,20),[]);assert.deepEqual(A.crossedThresholds(1,2),[2]);
+});
+test('underdog bonus follows the rating gap',()=>{
+  const c=catalog();
+  assert.equal(A.underdogBonus(100,150,c),0);assert.equal(A.underdogBonus(100,151,c),1);assert.equal(A.underdogBonus(100,160,c),1);
+  assert.equal(A.underdogBonus(100,251,c),4);assert.equal(A.underdogBonus(100,250,c),3);
+  assert.equal(A.underdogBonus(200,100,c),0);assert.equal(A.underdogBonus(100,null,c),0);
+});
+test('battle rating counts only fighters who took part',()=>{
+  const c=catalog(),b=newBand();b.fighters=[recruit('Kapitan Najemników',c),recruit('Ogr Najemnik',c)];
+  assert.equal(A.battleRating(b,new Set([b.fighters[0].id])),25);
+});
+test('experience gain adds the base scenario points',()=>{
+  const g=A.experienceGain({participated:true,isLeader:true,won:true,kills:2,warpstone:1,scenario:0,underdog:1,injuryExp:1});
+  assert.equal(g.total,7);assert.ok(g.parts.every(p=>p.value>0));
+});
+test('stat advances roll within the pair and respect racial maxima',()=>{
+  const c=catalog(),f=recruit('Kapitan Najemników',c);
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':6,pair:2},{},c).actions,[{kind:'stat',stat:'s',delta:1}]);
+  f.stats.s='4';
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':6,pair:2},{},c).actions,[{kind:'stat',stat:'a',delta:1}]);
+  f.stats.a='4';
+  const open=A.resolveAdvance(f,{'2d6':6,pair:2},{},c);
+  assert.equal(open.choose.key,'stat');assert.deepEqual(open.actions,[]);
+  const options=open.choose.options.map(o=>o.value);assert.ok(options.includes('ws'));assert.ok(!options.includes('s'));assert.ok(!options.includes('a'));
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':6,pair:2},{stat:'ws'},c).actions,[{kind:'stat',stat:'ws',delta:1}]);
+});
+test('a 7 lets the player choose WS or BS',()=>{
+  const c=catalog(),f=recruit('Kapitan Najemników',c);
+  const open=A.resolveAdvance(f,{'2d6':7},{},c);
+  assert.deepEqual(open.choose.options.map(o=>o.value),['ws','bs']);
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':7},{stat:'bs'},c).actions,[{kind:'stat',stat:'bs',delta:1}]);
+  assert.equal(A.resolveAdvance(f,{},{},c).needs[0].key,'2d6');
+});
+test('earlier advances of the same fighter count toward the maximum',()=>{
+  const c=catalog(),f=recruit('Kapitan Najemników',c);
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':6,pair:1},{},c,{s:1}).actions,[{kind:'stat',stat:'a',delta:1}]);
+});
+test('fighters without racial maxima have no cap',()=>{
+  const c=catalog(),f=recruit('Tresowany Niedźwiedź',c);f.stats.s='9';
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':6,pair:1},{},c).actions,[{kind:'stat',stat:'s',delta:1}]);
+});
+test('skill advances are free picks from the eligible list',()=>{
+  const c=catalog(),f=recruit('Kapitan Najemników',c);
+  assert.equal(A.resolveAdvance(f,{'2d6':3},{},c).choose.key,'skill');
+  const [action]=A.resolveAdvance(f,{'2d6':3},{skill:'Siłacz'},c).actions;
+  assert.equal(action.kind,'addSkill');assert.equal(action.entry.cost,0);assert.equal(action.entry.label,'Siłacz');
+});
+test('advance skill choices never offer mutations',()=>{
+  const c=catalog('sludzy_ciemnosci'),f=recruit('Mutant',c);
+  assert.ok(A.advanceSkillChoices(f,c).length>0);
+  assert.ok(A.advanceSkillChoices(f,c).every(s=>!s.mutation));
+});
+test('casters may roll a free spell instead of a skill',()=>{
+  const c=catalog(),f=recruit('Kapłan Sigmara',c),list=c.spellsByList['Modlitwy Sigmara'];
+  assert.equal(A.resolveAdvance(f,{'2d6':11},{},c).choose.key,'learn');
+  const [action]=A.resolveAdvance(f,{'2d6':11,spell:3},{learn:'spell'},c).actions;
+  assert.equal(action.kind,'addSkill');assert.equal(action.entry.selectedKey,list[2].name);assert.equal(action.entry.cost,0);
+  f.skills.push(action.entry);
+  assert.equal(A.resolveAdvance(f,{'2d6':11,spell:3},{learn:'spell'},c).choose.key,'duplicateSpell');
+  assert.deepEqual(A.resolveAdvance(f,{'2d6':11,spell:3},{learn:'spell',duplicateSpell:'lower'},c).actions,[{kind:'spellDifficulty',spell:list[2].name,delta:-1}]);
+  assert.equal(A.resolveAdvance(f,{'2d6':11,spell:3},{learn:'spell',duplicateSpell:'reroll'},c).needs[0].key,'spellReroll');
+  assert.equal(A.resolveAdvance(f,{'2d6':11,spell:3,spellReroll:1},{learn:'spell',duplicateSpell:'reroll'},c).actions[0].entry.selectedKey,list[0].name);
+});
