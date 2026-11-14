@@ -46,3 +46,40 @@ test('text export lists armour fragments',()=>{
   const b=newBand();b.treasury.armourFragments=3;
   assert.match(textExport(b,catalog()),/Fragmenty pancerza: 3/);
 });
+
+// --- Task 3: injuries ---
+import * as A from '../src/aftermath.mjs';
+const kinds=r=>r.actions.map(a=>a.kind);
+test('rollDie covers the full range',()=>{
+  assert.equal(A.rollDie(6,()=>0.999),6);assert.equal(A.rollDie(6,()=>0),1);
+});
+test('pets die on 1-2 and recover on 3-6',()=>{
+  const c=catalog(),pet=recruit('Pies bojowy',c);
+  assert.deepEqual(A.resolveInjury(pet,{1:2},c).actions,[{kind:'remove',keepEquipment:false}]);
+  assert.deepEqual(A.resolveInjury(pet,{1:3},c).actions,[]);
+  const open=A.resolveInjury(pet,{},c);assert.equal(open.needs[0].key,'1');assert.equal(open.needs[0].sides,6);
+});
+test('hero injuries walk the nested table',()=>{
+  const c=catalog(),f=recruit('Ludzki Najemnik',c);
+  assert.equal(A.resolveInjury(f,{1:1},c).needs[0].key,'2');
+  assert.deepEqual(A.resolveInjury(f,{1:1,2:2},c).actions,[{kind:'remove',keepEquipment:false}]);
+  assert.deepEqual(A.resolveInjury(f,{1:1,2:3},c).actions,[{kind:'stat',stat:'t',delta:-1}]);
+  assert.deepEqual(A.resolveInjury(f,{1:1,2:4,3:2},c).actions,[{kind:'stat',stat:'m',delta:-1}]);
+  assert.match(A.resolveInjury(f,{1:1,2:4,3:5},c).actions[0].text,/nie może biegać/);
+  assert.match(A.resolveInjury(f,{1:1,2:6,3:1},c).actions[0].text,/Głupota/);
+  for(const roll of [4,5]){const r=A.resolveInjury(f,{1:roll},c);assert.deepEqual(r.actions,[]);assert.deepEqual(r.needs,[]);}
+  assert.deepEqual(A.resolveInjury(f,{1:6,2:5},c).actions,[{kind:'exp',delta:1}]);
+  assert.equal(A.resolveInjury(f,{1:6,2:1},c).needs[0].key,'3');
+  assert.match(A.resolveInjury(f,{1:6,2:1,3:4},c).actions[0].text,/Nienawiść/);
+});
+test('losing the second eye removes the fighter but keeps equipment',()=>{
+  const c=catalog(),f=recruit('Ludzki Najemnik',c);
+  assert.deepEqual(A.resolveInjury(f,{1:2,2:1},c).actions,[{kind:'stat',stat:'bs',delta:-1},{kind:'note',text:'Oślepiony na jedno oko'}]);
+  f.injuries='Oślepiony na jedno oko';
+  assert.deepEqual(A.resolveInjury(f,{1:2,2:1},c).actions,[{kind:'remove',keepEquipment:true}]);
+});
+test('old wounds stack in the note',()=>{
+  const c=catalog(),f=recruit('Ludzki Najemnik',c);f.injuries='Stara rana ×1: nie wychodzi na 1';
+  assert.equal(A.resolveInjury(f,{1:3,2:1},c).actions[0].text,'Stara rana ×2: nie wychodzi na 1–2');
+  f.injuries='';assert.equal(A.resolveInjury(f,{1:3,2:1},c).actions[0].text,'Stara rana ×1: nie wychodzi na 1');
+});
