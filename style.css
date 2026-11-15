@@ -1168,6 +1168,173 @@ dialog::backdrop {
   margin-bottom:4px
 }
 
+/* Post-battle sequence */
+dialog.aftermath {
+  width:720px
+}
+
+dialog.aftermath[open] {
+  display:flex;
+  flex-direction:column
+}
+
+.am-steps {
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px 14px;
+  list-style:none;
+  margin:-10px 0 16px;
+  padding:0 0 10px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+  color:var(--muted)
+}
+
+.am-steps li.current {
+  color:var(--brand);
+  font-weight:700
+}
+
+.am-steps li.done {
+  color:var(--ink)
+}
+
+.am-body {
+  overflow:auto;
+  min-height:120px;
+  flex:1
+}
+
+.am-body>p,.am-body>label {
+  margin:0 0 12px
+}
+
+.am-card {
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:var(--sheet);
+  padding:12px 14px;
+  margin-bottom:12px
+}
+
+.am-card h3 {
+  margin:0 0 6px;
+  font-size:16px
+}
+
+.am-card p {
+  margin:0 0 6px
+}
+
+.am-die,.am-dice {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:8px;
+  margin:8px 0
+}
+
+.am-die label,.am-die-face,.am-number,.am-choice,.am-split label {
+  display:inline-flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px
+}
+
+.am-body input[type=number] {
+  width:72px
+}
+
+.am-inputs {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  margin:6px 0 10px
+}
+
+.am-split {
+  border:1px solid var(--line);
+  border-radius:6px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  margin:8px 0
+}
+
+.am-choice select {
+  max-width:100%
+}
+
+.am-actions {
+  list-style:none;
+  margin:8px 0 0;
+  padding:0
+}
+
+.am-actions li {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  border-top:1px dashed var(--line);
+  padding:2px 0
+}
+
+.am-actions li.removed span {
+  text-decoration:line-through;
+  color:var(--muted)
+}
+
+.am-setup {
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:12px
+}
+
+.am-setup th,.am-setup td {
+  border-bottom:1px solid var(--line);
+  padding:6px 4px;
+  text-align:left
+}
+
+.am-setup td:not(:first-child),.am-setup th:not(:first-child) {
+  text-align:center
+}
+
+.am-check {
+  display:block;
+  margin:0 0 10px
+}
+
+.am-warning {
+  color:var(--red);
+  font-weight:700
+}
+
+.am-invalid input {
+  border-color:var(--red);
+  outline:1px solid var(--red)
+}
+
+.am-footer {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--line)
+}
+
+@media(max-width:650px) {
+  dialog.aftermath {
+    padding:16px
+  }
+
+  .am-setup th {
+    font-size:12px
+  }
+}
+
 #fighter-search {
   width:100%;
   margin-bottom:15px

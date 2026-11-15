@@ -1,0 +1,264 @@
+{
+  "petInjury": {"deathMax": 2},
+  "heroInjury": {
+    "label": "Tabela poważnych obrażeń",
+    "sides": 6,
+    "results": [
+      {"min": 1, "max": 1, "node": {
+        "text": "Śmiertelnie niebezpieczne rany",
+        "next": {"label": "Rodzaj obrażeń", "sides": 6, "results": [
+          {"min": 1, "max": 2, "node": {"text": "Śmierć — model zginął.", "actions": [{"kind": "remove"}]}},
+          {"min": 3, "max": 3, "node": {"text": "Uszkodzone żebra — na stałe −1 T.", "actions": [{"kind": "stat", "stat": "t", "delta": -1}]}},
+          {"min": 4, "max": 4, "node": {
+            "text": "Rana nogi",
+            "next": {"label": "Rana nogi", "sides": 6, "results": [
+              {"min": 1, "max": 3, "node": {"text": "Na stałe −1 M.", "actions": [{"kind": "stat", "stat": "m", "delta": -1}]}},
+              {"min": 4, "max": 6, "node": {"text": "Model nie może biegać, ale nadal może szarżować.", "actions": [{"kind": "note", "text": "Rana nogi: nie może biegać (może szarżować)"}]}}
+            ]}
+          }},
+          {"min": 5, "max": 5, "node": {"text": "Bezwład ręki — może używać tylko broni jednoręcznej.", "actions": [{"kind": "note", "text": "Bezwład ręki: tylko broń jednoręczna"}]}},
+          {"min": 6, "max": 6, "node": {
+            "text": "Uszkodzenie głowy",
+            "next": {"label": "Uszkodzenie głowy", "sides": 6, "results": [
+              {"min": 1, "max": 3, "node": {"text": "Model podlega zasadom Głupoty.", "actions": [{"kind": "note", "text": "Głupota (stupidity)"}]}},
+              {"min": 4, "max": 6, "node": {"text": "Model podlega zasadom Szału.", "actions": [{"kind": "note", "text": "Szał (frenzy)"}]}}
+            ]}
+          }}
+        ]}
+      }},
+      {"min": 2, "max": 2, "node": {
+        "text": "Poważne rany",
+        "next": {"label": "Rodzaj obrażeń", "sides": 6, "results": [
+          {"min": 1, "max": 2, "node": {"text": "Oślepiony na jedno oko — na stałe −1 BS. Utrata drugiego oka wyklucza model z bandy (ekwipunek zostaje).", "actions": [{"kind": "blindEye"}]}},
+          {"min": 3, "max": 4, "node": {"text": "Uszkodzenie dłoni — na stałe −1 WS.", "actions": [{"kind": "stat", "stat": "ws", "delta": -1}]}},
+          {"min": 5, "max": 6, "node": {"text": "Stan nerwowy — na stałe −1 I.", "actions": [{"kind": "stat", "stat": "i", "delta": -1}]}}
+        ]}
+      }},
+      {"min": 3, "max": 3, "node": {
+        "text": "Przewlekłe rany",
+        "next": {"label": "Rodzaj obrażeń", "sides": 6, "results": [
+          {"min": 1, "max": 1, "node": {"text": "Stara rana — przed każdą bitwą rzuć k6; przy 1 model nie wychodzi. Kumuluje się.", "actions": [{"kind": "oldWound"}]}},
+          {"min": 2, "max": 4, "node": {"text": "Głęboka rana — model opuszcza następną potyczkę.", "actions": [{"kind": "note", "text": "Głęboka rana: opuszcza następną bitwę"}]}},
+          {"min": 5, "max": 6, "node": {"text": "Płytka rana — modelowi nic się nie stało."}}
+        ]}
+      }},
+      {"min": 4, "max": 5, "node": {"text": "Pełne wyzdrowienie — modelowi nic się nie stało."}},
+      {"min": 6, "max": 6, "node": {
+        "text": "Co go nie zabije…",
+        "next": {"label": "Wynik", "sides": 6, "results": [
+          {"min": 1, "max": 1, "node": {
+            "text": "Wrogość — model podlega zasadom Nienawiści.",
+            "next": {"label": "Cel nienawiści", "sides": 6, "results": [
+              {"min": 1, "max": 3, "node": {"text": "Wobec modelu, który wykluczył go z akcji (zwierzak: wobec lidera tej bandy).", "actions": [{"kind": "note", "text": "Nienawiść: model, który go wykluczył z akcji"}]}},
+              {"min": 4, "max": 4, "node": {"text": "Wobec lidera bandy, która wykluczyła go z akcji.", "actions": [{"kind": "note", "text": "Nienawiść: lider bandy, która go wykluczyła z akcji"}]}},
+              {"min": 5, "max": 5, "node": {"text": "Wobec całej bandy, która wykluczyła go z akcji.", "actions": [{"kind": "note", "text": "Nienawiść: banda, która go wykluczyła z akcji"}]}},
+              {"min": 6, "max": 6, "node": {"text": "Wobec wszystkich band dowodzonych przez lidera tego samego typu.", "actions": [{"kind": "note", "text": "Nienawiść: bandy z liderem tego samego typu"}]}}
+            ]}
+          }},
+          {"min": 2, "max": 3, "node": {"text": "Wzmocnienie — model staje się odporny na Strach.", "actions": [{"kind": "note", "text": "Odporny na strach"}]}},
+          {"min": 4, "max": 4, "node": {"text": "Okropne blizny — model budzi Strach.", "actions": [{"kind": "note", "text": "Budzi strach"}]}},
+          {"min": 5, "max": 6, "node": {"text": "Przetrwanie mimo przeciwności — +1 PD.", "actions": [{"kind": "exp", "delta": 1}]}}
+        ]}
+      }}
+    ]
+  },
+  "advance": {
+    "results": [
+      {"min": 2, "max": 5, "type": "skill", "text": "Nowa umiejętność"},
+      {"min": 6, "max": 6, "type": "roll", "pair": ["s", "a"], "text": "Zwiększenie charakterystyki: k6 1–3 S, 4–6 A"},
+      {"min": 7, "max": 7, "type": "choose", "pair": ["ws", "bs"], "text": "Zwiększenie charakterystyki: WS lub BS do wyboru"},
+      {"min": 8, "max": 8, "type": "roll", "pair": ["i", "ld"], "text": "Zwiększenie charakterystyki: k6 1–3 I, 4–6 Ld"},
+      {"min": 9, "max": 9, "type": "roll", "pair": ["w", "t"], "text": "Zwiększenie charakterystyki: k6 1–3 W, 4–6 T"},
+      {"min": 10, "max": 12, "type": "skill", "text": "Nowa umiejętność"}
+    ]
+  },
+  "underdog": [
+    {"min": 0, "max": 50, "bonus": 0},
+    {"min": 51, "max": 75, "bonus": 1},
+    {"min": 76, "max": 100, "bonus": 2},
+    {"min": 101, "max": 150, "bonus": 3},
+    {"min": 151, "max": null, "bonus": 4}
+  ],
+  "warpstoneFromSum": [
+    {"min": 1, "max": 5, "pieces": 1},
+    {"min": 6, "max": 11, "pieces": 2},
+    {"min": 12, "max": 17, "pieces": 3},
+    {"min": 18, "max": 24, "pieces": 4},
+    {"min": 25, "max": 30, "pieces": 5},
+    {"min": 31, "max": 35, "pieces": 6},
+    {"min": 36, "max": null, "pieces": 7}
+  ],
+  "exploration": {
+    "maxDice": 6,
+    "finds": [
+      {"size": 1, "value": 1, "name": "Zgubione monety", "text": "k3 zk", "options": [{"label": "k3 zk", "gains": [{"kind": "gold", "dice": {"count": 1, "sides": 3}}]}]},
+      {"size": 1, "value": 2, "name": "Fragment pancerza", "text": "1 fragment pancerza", "options": [{"label": "1 fragment pancerza", "gains": [{"kind": "armour", "dice": {"flat": 1}}]}]},
+      {"size": 1, "value": 3, "name": "Zagubiona broń", "text": "Młot lub topór (do wyboru)", "options": [
+        {"label": "Młot", "gains": [{"kind": "item", "text": "Młot"}]},
+        {"label": "Topór", "gains": [{"kind": "item", "text": "Topór"}]}
+      ]},
+      {"size": 1, "value": 4, "name": "Uwięziony zwierzak", "text": "k6 zk lub 1 PD dla lidera bandy", "options": [
+        {"label": "k6 zk", "gains": [{"kind": "gold", "dice": {"count": 1, "sides": 6}}]},
+        {"label": "1 PD dla lidera", "gains": [{"kind": "exp", "target": "leader", "dice": {"flat": 1}}]}
+      ]},
+      {"size": 1, "value": 5, "name": "Zagubiona broń żołnierza", "text": "Miecz, włócznia lub halabarda (do wyboru)", "options": [
+        {"label": "Miecz", "gains": [{"kind": "item", "text": "Miecz"}]},
+        {"label": "Włócznia", "gains": [{"kind": "item", "text": "Włócznia"}]},
+        {"label": "Halabarda", "gains": [{"kind": "item", "text": "Halabarda"}]}
+      ]},
+      {"size": 1, "value": 6, "name": "Kawałek Spaczenia", "text": "1 kawałek Spaczenia", "options": [{"label": "1 kawałek Spaczenia", "gains": [{"kind": "shards", "dice": {"flat": 1}}]}]},
+
+      {"size": 2, "value": 1, "name": "Studnia", "text": "1 kawałek Spaczenia", "options": [{"label": "1 kawałek Spaczenia", "gains": [{"kind": "shards", "dice": {"flat": 1}}]}]},
+      {"size": 2, "value": 2, "name": "Sakiewka", "text": "k6 zk — przy wyniku 1 zamiast monet Szczęśliwy amulet", "options": [{"label": "k6 zk lub Szczęśliwy amulet", "gains": [{"kind": "table", "sides": 6, "results": [
+        {"min": 1, "max": 1, "gains": [{"kind": "item", "text": "Szczęśliwy amulet"}]},
+        {"min": 2, "max": 2, "gains": [{"kind": "gold", "dice": {"flat": 2}}]},
+        {"min": 3, "max": 3, "gains": [{"kind": "gold", "dice": {"flat": 3}}]},
+        {"min": 4, "max": 4, "gains": [{"kind": "gold", "dice": {"flat": 4}}]},
+        {"min": 5, "max": 5, "gains": [{"kind": "gold", "dice": {"flat": 5}}]},
+        {"min": 6, "max": 6, "gains": [{"kind": "gold", "dice": {"flat": 6}}]}
+      ]}]}]},
+      {"size": 2, "value": 3, "name": "Zwłoki", "text": "k6 zk i k3 fragmenty pancerza", "options": [{"label": "k6 zk i k3 fragmenty pancerza", "gains": [
+        {"kind": "gold", "dice": {"count": 1, "sides": 6}},
+        {"kind": "armour", "dice": {"count": 1, "sides": 3}}
+      ]}]},
+      {"size": 2, "value": 4, "name": "Maruder", "text": "2k6 zk albo 1 PD dla dowolnego herosa", "options": [
+        {"label": "2k6 zk", "gains": [{"kind": "gold", "dice": {"count": 2, "sides": 6}}]},
+        {"label": "1 PD dla herosa", "gains": [{"kind": "exp", "target": "hero", "dice": {"flat": 1}}]}
+      ]},
+      {"size": 2, "value": 5, "name": "Mały kuferek", "text": "Mapa ruin i 2k6 zk", "options": [{"label": "Mapa ruin i 2k6 zk", "gains": [
+        {"kind": "item", "text": "Mapa ruin"},
+        {"kind": "gold", "dice": {"count": 2, "sides": 6}}
+      ]}]},
+      {"size": 2, "value": 6, "name": "Siennik awanturnika", "text": "2k6 zk i młot, topór lub tarcza (do wyboru)", "options": [
+        {"label": "2k6 zk i Młot", "gains": [{"kind": "gold", "dice": {"count": 2, "sides": 6}}, {"kind": "item", "text": "Młot"}]},
+        {"label": "2k6 zk i Topór", "gains": [{"kind": "gold", "dice": {"count": 2, "sides": 6}}, {"kind": "item", "text": "Topór"}]},
+        {"label": "2k6 zk i Tarcza", "gains": [{"kind": "gold", "dice": {"count": 2, "sides": 6}}, {"kind": "item", "text": "Tarcza"}]}
+      ]},
+
+      {"size": 3, "value": 1, "name": "Piwniczka", "text": "Test Ld lidera: zdany — napitki za 5k6 zk; niezdany — 2k6 zk", "options": [
+        {"label": "Test Ld zdany: 5k6 zk", "gains": [{"kind": "gold", "dice": {"count": 5, "sides": 6}}]},
+        {"label": "Test Ld niezdany: 2k6 zk", "gains": [{"kind": "gold", "dice": {"count": 2, "sides": 6}}]}
+      ]},
+      {"size": 3, "value": 2, "name": "Stara kuźnia", "text": "2k6 zk i broń dwuręczna (do wyboru)", "options": [{"label": "2k6 zk i broń dwuręczna", "gains": [
+        {"kind": "gold", "dice": {"count": 2, "sides": 6}},
+        {"kind": "item", "text": "Broń dwuręczna (do wyboru)"}
+      ]}]},
+      {"size": 3, "value": 3, "name": "Więźniowie", "text": "3k6 zk lub k3 PD do rozdzielenia między herosów", "options": [
+        {"label": "3k6 zk", "gains": [{"kind": "gold", "dice": {"count": 3, "sides": 6}}]},
+        {"label": "k3 PD dla herosów", "gains": [{"kind": "exp", "target": "heroes", "dice": {"count": 1, "sides": 3}}]}
+      ]},
+      {"size": 3, "value": 4, "name": "Skład myśliwski", "text": "k6: 1–4 k3 łuki lub długi łuk; 5 kusza; 6 strzały łowieckie", "options": [{"label": "Rzut k6", "gains": [{"kind": "table", "sides": 6, "results": [
+        {"min": 1, "max": 4, "gains": [{"kind": "item", "text": "k3 łuki lub długi łuk (do wyboru)"}]},
+        {"min": 5, "max": 5, "gains": [{"kind": "item", "text": "Kusza"}]},
+        {"min": 6, "max": 6, "gains": [{"kind": "item", "text": "Strzały łowieckie"}]}
+      ]}]}]},
+      {"size": 3, "value": 5, "name": "Hala handlowa", "text": "2k6 zk i 2k3 fragmenty pancerza", "options": [{"label": "2k6 zk i 2k3 fragmenty pancerza", "gains": [
+        {"kind": "gold", "dice": {"count": 2, "sides": 6}},
+        {"kind": "armour", "dice": {"count": 2, "sides": 3}}
+      ]}]},
+      {"size": 3, "value": 6, "name": "Dług wdzięczności", "text": "Na następną bitwę możesz wystawić za darmo Ogra najemnika z bronią dwuręczną i lekką zbroją.", "options": [{"label": "Dług wdzięczności", "gains": [
+        {"kind": "note", "text": "Dług wdzięczności: na następną bitwę darmowy Ogr najemnik (broń dwuręczna, lekka zbroja), może przekroczyć limit; odchodzi po bitwie."}
+      ]}]},
+
+      {"size": 4, "value": 1, "name": "Rusznikarz", "text": "k6: 1 garłacz; 2 pistolety; 3 pistolety pojedynkowe; 4 k3 muszkiety; 5 k3 ładownice doskonałego prochu; 6 strzelba myśliwska", "options": [{"label": "Rzut k6", "gains": [{"kind": "table", "sides": 6, "results": [
+        {"min": 1, "max": 1, "gains": [{"kind": "item", "text": "Garłacz"}]},
+        {"min": 2, "max": 2, "gains": [{"kind": "item", "text": "Pistolety"}]},
+        {"min": 3, "max": 3, "gains": [{"kind": "item", "text": "Pistolety pojedynkowe"}]},
+        {"min": 4, "max": 4, "gains": [{"kind": "item", "text": "Muszkiet", "dice": {"count": 1, "sides": 3}}]},
+        {"min": 5, "max": 5, "gains": [{"kind": "item", "text": "Doskonały proch", "dice": {"count": 1, "sides": 3}}]},
+        {"min": 6, "max": 6, "gains": [{"kind": "item", "text": "Strzelba myśliwska"}]}
+      ]}]}]},
+      {"size": 4, "value": 2, "name": "Kapliczka", "text": "3k6 zk albo darmowe „Poświęcenie młota” dla k3 uprawnionych broni", "options": [
+        {"label": "3k6 zk", "gains": [{"kind": "gold", "dice": {"count": 3, "sides": 6}}]},
+        {"label": "Poświęcenie młota", "gains": [{"kind": "note", "text": "Kapliczka: darmowe „Poświęcenie młota” dla k3 uprawnionych broni."}]}
+      ]},
+      {"size": 4, "value": 3, "name": "Mieszkanie", "text": "3k6 zk i 3k3 fragmenty pancerza", "options": [{"label": "3k6 zk i 3k3 fragmenty pancerza", "gains": [
+        {"kind": "gold", "dice": {"count": 3, "sides": 6}},
+        {"kind": "armour", "dice": {"count": 3, "sides": 3}}
+      ]}]},
+      {"size": 4, "value": 4, "name": "Płatnerz", "text": "k3 tarcze lub puklerze i 6k3 fragmentów pancerza", "options": [{"label": "k3 tarcze lub puklerze i 6k3 fragmentów pancerza", "gains": [
+        {"kind": "item", "text": "Tarcza lub puklerz", "dice": {"count": 1, "sides": 3}},
+        {"kind": "armour", "dice": {"count": 6, "sides": 3}}
+      ]}]},
+      {"size": 4, "value": 5, "name": "Zbiorowa mogiła", "text": "k6 × 10 zk lub k6 PD do rozdzielenia między herosów", "options": [
+        {"label": "k6 × 10 zk", "gains": [{"kind": "gold", "dice": {"count": 1, "sides": 6, "times": 10}}]},
+        {"label": "k6 PD dla herosów", "gains": [{"kind": "exp", "target": "heroes", "dice": {"count": 1, "sides": 6}}]}
+      ]},
+      {"size": 4, "value": 6, "name": "Sekretne tunele", "text": "Banda zdobywa umiejętność „Sekretne tunele”: stale przerzuca jedną kość eksploracji.", "options": [{"label": "Sekretne tunele", "gains": [
+        {"kind": "note", "text": "Sekretne tunele: banda może stale przerzucać jedną kość na eksplorację (kolejne wylosowanie dodaje kość)."}
+      ]}]},
+
+      {"size": 5, "value": 1, "name": "Kantor", "text": "10k6 zk", "options": [{"label": "10k6 zk", "gains": [{"kind": "gold", "dice": {"count": 10, "sides": 6}}]}]},
+      {"size": 5, "value": 2, "name": "Pracownia alchemika", "text": "3k6 zk i książka z jedną umiejętnością akademicką", "options": [{"label": "3k6 zk i książka", "gains": [
+        {"kind": "gold", "dice": {"count": 3, "sides": 6}},
+        {"kind": "note", "text": "Pracownia alchemika: książka z jedną umiejętnością akademicką dla modelu, który może takie posiadać."}
+      ]}]},
+      {"size": 5, "value": 3, "name": "Jubiler", "text": "Kosztowności za 15k6 zk", "options": [{"label": "15k6 zk", "gains": [{"kind": "gold", "dice": {"count": 15, "sides": 6}}]}]},
+      {"size": 5, "value": 4, "name": "Hala kupiecka", "text": "2k6 × 5 zk i brosza dająca umiejętność Targowanie", "options": [{"label": "2k6 × 5 zk i brosza", "gains": [
+        {"kind": "gold", "dice": {"count": 2, "sides": 6, "times": 5}},
+        {"kind": "note", "text": "Hala kupiecka: brosza dająca posiadaczowi umiejętność Targowanie."}
+      ]}]},
+      {"size": 5, "value": 5, "name": "Miejsce wybuchu", "text": "k3 kawałki Spaczenia, 2k6 zk i 4k3 fragmenty pancerza", "options": [{"label": "k3 Spaczenia, 2k6 zk, 4k3 fragmenty", "gains": [
+        {"kind": "shards", "dice": {"count": 1, "sides": 3}},
+        {"kind": "gold", "dice": {"count": 2, "sides": 6}},
+        {"kind": "armour", "dice": {"count": 4, "sides": 3}}
+      ]}]},
+      {"size": 5, "value": 6, "name": "Wejście do tuneli", "text": "k3 kawałki Spaczenia i umiejętność „Sekretne tunele”", "options": [{"label": "k3 Spaczenia i Sekretne tunele", "gains": [
+        {"kind": "shards", "dice": {"count": 1, "sides": 3}},
+        {"kind": "note", "text": "Sekretne tunele: banda może stale przerzucać jedną kość na eksplorację (kolejne wylosowanie dodaje kość)."}
+      ]}]},
+
+      {"size": 6, "value": 1, "name": "Nora", "text": "Możesz zaryzykować: k6 na wybranym bohaterze — 1: znika z bandy; 2–6: wraca z k6+1 kawałkami Spaczenia i 1 PD.", "options": [{"label": "Nora", "gains": [
+        {"kind": "note", "text": "Nora: możesz zaryzykować rzut k6 na wybranym bohaterze — 1: bohater na stałe znika z bandy; 2–6: wraca z k6+1 kawałkami Spaczenia i 1 PD (nie może to dać rozwoju)."}
+      ]}]},
+      {"size": 6, "value": 2, "name": "Ukryty skarb", "text": "3k6 × 5 zk, 3k3 fragmenty pancerza oraz: 4+ k3 Spaczenia; 5+ Święta relikwia; 5+ k3 × 10 zk; 5+ Elfi płaszcz; 5+ Święta księga; 5+ losowy artefakt", "options": [{"label": "Ukryty skarb", "gains": [
+        {"kind": "gold", "dice": {"count": 3, "sides": 6, "times": 5}},
+        {"kind": "armour", "dice": {"count": 3, "sides": 3}},
+        {"kind": "check", "sides": 6, "min": 4, "label": "Spaczenie (4+)", "gains": [{"kind": "shards", "dice": {"count": 1, "sides": 3}}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "Święta relikwia (5+)", "gains": [{"kind": "item", "text": "Święta (Przeklęta) relikwia"}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "k3 × 10 zk (5+)", "gains": [{"kind": "gold", "dice": {"count": 1, "sides": 3, "times": 10}}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "Elfi płaszcz (5+)", "gains": [{"kind": "item", "text": "Elfi płaszcz"}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "Święta księga (5+)", "gains": [{"kind": "item", "text": "Święta księga"}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "Artefakt (5+)", "gains": [{"kind": "artefact"}]}
+      ]}]},
+      {"size": 6, "value": 3, "name": "Krasnoludzka kuźnia", "text": "4k3 fragmenty pancerza, młot lub topór z gromrilu (do wyboru) i wybrana broń dwuręczna", "options": [
+        {"label": "Młot z gromrilu", "gains": [{"kind": "armour", "dice": {"count": 4, "sides": 3}}, {"kind": "item", "text": "Młot z gromrilu"}, {"kind": "item", "text": "Broń dwuręczna (do wyboru)"}]},
+        {"label": "Topór z gromrilu", "gains": [{"kind": "armour", "dice": {"count": 4, "sides": 3}}, {"kind": "item", "text": "Topór z gromrilu"}, {"kind": "item", "text": "Broń dwuręczna (do wyboru)"}]}
+      ]},
+      {"size": 6, "value": 4, "name": "Wybita banda", "text": "k6 sztyletów, 2k6 × 5 zk, 4k3 fragmenty pancerza oraz: 4+ Mapa ruin; 4+ k3 łuki; 5+ k3 halabardy; 3+ k3 miecze; 2+ k3 tarcze; 2+ k3 hełmy", "options": [{"label": "Wybita banda", "gains": [
+        {"kind": "item", "text": "Sztylet", "dice": {"count": 1, "sides": 6}},
+        {"kind": "gold", "dice": {"count": 2, "sides": 6, "times": 5}},
+        {"kind": "armour", "dice": {"count": 4, "sides": 3}},
+        {"kind": "check", "sides": 6, "min": 4, "label": "Mapa ruin (4+)", "gains": [{"kind": "item", "text": "Mapa ruin"}]},
+        {"kind": "check", "sides": 6, "min": 4, "label": "Łuki (4+)", "gains": [{"kind": "item", "text": "Łuk", "dice": {"count": 1, "sides": 3}}]},
+        {"kind": "check", "sides": 6, "min": 5, "label": "Halabardy (5+)", "gains": [{"kind": "item", "text": "Halabarda", "dice": {"count": 1, "sides": 3}}]},
+        {"kind": "check", "sides": 6, "min": 3, "label": "Miecze (3+)", "gains": [{"kind": "item", "text": "Miecz", "dice": {"count": 1, "sides": 3}}]},
+        {"kind": "check", "sides": 6, "min": 2, "label": "Tarcze (2+)", "gains": [{"kind": "item", "text": "Tarcza", "dice": {"count": 1, "sides": 3}}]},
+        {"kind": "check", "sides": 6, "min": 2, "label": "Hełmy (2+)", "gains": [{"kind": "item", "text": "Hełm", "dice": {"count": 1, "sides": 3}}]}
+      ]}]},
+      {"size": 6, "value": 5, "name": "Arena", "text": "Podręcznik walki: sprzedaj za 100 zk albo daj jednemu z bohaterów (dostęp do umiejętności bojowych lub jedna taka umiejętność; maksimum WS +1)", "options": [
+        {"label": "Sprzedaj za 100 zk", "gains": [{"kind": "gold", "dice": {"flat": 100}}]},
+        {"label": "Przeczytaj", "gains": [{"kind": "note", "text": "Arena: bohater czyta podręcznik walki — dostęp do umiejętności bojowych (lub jedna taka umiejętność, jeśli już ma dostęp); jego maksimum WS rośnie o 1."}]}
+      ]},
+      {"size": 6, "value": 6, "name": "Szlachecki skarbczyk", "text": "3k6 × 5 zk i losowy magiczny artefakt", "options": [{"label": "3k6 × 5 zk i artefakt", "gains": [
+        {"kind": "gold", "dice": {"count": 3, "sides": 6, "times": 5}},
+        {"kind": "artefact"}
+      ]}]}
+    ]
+  },
+  "artefacts": ["Buty złodzieja", "Sztylet korsarza", "Runiczna zbroja", "Przebijacz serc", "Kaptur kata", "Wszystkowidzące oko"],
+  "warpstoneSale": {
+    "bandSizes": [[1, 3], [4, 6], [7, 10], [11, null]],
+    "rows": [
+      [45, 40, 35, 30],
+      [60, 55, 50, 45],
+      [75, 70, 65, 60],
+      [90, 80, 70, 65],
+      [110, 100, 90, 80],
+      [120, 110, 100, 90],
+      [145, 130, 120, 110],
+      [155, 140, 130, 120]
+    ]
+  },
+  "leaderDeath": "Śmierć lidera: jego miejsce zajmuje model z najwyższym Ld (przy remisie — najbardziej doświadczony) i otrzymuje zasadę Lider. Zwierzaki nie mogą zastąpić lidera."
+}

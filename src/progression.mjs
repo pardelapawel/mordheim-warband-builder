@@ -1,6 +1,9 @@
 import {getSkillEntryCost, getSkillEntryNames} from './skills.mjs';
 import {fighterTemplate} from './eligibility.mjs';
 
+// Experience totals that grant an advance (bold boxes on the roster track).
+export const ADVANCE_THRESHOLDS = [2,4,6,8,11,14,17,20,24,28,32,36,41,46,51,57,63,69,76,83,90];
+
 // Specific profiles distinguish vampires from other undead and orcs from goblins.
 // Animals without a profile in the source table must not inherit humanoid caps.
 export function racialMaximumProfile(fighter, catalog) {
