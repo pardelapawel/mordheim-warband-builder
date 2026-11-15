@@ -39,7 +39,7 @@ function choiceControl(source, choose) {
     return `<fieldset class="am-split"><legend>${esc(choose.label)}</legend>${choose.options.map(o => `<label>${esc(o.label)} <input type="number" min="0" max="${choose.total}" value="${esc(split[o.value] ?? '')}" data-am-split="${esc(fullKey)}" data-hero="${esc(o.value)}"></label>`).join('') || '<p class="editor-hint">Żaden heros nie może teraz otrzymać PD bez rozwoju — wybierz inną nagrodę.</p>'}</fieldset>`;
   }
   const current = view.state.choices[fullKey];
-  return `<label class="am-choice">${esc(choose.label)} <select data-am-choice="${esc(fullKey)}"><option value="">Wybierz…</option>${choose.options.map(o => `<option value="${esc(o.value)}" ${String(current) === String(o.value) ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>`;
+  return `<label class="am-choice">${esc(choose.label)} <select data-am-choice="${esc(fullKey)}"><option value="">Wybierz…</option>${choose.options.map(o => `<option value="${esc(o.value)}" ${String(current) === String(o.value) ? 'selected' : ''}${o.disabled ? ' disabled' : ''}>${esc(o.label)}</option>`).join('')}</select></label>`;
 }
 
 function actionList(actions) {
@@ -49,7 +49,7 @@ function actionList(actions) {
 
 function cardMarkup(card, extra = '') {
   const {result} = card;
-  return `<section class="am-card" data-am-card data-title="${esc(card.title)}"><h3>${esc(card.title)}</h3>${extra}${result.text.map(line => `<p>${esc(line)}</p>`).join('')}${result.rolled.map(need => dieControl(`${card.source}/${need.key}`, need, true)).join('')}${result.needs.map(need => dieControl(`${card.source}/${need.key}`, need, false)).join('')}${result.choose ? choiceControl(card.source, result.choose) : ''}${actionList(card.actions)}</section>`;
+  return `<section class="am-card" data-am-card data-title="${esc(card.title)}"><h3>${esc(card.title)}</h3>${extra}${result.text.map(line => `<p>${esc(line)}</p>`).join('')}${result.rolled.map(need => dieControl(`${card.source}/${need.key}`, need, true)).join('')}${result.chosen.map(choose => choiceControl(card.source, choose)).join('')}${result.needs.map(need => dieControl(`${card.source}/${need.key}`, need, false)).join('')}${result.choose ? choiceControl(card.source, result.choose) : ''}${actionList(card.actions)}</section>`;
 }
 
 const numberInput = (key, label, value) => `<label class="am-number">${esc(label)} <input type="number" inputmode="numeric" value="${esc(value ?? '')}" data-am-input="${esc(key)}"></label>`;
@@ -109,6 +109,16 @@ function stepSummary(built) {
   ${groups.size ? [...groups].map(([name, actions]) => `<section class="am-card"><h3>${esc(name)}</h3>${actionList(actions)}</section>`).join('') : '<p class="editor-hint">Brak zmian do zastosowania.</p>'}`;
 }
 
+// Steps whose cards still wait for a roll or a choice.
+function openSteps(built) {
+  const open = cards => cards.some(card => card.result.needs.length || card.result.choose);
+  return new Set([
+    open(built.injuries) && 'injuries',
+    open(built.experience) && 'experience',
+    (open(built.exploration.cards) || (built.exploration.count && !built.exploration.sum)) && 'exploration',
+  ].filter(Boolean));
+}
+
 function render() {
   const built = A.buildAftermath(view.band, view.catalog, view.state);
   view.built = built;
@@ -117,8 +127,9 @@ function render() {
   const focused = document.activeElement?.closest?.('#aftermath') ? document.activeElement : null;
   const focusKey = focused && ['data-am-roll', 'data-am-input', 'data-am-dice', 'data-am-split', 'data-am-opponent', 'data-am-throw', 'data-am-toggle', 'data-am-choice', 'data-am-took', 'data-am-ooa'].map(attr => focused.hasAttribute(attr) ? `[${attr}="${CSS.escape(focused.getAttribute(attr))}"]${attr === 'data-am-split' ? `[data-hero="${CSS.escape(focused.dataset.hero)}"]` : ''}` : null).find(Boolean);
   $('aftermath-title').textContent = title;
-  $('aftermath-steps').innerHTML = STEPS.map(([, name], i) => `<li class="${i === view.step ? 'current' : i < view.step ? 'done' : ''}">${esc(name)}</li>`).join('');
-  $('aftermath-body').innerHTML = body;
+  const open = openSteps(built), earlier = STEPS.slice(0, view.step).filter(([step]) => open.has(step)).map(([, name]) => name);
+  $('aftermath-steps').innerHTML = STEPS.map(([step, name], i) => `<li class="${i === view.step ? 'current' : i < view.step ? 'done' : ''}"><button type="button" data-am-step="${i}" ${i === view.step ? 'aria-current="step"' : ''}>${esc(name)}${open.has(step) && i !== view.step ? '<span class="am-open" title="Czeka na rzut lub wybór"> !</span>' : ''}</button></li>`).join('');
+  $('aftermath-body').innerHTML = (earlier.length && STEPS[view.step][0] !== 'summary' ? `<p class="am-warning">Bez wyniku w krokach: ${esc(earlier.join(', '))}. Wartości na tej stronie mogą się jeszcze zmienić.</p>` : '') + body;
   $('am-back').disabled = view.step === 0;
   $('am-next').hidden = view.step === STEPS.length - 1;
   $('am-apply').hidden = view.step !== STEPS.length - 1;
@@ -162,6 +173,7 @@ function onClick(event) {
   if (!button) return;
   const {state} = view;
   if (button.id === 'am-close') return close();
+  if (button.dataset.amStep !== undefined) { view.step = Number(button.dataset.amStep); render(); $('aftermath-body').scrollTop = 0; return; }
   if (button.id === 'am-back') { view.step = Math.max(0, view.step - 1); render(); return; }
   if (button.id === 'am-next') { view.step = Math.min(STEPS.length - 1, view.step + 1); render(); $('aftermath-body').scrollTop = 0; return; }
   if (button.id === 'am-apply') {
