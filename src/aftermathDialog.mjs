@@ -27,9 +27,9 @@ function throwDice(min, sides) {
   return total;
 }
 
-function dieControl(fullKey, need) {
-  const min = need.min || 1, value = view.state.rolls[fullKey] ?? '';
-  return `<div class="am-die"><label>${esc(need.label)} <input type="number" inputmode="numeric" min="${min}" max="${need.sides}" value="${esc(value)}" data-am-roll="${esc(fullKey)}"></label><button type="button" class="quiet" data-am-throw="${esc(fullKey)}" data-min="${min}" data-sides="${need.sides}">Rzuć</button></div>`;
+function dieControl(fullKey, need, valid) {
+  const min = need.min || 1, value = view.state.rolls[fullKey] ?? '', invalid = !valid && value !== '';
+  return `<div class="am-die${invalid ? ' am-invalid' : ''}"><label>${esc(need.label)} <input type="number" inputmode="numeric" min="${min}" max="${need.sides}" value="${esc(value)}" data-am-roll="${esc(fullKey)}" ${invalid ? 'aria-invalid="true"' : ''}></label>${invalid ? `<span class="am-warning">Wynik spoza zakresu ${min}–${need.sides}.</span>` : ''}<button type="button" class="quiet" data-am-throw="${esc(fullKey)}" data-min="${min}" data-sides="${need.sides}">Rzuć</button></div>`;
 }
 
 function choiceControl(source, choose) {
@@ -49,7 +49,7 @@ function actionList(actions) {
 
 function cardMarkup(card, extra = '') {
   const {result} = card;
-  return `<section class="am-card" data-am-card data-title="${esc(card.title)}"><h3>${esc(card.title)}</h3>${extra}${result.text.map(line => `<p>${esc(line)}</p>`).join('')}${result.needs.map(need => dieControl(`${card.source}/${need.key}`, need)).join('')}${result.choose ? choiceControl(card.source, result.choose) : ''}${actionList(card.actions)}</section>`;
+  return `<section class="am-card" data-am-card data-title="${esc(card.title)}"><h3>${esc(card.title)}</h3>${extra}${result.text.map(line => `<p>${esc(line)}</p>`).join('')}${result.rolled.map(need => dieControl(`${card.source}/${need.key}`, need, true)).join('')}${result.needs.map(need => dieControl(`${card.source}/${need.key}`, need, false)).join('')}${result.choose ? choiceControl(card.source, result.choose) : ''}${actionList(card.actions)}</section>`;
 }
 
 const numberInput = (key, label, value) => `<label class="am-number">${esc(label)} <input type="number" inputmode="numeric" value="${esc(value ?? '')}" data-am-input="${esc(key)}"></label>`;
@@ -78,7 +78,7 @@ function stepExperience(built) {
 
 function stepExploration(built) {
   const {exploration} = built, {state} = view;
-  const dice = Array.from({length: exploration.count}, (_, i) => `<label class="am-die-face">Kość ${i + 1} <input type="number" inputmode="numeric" min="1" max="6" value="${esc(state.dice[i] ?? '')}" data-am-dice="${i}"></label>`).join('');
+  const dice = Array.from({length: exploration.count}, (_, i) => `<label class="am-die-face${state.dice[i] != null && !exploration.dice[i] ? ' am-invalid' : ''}">Kość ${i + 1} <input type="number" inputmode="numeric" min="1" max="6" value="${esc(state.dice[i] ?? '')}" data-am-dice="${i}"></label>`).join('');
   return `<p class="editor-hint">Kości: ${exploration.count} (herosi bez OOA, +1 za zwycięstwo${exploration.eyeBonus ? ', +1 Wszystkowidzące oko' : ''}; najwyżej 6). Przerzuty i modyfikatory ±1 wpisz, poprawiając wynik kości.</p>
   ${numberInput('exploration/adjust', 'Dodatkowe kości (+/−)', state.inputs['exploration/adjust'])}
   <div class="am-dice">${dice}${exploration.count ? '<button type="button" class="quiet" data-am-throw-all>Rzuć wszystkie</button>' : ''}</div>
@@ -113,7 +113,7 @@ function render() {
   const [key, title] = STEPS[view.step];
   const body = {setup: stepSetup, injuries: stepInjuries, experience: stepExperience, exploration: stepExploration, sale: stepSale, summary: stepSummary}[key](built);
   const focused = document.activeElement?.closest?.('#aftermath') ? document.activeElement : null;
-  const focusKey = focused && ['data-am-roll', 'data-am-input', 'data-am-dice', 'data-am-split', 'data-am-opponent'].map(attr => focused.hasAttribute(attr) ? `[${attr}="${CSS.escape(focused.getAttribute(attr))}"]${attr === 'data-am-split' ? `[data-hero="${CSS.escape(focused.dataset.hero)}"]` : ''}` : null).find(Boolean);
+  const focusKey = focused && ['data-am-roll', 'data-am-input', 'data-am-dice', 'data-am-split', 'data-am-opponent', 'data-am-throw', 'data-am-toggle', 'data-am-choice', 'data-am-took', 'data-am-ooa'].map(attr => focused.hasAttribute(attr) ? `[${attr}="${CSS.escape(focused.getAttribute(attr))}"]${attr === 'data-am-split' ? `[data-hero="${CSS.escape(focused.dataset.hero)}"]` : ''}` : null).find(Boolean);
   $('aftermath-title').textContent = title;
   $('aftermath-steps').innerHTML = STEPS.map(([, name], i) => `<li class="${i === view.step ? 'current' : i < view.step ? 'done' : ''}">${esc(name)}</li>`).join('');
   $('aftermath-body').innerHTML = body;
@@ -132,7 +132,8 @@ function changed(key) {
   A.dropStale(view.state, key);
   A.clearRemovedFor(view.state, key);
   view.dirty = true;
-  render();
+  // A change fires before Tab moves focus; render after it lands so focus follows the player.
+  setTimeout(() => { if (view) render(); });
 }
 
 function onInput(event) {
@@ -185,8 +186,8 @@ function onClick(event) {
 function wire() {
   wired = true;
   const dialog = $('aftermath');
-  dialog.addEventListener('change', event => { if (event.target.type !== 'number') onInput(event); });
-  dialog.addEventListener('input', event => { if (event.target.type === 'number') onInput(event); });
+  // Commit on change, not per keystroke, so multi-digit values (2k6 = 11) can be typed.
+  dialog.addEventListener('change', onInput);
   dialog.addEventListener('click', onClick);
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
 }

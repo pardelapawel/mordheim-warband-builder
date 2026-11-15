@@ -19,6 +19,8 @@ try{
     const activeBand=async()=>{const lib=await roster();return lib.bands.find(b=>b.id===lib.activeId);};
     const start=await activeBand();
     const dialog=page.locator('#aftermath'),next=()=>dialog.locator('#am-next').click();
+    // The dialog commits typed values on change, like a player tabbing out of the field.
+    const set=async(locator,value)=>{await locator.fill(value);await locator.dispatchEvent('change');};
     const card=title=>dialog.locator(`[data-am-card][data-title="${title}"]`);
 
     // Closing with entered results asks first.
@@ -33,17 +35,23 @@ try{
     await page.locator('#after-battle').click();
     await dialog.locator('tr[data-name="Ludzki Najemnik"] input[data-am-ooa]').check();
     await next();
-    await card('Ludzki Najemnik').locator('[data-am-roll$="/1"]').fill('1');
-    await card('Ludzki Najemnik').locator('[data-am-roll$="/2"]').fill('3');
+    await set(card('Ludzki Najemnik').locator('[data-am-roll$="/1"]'),'1');
+    await set(card('Ludzki Najemnik').locator('[data-am-roll$="/2"]'),'3');
+    assert.match(await card('Ludzki Najemnik').innerText(),/T −1/);
+    // A typed die stays editable: change it, then change it back.
+    await set(card('Ludzki Najemnik').locator('[data-am-roll$="/1"]'),'4');
+    assert.doesNotMatch(await card('Ludzki Najemnik').innerText(),/T −1/);
+    await set(card('Ludzki Najemnik').locator('[data-am-roll$="/1"]'),'1');
+    await set(card('Ludzki Najemnik').locator('[data-am-roll$="/2"]'),'3');
     assert.match(await card('Ludzki Najemnik').innerText(),/T −1/);
     await page.screenshot({path:fileURLToPath(new URL(`aftermath-injuries-${name}.png`,output))});
     await next();
-    await card('Kapitan Najemników').locator('[data-am-input$="/kills"]').fill('1');
+    await set(card('Kapitan Najemników').locator('[data-am-input$="/kills"]'),'1');
     await next();
-    await dialog.locator('[data-am-dice="0"]').fill('3');
-    await dialog.locator('[data-am-dice="1"]').fill('3');
-    await dialog.locator('[data-am-roll="find:2x3/g0"]').fill('4');
-    await dialog.locator('[data-am-roll="find:2x3/g1"]').fill('2');
+    await set(dialog.locator('[data-am-dice="0"]'),'3');
+    await set(dialog.locator('[data-am-dice="1"]'),'3');
+    await set(dialog.locator('[data-am-roll="find:2x3/g0"]'),'4');
+    await set(dialog.locator('[data-am-roll="find:2x3/g1"]'),'2');
     await page.screenshot({path:fileURLToPath(new URL(`aftermath-exploration-${name}.png`,output))});
     await next();await next();
     assert.match(await dialog.innerText(),/Kapitan Najemników: \+2 PD/);

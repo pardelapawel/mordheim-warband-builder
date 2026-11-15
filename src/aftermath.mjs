@@ -14,7 +14,15 @@ export function isPet(fighter, catalog) {
 }
 
 const inRange = (value, {min, max}) => value >= min && (max === null || max === undefined || value <= max);
-const result = () => ({text: [], needs: [], actions: []});
+const result = () => ({text: [], needs: [], rolled: [], actions: []});
+
+// A valid roll is recorded in `rolled` (the dialog keeps it editable); a missing or out-of-range one stays in `needs`.
+function take(out, rolls, need) {
+  const value = rolls[need.key], min = need.min || 1;
+  if (Number.isInteger(value) && value >= min && value <= need.sides) { out.rolled.push({...need, value}); return value; }
+  out.needs.push(need);
+  return null;
+}
 
 const OLD_WOUND = 'Stara rana';
 function oldWoundNote(fighter) {
@@ -39,16 +47,16 @@ function injuryActions(templates, fighter) {
 export function resolveInjury(fighter, rolls, catalog) {
   const out = result(), table = catalog.aftermath;
   if (isPet(fighter, catalog)) {
-    const roll = rolls['1'];
-    if (!roll) { out.needs.push({key: '1', sides: 6, label: 'Zwierzak: k6'}); return out; }
+    const roll = take(out, rolls, {key: '1', sides: 6, label: 'Zwierzak: k6'});
+    if (!roll) return out;
     if (roll <= table.petInjury.deathMax) { out.text.push('Zwierzak ginie.'); out.actions.push({kind: 'remove', keepEquipment: false}); }
     else out.text.push('Zwierzakowi nic się nie stało.');
     return out;
   }
   let step = table.heroInjury, depth = 1;
   while (step) {
-    const key = String(depth), roll = rolls[key];
-    if (!roll) { out.needs.push({key, sides: step.sides, label: step.label}); return out; }
+    const roll = take(out, rolls, {key: String(depth), sides: step.sides, label: step.label});
+    if (!roll) return out;
     const node = step.results.find(entry => inRange(roll, entry))?.node;
     if (!node) return out;
     out.text.push(node.text);
@@ -113,8 +121,8 @@ const knownSpell = (fighter, name) => fighter.skills.some(entry => Skills.getSki
 function spellAdvance(fighter, rolls, choices, catalog, out) {
   const template = fighterTemplate(fighter, catalog), list = template.spell_list, spells = catalog.spellsByList[list] || [];
   const pick = key => {
-    if (!rolls[key]) { out.needs.push({key, sides: spells.length || 6, label: `Czar: ${list}`}); return null; }
-    return spells[rolls[key] - 1] || null;
+    const roll = take(out, rolls, {key, sides: spells.length || 6, label: `Czar: ${list}`});
+    return roll ? spells[roll - 1] : null;
   };
   const add = spell => {
     out.text.push(`Nowy czar: ${spell.name}.`);
@@ -161,8 +169,8 @@ function skillAdvance(fighter, choices, catalog, out) {
 }
 
 export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDeltas = {}) {
-  const out = result(), roll = rolls['2d6'];
-  if (!roll) { out.needs.push({key: '2d6', sides: 12, min: 2, label: 'Rozwój: 2k6'}); return out; }
+  const out = result(), roll = take(out, rolls, {key: '2d6', sides: 12, min: 2, label: 'Rozwój: 2k6'});
+  if (!roll) return out;
   const row = catalog.aftermath.advance.results.find(entry => inRange(roll, entry));
   if (!row) return out;
   out.text.push(row.text);
@@ -183,8 +191,8 @@ export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDelt
     if (!pick.options.some(o => o.value === choices.stat)) { out.choose = pick; return out; }
     stat = choices.stat;
   } else {
-    const pair = rolls.pair;
-    if (!pair) { out.needs.push({key: 'pair', sides: 6, label: `k6: 1–3 ${statLabel(row.pair[0])}, 4–6 ${statLabel(row.pair[1])}`}); return out; }
+    const pair = take(out, rolls, {key: 'pair', sides: 6, label: `k6: 1–3 ${statLabel(row.pair[0])}, 4–6 ${statLabel(row.pair[1])}`});
+    if (!pair) return out;
     const [rolled, other] = pair <= 3 ? row.pair : [...row.pair].reverse();
     if (belowMax(fighter, rolled, maxima, pendingStatDeltas)) stat = rolled;
     else if (belowMax(fighter, other, maxima, pendingStatDeltas)) { stat = other; out.text.push(`${statLabel(rolled)} ma maksimum rasowe — rośnie ${statLabel(other)}.`); }
@@ -231,9 +239,8 @@ const TREASURY_KEY = {gold: 'gold', shards: 'shards', armour: 'armourFragments'}
 // Returns the dice amount, or null after recording the missing roll.
 function diceAmount(dice, key, rolls, out, label) {
   if (dice.flat !== undefined) return dice.flat;
-  const roll = rolls[key];
-  if (!roll) { out.needs.push({key, sides: dice.count * dice.sides, min: dice.count, label: `${label}: ${diceText(dice)}`}); return null; }
-  return roll * (dice.times || 1);
+  const roll = take(out, rolls, {key, sides: dice.count * dice.sides, min: dice.count, label: `${label}: ${diceText(dice)}`});
+  return roll === null ? null : roll * (dice.times || 1);
 }
 
 function resolveGains(gains, prefix, rolls, choices, context, catalog, out) {
@@ -248,12 +255,11 @@ function resolveGains(gains, prefix, rolls, choices, context, catalog, out) {
     } else if (gain.kind === 'note') {
       out.actions.push({kind: 'bandNote', text: gain.text});
     } else if (gain.kind === 'artefact') {
-      const roll = rolls[key('a')];
-      if (!roll) out.needs.push({key: key('a'), sides: 6, label: 'Magiczny artefakt: k6'});
-      else out.actions.push({kind: 'storeItem', text: catalog.aftermath.artefacts[roll - 1]});
+      const roll = take(out, rolls, {key: key('a'), sides: 6, label: 'Magiczny artefakt: k6'});
+      if (roll) out.actions.push({kind: 'storeItem', text: catalog.aftermath.artefacts[roll - 1]});
     } else if (gain.kind === 'table' || gain.kind === 'check') {
-      const roll = rolls[key('t')];
-      if (!roll) { out.needs.push({key: key('t'), sides: gain.sides, label: gain.label || `k${gain.sides}`}); return; }
+      const roll = take(out, rolls, {key: key('t'), sides: gain.sides, label: gain.label || `k${gain.sides}`});
+      if (!roll) return;
       const next = gain.kind === 'table' ? gain.results.find(r => inRange(roll, r))?.gains : roll >= gain.min ? gain.gains : null;
       if (next) resolveGains(next, `${key('t')}.`, rolls, choices, context, catalog, out);
     } else if (gain.kind === 'exp') {
@@ -355,7 +361,7 @@ export function buildAftermath(band, catalog, state) {
       return {...action, label: actionLabel(action, band, catalog), removed: state.removed.has(action.id)};
     });
     actions.push(...own);
-    return {source, fighterId, ...extra, result: res, actions: own};
+    return {source, fighterId, ...extra, result: {rolled: [], ...res}, actions: own};
   };
   const keptWhere = test => actions.filter(a => !a.removed && test(a));
 
@@ -392,7 +398,10 @@ export function buildAftermath(band, catalog, state) {
   const explorers = took.filter(f => !isPet(f, catalog) && !setup.ooa[f.id] && !gone.has(f.id));
   const eyeBonus = explorers.some(f => f.equipment.some(e => e.name === 'Wszystkowidzące oko')) ? 1 : 0;
   const count = explorationDiceCount({heroes: explorers.length, won: setup.won, eyeBonus, adjust: state.inputs['exploration/adjust']}, catalog);
-  const dice = Array.from({length: count}, (_, i) => Number(state.dice[i]) || null);
+  const dice = Array.from({length: count}, (_, i) => {
+    const value = Number(state.dice[i]);
+    return Number.isInteger(value) && value >= 1 && value <= 6 ? value : null;
+  });
   const complete = count > 0 && dice.every(Boolean);
   const groups = complete ? groupDice(dice) : [];
   const sum = complete ? dice.reduce((s, v) => s + v, 0) : 0;

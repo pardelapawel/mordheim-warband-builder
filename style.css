@@ -1311,6 +1311,11 @@ dialog.aftermath[open] {
   font-weight:700
 }
 
+.am-invalid input {
+  border-color:var(--red);
+  outline:1px solid var(--red)
+}
+
 .am-footer {
   display:flex;
   justify-content:space-between;

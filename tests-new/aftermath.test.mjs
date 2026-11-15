@@ -347,3 +347,32 @@ test('changing an earlier roll drops the answers that depended on it',()=>{
   A.dropStale(state,'find:2x4/option');
   assert.deepEqual(state.choices['find:2x4/heroes'],undefined);assert.equal(state.choices['find:2x4/option'],1);
 });
+
+// --- Final review fixes ---
+test('resolvers report the dice they used so the dialog can keep them editable',()=>{
+  const c=catalog(),f=recruit('Ludzki Najemnik',c);
+  assert.deepEqual(A.resolveInjury(f,{1:2,2:3},c).rolled.map(r=>[r.key,r.value]),[['1',2],['2',3]]);
+  assert.deepEqual(A.resolveAdvance(recruit('Kapitan Najemników',c),{'2d6':6,pair:2},{},c).rolled.map(r=>[r.key,r.value]),[['2d6',6],['pair',2]]);
+  assert.deepEqual(A.resolveFind(A.findFor({size:2,value:5},c),{g1:7},{},{leaderId:null,heroes:[]},c).rolled.map(r=>[r.key,r.value]),[['g1',7]]);
+});
+test('out-of-range rolls count as still needed',()=>{
+  const c=catalog(),f=recruit('Ludzki Najemnik',c);
+  const injury=A.resolveInjury(f,{1:7},c);assert.equal(injury.needs[0].key,'1');assert.deepEqual(injury.actions,[]);
+  assert.equal(A.resolveAdvance(recruit('Kapitan Najemników',c),{'2d6':1},{},c).needs[0].key,'2d6');
+  const gold=A.resolveFind(A.findFor({size:2,value:5},c),{g1:1},{},{leaderId:null,heroes:[]},c);
+  assert.equal(gold.needs[0].key,'g1');assert.deepEqual(gold.actions,[{kind:'storeItem',text:'Mapa ruin'}]);
+  assert.deepEqual(A.resolveFind(A.findFor({size:2,value:5},c),{g1:11},{},{leaderId:null,heroes:[]},c).actions[1],{kind:'treasury',gold:11});
+});
+test('an exploration die outside 1-6 does not break the sequence',()=>{
+  const {c,b,state}=battle();
+  state.dice=[7,3];
+  const built=A.buildAftermath(b,c,state);
+  assert.deepEqual(built.exploration.groups,[]);assert.equal(built.exploration.sum,0);
+  state.dice=[2.5,3];assert.deepEqual(A.buildAftermath(b,c,state).exploration.groups,[]);
+});
+
+test('every card lists its used dice, even cards without dice',()=>{
+  const {c,b,state}=battle();state.dice=[1,2];state.inputs['sale/sold']=1;b.treasury.shards=1;
+  const built=A.buildAftermath(b,c,state);
+  for(const card of [...built.experience,...built.exploration.cards])assert.ok(Array.isArray(card.result.rolled),card.source);
+});
