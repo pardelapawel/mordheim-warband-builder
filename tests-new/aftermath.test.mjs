@@ -376,3 +376,25 @@ test('every card lists its used dice, even cards without dice',()=>{
   const built=A.buildAftermath(b,c,state);
   for(const card of [...built.experience,...built.exploration.cards])assert.ok(Array.isArray(card.result.rolled),card.source);
 });
+
+// --- User reports ---
+test('choosing skill or spell keeps the advance roll and drops only what came after',()=>{
+  const state={rolls:{'advance:a:14/2d6':4,'advance:a:14/spell':2},choices:{'advance:a:14/learn':'spell','advance:a:14/skill':'Silny'}};
+  A.dropStale(state,'advance:a:14/learn');
+  assert.equal(state.rolls['advance:a:14/2d6'],4);
+  assert.equal(state.rolls['advance:a:14/spell'],undefined);
+  assert.equal(state.choices['advance:a:14/skill'],undefined);
+  assert.equal(state.choices['advance:a:14/learn'],'spell');
+});
+test('a priest who picks a spell on a skill advance is asked for the spell die',()=>{
+  const c=catalog(),f=recruit('Kapłan Taala',c),state={rolls:{'advance:a:14/2d6':4},choices:{}};
+  state.choices['advance:a:14/learn']='spell';A.dropStale(state,'advance:a:14/learn');
+  const out=A.resolveAdvance(f,{'2d6':state.rolls['advance:a:14/2d6']},{learn:'spell'},c);
+  assert.deepEqual(out.needs.map(n=>n.key),['spell']);
+});
+test('the warpstone price list follows the band size column',()=>{
+  const c=catalog();
+  assert.deepEqual(A.warpstonePriceList(5,3,c),[40,55,70]);
+  assert.deepEqual(A.warpstonePriceList(12,0,c),[]);
+  assert.equal(A.warpstonePriceList(2,20,c).length,8);
+});

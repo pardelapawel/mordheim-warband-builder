@@ -87,10 +87,12 @@ function stepExploration(built) {
 }
 
 function stepSale(built) {
-  const {sale} = built;
+  const {sale} = built, prices = A.warpstonePriceList(sale.bandSize, sale.available, view.catalog);
+  const perShard = (total, count) => (Math.round(total / count * 10) / 10).toLocaleString('pl-PL');
   return `<p>Spaczenie do sprzedania: <strong>${sale.available}</strong> szt. Modele w bandzie: <strong>${sale.bandSize}</strong>.</p>
   <label class="am-number">Sprzedaj <input type="number" inputmode="numeric" min="0" max="${sale.available}" value="${esc(view.state.inputs['sale/sold'] ?? '')}" data-am-input="sale/sold"> szt.</label>
-  <p>Dochód: <strong>${sale.price} zk</strong>. Niesprzedane Spaczenie zostaje w skarbcu.</p>`;
+  ${prices.length ? `<p class="am-prices">Cennik: ${prices.map((total, i) => `${i + 1} szt. = ${total} zk (${perShard(total, i + 1)} zk/szt.)`).join(' · ')}</p>` : ''}
+  <p>Dochód: <strong>${sale.price} zk</strong>${sale.sold ? ` (${perShard(sale.price, sale.sold)} zk za 1 szt.)` : ''}. Niesprzedane Spaczenie zostają w skarbcu.</p>`;
 }
 
 function stepSummary(built) {

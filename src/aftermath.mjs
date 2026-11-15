@@ -304,6 +304,12 @@ export function warpstoneSalePrice(sold, bandSize, catalog) {
   return rows[Math.min(sold, rows.length) - 1][column];
 }
 
+// Total price for selling 1, 2, … shards (up to `available`) for this band size.
+export function warpstonePriceList(bandSize, available, catalog) {
+  const count = Math.min(Math.max(0, available), catalog.aftermath.warpstoneSale.rows.length);
+  return Array.from({length: count}, (_, i) => warpstoneSalePrice(i + 1, bandSize, catalog));
+}
+
 // --- The whole sequence ---
 
 export function newAftermathState(band) {
@@ -481,11 +487,13 @@ export function applyActions(band, actions, catalog, {date, summary}) {
 }
 
 // When an earlier roll or choice changes, answers that depended on it no longer apply.
-const RESETS_ALL = ['2d6', 'option', 'learn'];
+const RESETS_ALL = ['2d6', 'option'];
 export function dropStale(state, fullKey) {
   const cut = fullKey.lastIndexOf('/'), source = fullKey.slice(0, cut), key = fullKey.slice(cut + 1);
   const depends = other => {
     if (other === key) return false;
+    // Skill or spell is picked after the 2d6 roll, so that roll stays.
+    if (key === 'learn') return other !== '2d6';
     if (RESETS_ALL.includes(key)) return true;
     if (/^\d+$/.test(key)) return /^\d+$/.test(other) && Number(other) > Number(key);
     if (key === 'spell') return ['duplicateSpell', 'spellReroll'].includes(other);
