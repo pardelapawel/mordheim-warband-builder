@@ -14,7 +14,14 @@ export function isPet(fighter, catalog) {
 }
 
 const inRange = (value, {min, max}) => value >= min && (max === null || max === undefined || value <= max);
-const result = () => ({text: [], needs: [], rolled: [], actions: []});
+const result = () => ({text: [], needs: [], rolled: [], chosen: [], actions: []});
+// Asks for a choice. Once answered it stays in `chosen`, so the dialog can still change it.
+function ask(out, choices, spec) {
+  const value = choices[spec.key];
+  if (spec.options.some(o => !o.disabled && String(o.value) === String(value))) { out.chosen.push(spec); return value; }
+  out.choose = spec;
+  return undefined;
+}
 
 // A valid roll is recorded in `rolled` (the dialog keeps it editable); a missing or out-of-range one stays in `needs`.
 function take(out, rolls, need) {
@@ -133,11 +140,8 @@ function spellAdvance(fighter, rolls, choices, catalog, out) {
   if (!first) return out;
   if (!knownSpell(fighter, first.name)) { add(first); return out; }
   out.text.push(`Ten czar jest już znany: ${first.name}.`);
-  const decision = choices.duplicateSpell;
-  if (!decision) {
-    out.choose = {key: 'duplicateSpell', label: 'Powtórzony czar', options: [{value: 'reroll', label: 'Rzuć ponownie'}, {value: 'lower', label: 'Obniż trudność o 1'}]};
-    return out;
-  }
+  const decision = ask(out, choices, {key: 'duplicateSpell', label: 'Powtórzony czar', options: [{value: 'reroll', label: 'Rzuć ponownie'}, {value: 'lower', label: 'Obniż trudność o 1'}]});
+  if (!decision) return out;
   if (decision === 'lower') { out.actions.push({kind: 'spellDifficulty', spell: first.name, delta: -1}); return out; }
   const second = pick('spellReroll');
   if (!second) return out;
@@ -149,19 +153,15 @@ function spellAdvance(fighter, rolls, choices, catalog, out) {
 
 function skillAdvance(fighter, choices, catalog, out) {
   const options = advanceSkillChoices(fighter, catalog);
-  const chosen = options.find(skill => skill.name === choices.skill);
-  if (!chosen) {
-    out.choose = {key: 'skill', label: 'Nowa umiejętność', options: options.map(s => ({value: s.name, label: s.kind === 'group' ? `${s.name} · wybór opcji` : s.name}))};
-    return out;
-  }
+  const name = ask(out, choices, {key: 'skill', label: 'Nowa umiejętność', options: options.map(s => ({value: s.name, label: s.kind === 'group' ? `${s.name} · wybór opcji` : s.name}))});
+  const chosen = options.find(skill => skill.name === name);
+  if (!chosen) return out;
   let entry = Skills.createAddableSkillEntry(chosen.name, fighterTemplate(fighter, catalog), catalog);
   if (entry.kind === 'group') {
     const groupOptions = Skills.getGroupedSkillOptions(entry, catalog);
-    if (!groupOptions.some(o => o.name === choices.skillOption)) {
-      out.choose = {key: 'skillOption', label: chosen.name, options: groupOptions.map(o => ({value: o.name, label: o.name}))};
-      return out;
-    }
-    entry = Skills.selectGroupedSkillOption(entry, choices.skillOption, catalog);
+    const option = ask(out, choices, {key: 'skillOption', label: chosen.name, options: groupOptions.map(o => ({value: o.name, label: o.name}))});
+    if (!option) return out;
+    entry = Skills.selectGroupedSkillOption(entry, option, catalog);
   }
   out.text.push(`Nowa umiejętność: ${Skills.formatSkillEntry(entry, catalog)}.`);
   out.actions.push({kind: 'addSkill', entry: {...entry, cost: 0}});
@@ -176,11 +176,9 @@ export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDelt
   out.text.push(row.text);
   if (row.type === 'skill') {
     if (fighterTemplate(fighter, catalog)?.spell_list) {
-      if (!choices.learn) {
-        out.choose = {key: 'learn', label: 'Umiejętność czy czar?', options: [{value: 'skill', label: 'Umiejętność'}, {value: 'spell', label: 'Czar (losowy)'}]};
-        return out;
-      }
-      if (choices.learn === 'spell') return spellAdvance(fighter, rolls, choices, catalog, out);
+      const learn = ask(out, choices, {key: 'learn', label: 'Umiejętność czy czar?', options: [{value: 'skill', label: 'Umiejętność'}, {value: 'spell', label: 'Czar (losowy)'}]});
+      if (!learn) return out;
+      if (learn === 'spell') return spellAdvance(fighter, rolls, choices, catalog, out);
     }
     return skillAdvance(fighter, choices, catalog, out);
   }
@@ -188,8 +186,8 @@ export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDelt
   let stat;
   if (row.type === 'choose') {
     const pick = statChoice(fighter, row.pair, maxima, pendingStatDeltas, 'Wybierz charakterystykę');
-    if (!pick.options.some(o => o.value === choices.stat)) { out.choose = pick; return out; }
-    stat = choices.stat;
+    stat = ask(out, choices, pick);
+    if (!stat) return out;
   } else {
     const pair = take(out, rolls, {key: 'pair', sides: 6, label: `k6: 1–3 ${statLabel(row.pair[0])}, 4–6 ${statLabel(row.pair[1])}`});
     if (!pair) return out;
@@ -198,8 +196,8 @@ export function resolveAdvance(fighter, rolls, choices, catalog, pendingStatDelt
     else if (belowMax(fighter, other, maxima, pendingStatDeltas)) { stat = other; out.text.push(`${statLabel(rolled)} ma maksimum rasowe — rośnie ${statLabel(other)}.`); }
     else {
       const pick = statChoice(fighter, [], maxima, pendingStatDeltas, `${statLabel(rolled)} i ${statLabel(other)} mają maksimum — wybierz inną`);
-      if (!pick.options.some(o => o.value === choices.stat)) { out.choose = pick; return out; }
-      stat = choices.stat;
+      stat = ask(out, choices, pick);
+      if (!stat) return out;
     }
   }
   out.actions.push({kind: 'stat', stat, delta: 1});
@@ -276,10 +274,22 @@ function resolveGains(gains, prefix, rolls, choices, context, catalog, out) {
       const valid = assigned.reduce((sum, [, value]) => sum + Number(value), 0) === points
         && assigned.every(([id, value]) => expTargets(context.heroes.filter(h => h.id === id), Number(value)).length === 1)
         && (gain.target === 'heroes' || assigned.length === 1);
-      if (!valid) { out.choose = {key: 'heroes', label: `Rozdziel ${points} PD`, total: points, options: eligible.map(h => ({value: h.id, label: h.name}))}; return; }
+      const spec = {key: 'heroes', label: `Rozdziel ${points} PD`, total: points, options: eligible.map(h => ({value: h.id, label: h.name}))};
+      if (!valid) { out.choose = spec; return; }
+      out.chosen.push(spec);
       for (const [fighterId, value] of assigned) out.actions.push({kind: 'exp', fighterId, delta: Number(value)});
     }
   });
+}
+
+// Footnote p. 42: exploration may not give experience that would raise a model's level.
+function leaderBlocked(option, context) {
+  const gain = option.gains.find(g => g.kind === 'exp' && g.target === 'leader');
+  if (!gain) return null;
+  const leader = context.heroes.find(h => h.id === context.leaderId);
+  if (!leader) return 'brak lidera';
+  const points = gain.dice?.flat;
+  return points && !expTargets([leader], points).length ? 'lider dostałby rozwój' : null;
 }
 
 export function resolveFind(find, rolls, choices, context, catalog) {
@@ -287,8 +297,12 @@ export function resolveFind(find, rolls, choices, context, catalog) {
   out.text.push(`${find.name}: ${find.text}`);
   let option = find.options[0];
   if (find.options.length > 1) {
-    option = find.options[choices.option];
-    if (!option) { out.choose = {key: 'option', label: 'Wybierz nagrodę', options: find.options.map((o, i) => ({value: i, label: o.label}))}; return out; }
+    const picked = ask(out, choices, {key: 'option', label: 'Wybierz nagrodę', options: find.options.map((o, i) => {
+      const blocked = leaderBlocked(o, context);
+      return blocked ? {value: i, label: `${o.label} — niedostępne: ${blocked}`, disabled: true} : {value: i, label: o.label};
+    })});
+    if (picked === undefined) return out;
+    option = find.options[picked];
   }
   resolveGains(option.gains, '', rolls, choices, context, catalog, out);
   return out;
@@ -367,7 +381,7 @@ export function buildAftermath(band, catalog, state) {
       return {...action, label: actionLabel(action, band, catalog), removed: state.removed.has(action.id)};
     });
     actions.push(...own);
-    return {source, fighterId, ...extra, result: {rolled: [], ...res}, actions: own};
+    return {source, fighterId, ...extra, result: {rolled: [], chosen: [], ...res}, actions: own};
   };
   const keptWhere = test => actions.filter(a => !a.removed && test(a));
 
@@ -497,6 +511,8 @@ export function dropStale(state, fullKey) {
     if (RESETS_ALL.includes(key)) return true;
     if (/^\d+$/.test(key)) return /^\d+$/.test(other) && Number(other) > Number(key);
     if (key === 'spell') return ['duplicateSpell', 'spellReroll'].includes(other);
+    if (key === 'skill') return other === 'skillOption';
+    if (key === 'duplicateSpell') return other === 'spellReroll';
     return other.startsWith(`${key}.`);
   };
   for (const record of [state.rolls, state.choices]) {

@@ -398,3 +398,31 @@ test('the warpstone price list follows the band size column',()=>{
   assert.deepEqual(A.warpstonePriceList(12,0,c),[]);
   assert.equal(A.warpstonePriceList(2,20,c).length,8);
 });
+test('an answered choice stays listed so the player can change it',()=>{
+  const c=catalog(),f=recruit('Kapłan Taala',c);
+  const out=A.resolveAdvance(f,{'2d6':4,spell:1},{learn:'spell'},c);
+  assert.equal(out.choose,undefined);
+  assert.deepEqual(out.chosen.map(x=>x.key),['learn']);
+  const gold=A.resolveFind(A.findFor({size:1,value:4},c),{g0:3},{option:0},ctx,c);
+  assert.deepEqual(gold.chosen.map(x=>x.key),['option']);
+});
+test('the leader PD reward is marked unavailable when it would give an advance',()=>{
+  const c=catalog(),find=A.findFor({size:1,value:4},c);
+  const blocked={leaderId:'L',heroes:[{id:'L',name:'Kapitan',exp:23}]};
+  const out=A.resolveFind(find,{},{},blocked,c);
+  assert.equal(out.choose.options[0].disabled,undefined);
+  assert.equal(out.choose.options[1].disabled,true);
+  assert.match(out.choose.options[1].label,/niedostępne/);
+  // A blocked pick is not taken; the player is asked again.
+  const picked=A.resolveFind(find,{},{option:1},blocked,c);
+  assert.equal(picked.choose.key,'option');assert.deepEqual(picked.actions,[]);
+  assert.equal(A.resolveFind(find,{},{},ctx,c).choose.options[1].disabled,undefined);
+});
+test('changing a picked skill or spell decision drops what hung on it',()=>{
+  const state={rolls:{'advance:a:8/2d6':4,'advance:a:8/spellReroll':3},choices:{'advance:a:8/skill':'Silny','advance:a:8/skillOption':'X','advance:a:8/duplicateSpell':'reroll'}};
+  A.dropStale(state,'advance:a:8/skill');
+  assert.equal(state.choices['advance:a:8/skillOption'],undefined);
+  A.dropStale(state,'advance:a:8/duplicateSpell');
+  assert.equal(state.rolls['advance:a:8/spellReroll'],undefined);
+  assert.equal(state.rolls['advance:a:8/2d6'],4);
+});

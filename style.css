@@ -1199,6 +1199,26 @@ dialog.aftermath[open] {
   color:var(--ink)
 }
 
+.am-steps button {
+  all:unset;
+  cursor:pointer;
+  border-radius:3px
+}
+
+.am-steps button:hover {
+  text-decoration:underline
+}
+
+.am-steps button:focus-visible {
+  outline:2px solid var(--brand);
+  outline-offset:2px
+}
+
+.am-steps .am-open {
+  color:var(--brand);
+  font-weight:700
+}
+
 .am-body {
   overflow:auto;
   min-height:120px;
