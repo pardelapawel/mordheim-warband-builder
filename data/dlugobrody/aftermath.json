@@ -8,11 +8,11 @@
         "text": "Śmiertelnie niebezpieczne rany",
         "next": {"label": "Rodzaj obrażeń", "sides": 6, "results": [
           {"min": 1, "max": 2, "node": {"text": "Śmierć — model zginął.", "actions": [{"kind": "remove"}]}},
-          {"min": 3, "max": 3, "node": {"text": "Uszkodzone żebra — na stałe −1 T.", "actions": [{"kind": "stat", "stat": "t", "delta": -1}]}},
+          {"min": 3, "max": 3, "node": {"text": "Uszkodzone żebra — na stałe −1 T.", "actions": [{"kind": "stat", "stat": "t", "delta": -1}, {"kind": "note", "text": "Uszkodzone żebra: −1 T"}]}},
           {"min": 4, "max": 4, "node": {
             "text": "Rana nogi",
             "next": {"label": "Rana nogi", "sides": 6, "results": [
-              {"min": 1, "max": 3, "node": {"text": "Na stałe −1 M.", "actions": [{"kind": "stat", "stat": "m", "delta": -1}]}},
+              {"min": 1, "max": 3, "node": {"text": "Na stałe −1 M.", "actions": [{"kind": "stat", "stat": "m", "delta": -1}, {"kind": "note", "text": "Rana nogi: −1 M"}]}},
               {"min": 4, "max": 6, "node": {"text": "Model nie może biegać, ale nadal może szarżować.", "actions": [{"kind": "note", "text": "Rana nogi: nie może biegać (może szarżować)"}]}}
             ]}
           }},
@@ -30,8 +30,8 @@
         "text": "Poważne rany",
         "next": {"label": "Rodzaj obrażeń", "sides": 6, "results": [
           {"min": 1, "max": 2, "node": {"text": "Oślepiony na jedno oko — na stałe −1 BS. Utrata drugiego oka wyklucza model z bandy (ekwipunek zostaje).", "actions": [{"kind": "blindEye"}]}},
-          {"min": 3, "max": 4, "node": {"text": "Uszkodzenie dłoni — na stałe −1 WS.", "actions": [{"kind": "stat", "stat": "ws", "delta": -1}]}},
-          {"min": 5, "max": 6, "node": {"text": "Stan nerwowy — na stałe −1 I.", "actions": [{"kind": "stat", "stat": "i", "delta": -1}]}}
+          {"min": 3, "max": 4, "node": {"text": "Uszkodzenie dłoni — na stałe −1 WS.", "actions": [{"kind": "stat", "stat": "ws", "delta": -1}, {"kind": "note", "text": "Uszkodzenie dłoni: −1 WS"}]}},
+          {"min": 5, "max": 6, "node": {"text": "Stan nerwowy — na stałe −1 I.", "actions": [{"kind": "stat", "stat": "i", "delta": -1}, {"kind": "note", "text": "Stan nerwowy: −1 I"}]}}
         ]}
       }},
       {"min": 3, "max": 3, "node": {
