@@ -13,8 +13,15 @@ export function hasSkill(fighter,name) {
   return fighter.skills.some(skill=>getSkillEntryNames(skill).includes(name.toLocaleLowerCase('pl')));
 }
 
+// A "model Lidera" is any Lider-type template; a band may hire more than one.
+export function isLeaderModel(fighter,catalog) {
+  return fighterTemplate(fighter,catalog)?.type==='Lider';
+}
+
+// The one fighter who commands the band (p. 19), chosen by the player. Only he
+// gets the leader's limits, the +1 W at recruitment and leader-only skills.
 export function isLeader(fighter,catalog) {
-  return fighterTemplate(fighter,catalog)?.type==='Lider' || !!fighter.actingLeader;
+  return fighter.leader===true && fighterTemplate(fighter,catalog)?.type!=='Zwierzak';
 }
 
 export function isCaster(fighter,catalog) {

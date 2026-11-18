@@ -1,15 +1,18 @@
 import * as Skills from './skills.mjs';
 import {canBuyMutations, mutationFor, mutationPrice, skillCost} from './progression.mjs';
-import {specialSkillNames,skillRestriction,fighterTemplate} from './eligibility.mjs';
+import {specialSkillNames,skillRestriction,fighterTemplate,isLeader,isLeaderModel} from './eligibility.mjs';
 import {recruitmentCost} from './recruitment.mjs';
 import {RULES_REVISION} from './migration.mjs';
 import {spellInfo,skillDisplay} from './spells.mjs';
+import {rollBandName} from './bandNames.mjs';
 export const STAT_KEYS = ['m','ws','bs','s','t','w','i','a','ld'];
 export const STAT_LABELS = ['M','WS','BS','S','T','W','I','A','Ld'];
 export const BAND_TYPES = {awanturnicy:'Awanturnicy', sludzy_ciemnosci:'Słudzy Ciemności'};
 // Each rule set has its own catalog in data/<id>/. Krótkobrody starts as a copy of Długobrody.
 export const RULE_SETS = {dlugobrody:'Długobrody', krotkobrody:'Krótkobrody'};
 export const DEFAULT_RULE_SET = 'dlugobrody';
+// Band types each rule set ships in data/<id>/warbands/.
+export const RULE_SET_BAND_TYPES = {dlugobrody:['awanturnicy','sludzy_ciemnosci'], krotkobrody:['awanturnicy','sludzy_ciemnosci']};
 // Saves made before the rename store the old rule set ids; they are Długobrody bands.
 const LEGACY_RULE_SETS = ['Drachenfels','smocza_turnia'];
 export function ruleSetOf(raw) {
@@ -40,14 +43,28 @@ export function normalizePictureCrop(crop) {
 }
 export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy', ruleSet = DEFAULT_RULE_SET) {
-  return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:'Nowa banda',showPictures:true,phase:'recruitment',ruleSetId:RULE_SETS[ruleSet]?ruleSet:DEFAULT_RULE_SET,warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,armourFragments:0,notes:''},storedEquipment:''};
+  return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:rollBandName(type),showPictures:true,phase:'recruitment',ruleSetId:RULE_SETS[ruleSet]?ruleSet:DEFAULT_RULE_SET,warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,armourFragments:0,notes:''},storedEquipment:''};
 }
 export function createFighter(template, catalog) {
   const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:'',picture:'',pictureCrop:normalizePictureCrop()};
   if (template.type !== 'Zwierzak' && template.race !== 'Ogr' && !template.requirements?.noEquipment) fighter.equipment.push({name:'Sztylet',cost:0,originCategory:'melee_weapons'});
   return fighter;
 }
-export function duplicateFighter(fighter) { return {...structuredClone(fighter),id:uid(),customName:`${fighter.customName} (kopia)`}; }
+export function duplicateFighter(fighter) { const copy={...structuredClone(fighter),id:uid(),customName:`${fighter.customName} (kopia)`};delete copy.leader;return copy; }
+// Make sure someone commands the band. While recruiting that is the first
+// Lider model; in a campaign (p. 32) the fighter with the highest Ld, then the
+// most experienced one. Animals never lead. Returns true when it changed.
+export function ensureLeader(band,catalog) {
+  if(band.fighters.some(f=>isLeader(f,catalog)))return false;
+  const able=band.fighters.filter(f=>fighterTemplate(f,catalog) && fighterTemplate(f,catalog).type!=='Zwierzak');
+  const next=band.phase==='campaign'
+    ?able.reduce((best,f)=>!best || number(f.stats.ld)>number(best.stats.ld) || (number(f.stats.ld)===number(best.stats.ld) && number(f.exp)>number(best.exp))?f:best,null)
+    :able.find(f=>isLeaderModel(f,catalog));
+  if(!next)return false;
+  band.fighters.forEach(f=>{if(f.leader)delete f.leader;});
+  next.leader=true;
+  return true;
+}
 export function fighterCost(fighter,catalog) {
   return number(fighter.baseCost) + recruitmentCost(fighter) + fighter.equipment.reduce((sum,item)=>sum+number(item.cost),0) + fighter.skills.reduce((sum,item,index)=>sum+number(skillCost(fighter,index,catalog)),0);
 }
@@ -69,6 +86,8 @@ export function normalizeBand(raw) {
     const cleaned = {...f,picture:normalizePicture(f.picture),pictureCrop:normalizePictureCrop(f.pictureCrop)};
     delete cleaned.save;
     cleaned.recruitmentComplete=f.recruitmentComplete===true;
+    if(f.leader===true || f.actingLeader===true)cleaned.leader=true;else delete cleaned.leader;
+    delete cleaned.actingLeader;
     cleaned.recruitmentUpgrades={extraWound:f.recruitmentUpgrades?.extraWound===true,weaponSkill:f.recruitmentUpgrades?.weaponSkill===true,mercenaryAdvance:['ws','bs'].includes(f.recruitmentUpgrades?.mercenaryAdvance)?f.recruitmentUpgrades.mercenaryAdvance:''};
     return {...cleaned,id,customName:String(f.customName || f.type || 'Wojownik'),type:String(f.type || f.templateName || ''),templateName:String(f.templateName || f.typeId || f.type || ''),baseCost:number(f.baseCost),exp:number(f.exp),stats:Object.fromEntries(STAT_KEYS.map(k=>[k,String(f.stats[k] ?? 0)])),maxStats:f.maxStats && typeof f.maxStats === 'object'?f.maxStats:{},equipment:f.equipment.map(e=>{if(!e || typeof e !== 'object') throw new Error('Nieprawidłowy ekwipunek.'); return {...e,name:String(e.name || ''),cost:number(e.cost)};}),skills:(f.skills || []).map(s=>typeof s==='string'?{name:s}:s).filter(s=>s && typeof s==='object'),injuries:String(f.injuries || ''),notes:String(f.notes || '')};
   });

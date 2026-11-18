@@ -1,4 +1,4 @@
-import {RULE_SETS,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {RULE_SETS,RULE_SET_BAND_TYPES,DEFAULT_RULE_SET,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,ensureLeader,textExport,number,uid,label} from './model.mjs';
 import {panPictureCrop,pictureCropRect} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
@@ -8,10 +8,12 @@ import {ADVANCE_THRESHOLDS,racialMaxima,racialMaximumProfile,canBuyMutations,mut
 import {countedNoun,warningCount,errorCount} from './polish.mjs';
 import {equipmentChoices,purchaseCost,purchaseEquipment} from './equipment.mjs';
 import {recruitmentOptions,setRecruitmentAdvance,recruitmentCost} from './recruitment.mjs';
+import {isLeader} from './eligibility.mjs';
 import {reconcileRules} from './migration.mjs';
 import {spellInfo,difficultyText,skillDisplay} from './spells.mjs';
 import {applyActions} from './aftermath.mjs';
 import {openAftermath} from './aftermathDialog.mjs';
+import {rerollBandName} from './bandNames.mjs';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -131,11 +133,11 @@ function flushSave(){
 }
 addEventListener('pagehide',flushSave);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
-function changed(){save();renderRoster();}
+function changed(){ensureLeader(band,catalog);save();renderRoster();}
 // One undo restores the whole band as it was before the post-battle results.
 function applyBattle(actions,summary){
   const before=structuredClone(band);
-  band=applyActions(band,actions,catalog,{date:new Date(),summary});save();renderAll();
+  band=applyActions(band,actions,catalog,{date:new Date(),summary});ensureLeader(band,catalog);save();renderAll();
   notice('Zastosowano wyniki bitwy.',()=>{band=before;save();renderAll();});
 }
 function renderRoster(refreshRows=true){
@@ -182,7 +184,7 @@ function rowMarkup(f,index){
     <div class="fighter-portrait"><button type="button" class="portrait-upload" data-picture="${esc(f.id)}" aria-label="${f.picture?'Zmień':'Dodaj'} zdjęcie: ${esc(f.customName)}">${f.picture?`<img src="${esc(f.picture)}" style="${pictureStyle(f)}" alt="${esc(f.customName)}"><span class="portrait-caption no-print">Zmień zdjęcie</span>`:'<span class="portrait-placeholder no-print" aria-hidden="true">+<small>Dodaj zdjęcie</small></span>'}</button>${f.picture?`<button type="button" class="portrait-remove no-print" data-remove-picture="${esc(f.id)}" aria-label="Usuń zdjęcie: ${esc(f.customName)}" title="Usuń zdjęcie">×</button>`:''}</div>
     <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name" contenteditable="plaintext-only" data-fighter-name role="textbox" aria-label="Imię wojownika: ${esc(f.customName)}" aria-multiline="false" spellcheck="false">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
     <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map((k,i)=>`<td><input class="stat-input no-print" data-stat="${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}: ${esc(f.customName)}" title="Zmień ${STAT_LABELS[i]}" autocomplete="off" spellcheck="false"><span class="stat-print">${esc(f.stats[k])}</span></td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
-    <div class="profile-bottom"><span class="role-stamp">${esc(t?.type || f.race || 'Wojownik')}</span><span class="maxima-label">↑ Maksimum rasowe</span><strong>${cost} zk</strong></div></div>
+    <div class="profile-bottom"><span class="role-stamp">${esc(isLeader(f,catalog)?'Lider bandy':t?.type || f.race || 'Wojownik')}</span><span class="maxima-label">↑ Maksimum rasowe</span><strong>${cost} zk</strong></div></div>
     <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(skillDisplay(s,catalog))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
     <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika</button></div></div>
     <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${experienceMarkup(f,advances)}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
@@ -241,7 +243,7 @@ function renderAll(){
 }
 async function activate(raw){
   if(loading)return false;loading=true;document.body.setAttribute('aria-busy','true');
-  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId,next.ruleSetId);band=next;catalog=nextCatalog;const update=reconcileRules(band,catalog);notice(update);save();renderAll();return true;}
+  try{const next=normalizeBand(raw),nextCatalog=await loadCatalog(next.warbandTypeId,next.ruleSetId);band=next;catalog=nextCatalog;const update=reconcileRules(band,catalog);ensureLeader(band,catalog);notice(update);save();renderAll();return true;}
   catch(error){notice(error.message);return false;}
   finally{loading=false;document.body.removeAttribute('aria-busy');}
 }
@@ -255,6 +257,7 @@ function field(name,title,value,type='text'){return `<label class="editor-field"
 function openEditor(id){
   const redraw=selectedId===id && $('editor').open;
   const expanded=redraw?[...$('editor-body').querySelectorAll('details[open]')].map(details=>details.querySelector('summary')?.textContent):[];
+  const seen=redraw?[...$('editor-body').querySelectorAll('details summary')].map(summary=>summary.textContent):[];
   const scroll=selectedId===id?$('editor').scrollTop:0;
   selectedId=id;const f=selected();if(!f)return;const t=templateFor(f,catalog),maxima=racialMaxima(f,catalog);
   $('editor-title').textContent=f.customName;
@@ -263,6 +266,7 @@ function openEditor(id){
     <h3>Profil wojownika</h3><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="stat.${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}"></label>`).join('')}</div>
     <details class="editor-details"><summary>Maksimum rasowe</summary><p id="maxima-source" class="editor-hint"></p><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="max.${k}" value="${esc(maxima[k] ?? '')}" aria-label="Maksimum ${STAT_LABELS[i]}"></label>`).join('')}</div><p class="editor-hint">Możesz wpisać wyjątek wynikający z zasad wojownika. Wyczyszczenie pola przywraca wartość z tabeli.</p><button id="reset-maxima" type="button">Przywróć maksimum rasowe</button></details>
     <div class="editor-pair">${field('baseCost','Koszt podstawowy (zk)',f.baseCost,'number')}${field('exp','Doświadczenie (PD)',f.exp,'number')}</div><label><input name="is_large" type="checkbox" ${f.is_large?'checked':''}> Duży model (20 pkt do siły bandy)</label>
+    ${t?.type==='Zwierzak'?'':`<label><input name="leader" type="checkbox" ${isLeader(f,catalog)?'checked disabled':''}> Lider bandy — dowodzi bandą</label><p class="editor-hint">${isLeader(f,catalog)?'Tylko lider bandy korzysta z zasady Lider, zmienia limity wojowników i może kupić +1 W przy werbunku. Aby zmienić lidera, zaznacz to pole u innego wojownika.':'Bandą dowodzi jeden wojownik, nawet jeśli masz kilka modeli Lidera.'}</p>`}
     ${recruitmentOptions(f,catalog).length || canBuyMutations(f,catalog)?`<details class="editor-details" open><summary>Rozwój przy werbunku</summary><p class="editor-hint">Opcjonalne zakupy przy rekrutacji. Koszt, PD i profil aktualizują się razem. Koszt ulepszeń: ${recruitmentCost(f)} zk.</p>${canBuyMutations(f,catalog)?(f.recruitmentComplete?'<p class="editor-hint">Rekrutacja zakończona: mutacji nie można już dokupić.</p>':'<p class="editor-hint">Mutacje: pierwsza kosztuje cenę z listy, każda kolejna dwukrotność swojej ceny. Każdą mutację można kupić raz. Kupione mutacje są na liście umiejętności poniżej.</p><form id="mutation-form" class="add-entry-form"><label class="sr-only" for="mutation-choice">Dodaj mutację</label><select id="mutation-choice"></select></form>'):''}${recruitmentOptions(f,catalog).map(option=>option.key==='mercenaryAdvance'?`<label>${esc(option.label)}<select data-recruitment="mercenaryAdvance" ${f.recruitmentComplete?'disabled':''}><option value="">Bez rozwinięcia</option><option value="ws" ${f.recruitmentUpgrades?.mercenaryAdvance==='ws'?'selected':''}>+1 WS</option><option value="bs" ${f.recruitmentUpgrades?.mercenaryAdvance==='bs'?'selected':''}>+1 BS</option></select></label>`:`<label><input type="checkbox" data-recruitment="${option.key}" ${f.recruitmentUpgrades?.[option.key]?'checked':''} ${f.recruitmentComplete?'disabled':''}> ${esc(option.label)}</label>`).join('')}<label class="editor-field"><input name="recruitmentComplete" type="checkbox" ${f.recruitmentComplete?'checked':''}> Rekrutacja tego wojownika zakończona</label><p class="editor-hint">Zakończenie rekrutacji blokuje nowe mutacje i powyższe zakupy. Nowy wojownik w kampanii zaczyna z otwartą rekrutacją.</p></details>`:''}
     <h3>Ekwipunek</h3><p class="editor-hint">Ceny nowych zakupów: ${band.phase==='campaign'?'kampania':'tworzenie bandy'}. Zmiana etapu nie zmienia cen już kupionych przedmiotów. Premie z ekwipunku i umiejętności wpisuj do profilu ręcznie.</p><div id="equipment-entries"></div><form id="equipment-form" class="add-entry-form"><label class="sr-only" for="equipment-choice">Dodaj ekwipunek</label><select id="equipment-choice"><option value="">Wybierz ekwipunek…</option>${Object.entries(equipmentChoices(f,catalog).reduce((a,e)=>((a[e.originCategory]??=[]).push(e),a),{})).map(([category,items])=>`<optgroup label="${esc(categories[category] || 'Przedmioty')}">${items.map(e=>`<option value="${esc(e.name)}">${esc(e.name)} (${purchaseCost(e,band.phase)} zk)${equipmentIssue(e,f,catalog)?' · niedozwolony':''}</option>`).join('')}</optgroup>`).join('')}</select></form>
     <details class="editor-details"><summary>Znaleziony artefakt</summary><p class="editor-hint">Artefakty z eksploracji nie mają ceny zakupu. Dodanie zapisuje 0 wydanych zk; premie do profilu wpisz ręcznie.</p><form id="artifact-form" class="add-entry-form"><select name="artifact" aria-label="Znaleziony artefakt"><option value="">Wybierz artefakt…</option>${catalog.artifacts.map(item=>`<option>${esc(item.name)}</option>`).join('')}</select></form></details>
@@ -270,7 +274,7 @@ function openEditor(id){
     <h3>Umiejętności i czary</h3><p class="editor-hint">Ścieżki rozwoju: ${esc((t?.skills || []).join(', ') || 'brak')}. Wybierz konkretny czar lub umiejętność z listy.</p><div id="skill-entries"></div><form id="skill-form" class="add-entry-form"><label class="sr-only" for="skill-choice">Dodaj umiejętność lub czar</label><select id="skill-choice"></select></form>
     <details class="editor-details"><summary>Własna zasada</summary><form id="custom-skill-form" class="add-entry-form"><input name="name" aria-label="Nazwa własnej zasady" placeholder="Nazwa zasady" required maxlength="180"><button type="submit">Dodaj zasadę</button></form></details>
     <label class="editor-field">Obrażenia i trwałe urazy<textarea name="injuries" rows="3">${esc(f.injuries)}</textarea></label><label class="editor-field">Uwagi<textarea name="notes" rows="3">${esc(f.notes)}</textarea></label><div id="editor-validation"></div>`;
-  updateMaximaEditor(f);renderEditorEntries();$('editor-body').querySelectorAll('details').forEach(details=>{const was=expanded.includes(details.querySelector('summary')?.textContent);if(was || redraw)details.open=was;});if(!$('editor').open)$('editor').showModal();$('editor').scrollTop=scroll;
+  updateMaximaEditor(f);renderEditorEntries();$('editor-body').querySelectorAll('details').forEach(details=>{const name=details.querySelector('summary')?.textContent,was=expanded.includes(name);if(was || seen.includes(name))details.open=was;});if(!$('editor').open)$('editor').showModal();$('editor').scrollTop=scroll;
 }
 function updateMaximaEditor(f){
   const profile=racialMaximumProfile(f,catalog),maxima=racialMaxima(f,catalog);
@@ -338,7 +342,7 @@ document.addEventListener('click',async event=>{
   switch(button.id){
     case 'reset-maxima':selected().maxStats={};changed();updateMaximaEditor(selected());break;
     case 'add-fighter':case 'add-another':openPicker();break;
-    case 'new-band':$('create-band').showModal();break;
+    case 'new-band':renderCreateBandChoices(DEFAULT_RULE_SET);rollCreateBandName();$('create-band').showModal();break;
     case 'library-button':renderLibrary();$('library').showModal();break;
     case 'import-button':case 'library-import':$('import-file').click();break;
     case 'export-json':download(JSON.stringify(exportBand(band),null,2),'application/json','json');break;
@@ -354,7 +358,7 @@ document.addEventListener('click',async event=>{
     }
     case 'duplicate-fighter':{const copy=duplicateFighter(selected());band.fighters.splice(band.fighters.findIndex(f=>f.id===selectedId)+1,0,copy);changed();openEditor(copy.id);break;}
     case 'delete-fighter':{const i=band.fighters.findIndex(f=>f.id===selectedId),removed=band.fighters.splice(i,1)[0];$('editor').close();changed();notice(`Usunięto: ${removed.customName}.`,()=>{band.fighters.splice(i,0,removed);changed();});break;}
-    case 'apply-template':{const t=catalog.fighters.find(x=>x.name===$('replace-template').value);if(!t)return;const old=structuredClone(selected()),i=band.fighters.findIndex(f=>f.id===selectedId);const replacement=createFighter(t,catalog);replacement.id=old.id;replacement.customName=old.customName;band.fighters[i]=replacement;changed();openEditor(old.id);notice('Zmieniono szablon wojownika.',()=>{const index=band.fighters.findIndex(f=>f.id===old.id);if(index>=0)band.fighters[index]=old;changed();if($('editor').open)openEditor(old.id);});break;}
+    case 'apply-template':{const t=catalog.fighters.find(x=>x.name===$('replace-template').value);if(!t)return;const old=structuredClone(selected()),i=band.fighters.findIndex(f=>f.id===selectedId);const replacement=createFighter(t,catalog);replacement.id=old.id;replacement.customName=old.customName;if(old.leader)replacement.leader=true;band.fighters[i]=replacement;changed();openEditor(old.id);notice('Zmieniono szablon wojownika.',()=>{const index=band.fighters.findIndex(f=>f.id===old.id);if(index>=0)band.fighters[index]=old;changed();if($('editor').open)openEditor(old.id);});break;}
   }
 });
 const editor=$('editor');
@@ -502,6 +506,7 @@ $('editor-body').addEventListener('change',event=>{
     if(input.name.startsWith('stat.'))f.stats[input.name.slice(5)]=input.value;
     else if(input.name.startsWith('max.'))f.maxStats[input.name.slice(4)]=input.value;
     else if(['baseCost','exp'].includes(input.name))f[input.name]=number(input.value);
+    else if(input.name==='leader'){if(!input.checked)return;band.fighters.forEach(x=>{if(x!==f && isLeader(x,catalog) && x.recruitmentUpgrades?.extraWound && !x.recruitmentComplete)setRecruitmentAdvance(x,'extraWound',false,catalog);if(x===f)x.leader=true;else delete x.leader;});changed();openEditor(f.id);return;}
     else if(['is_large','recruitmentComplete'].includes(input.name))f[input.name]=input.checked;
     else if(['customName','type','race','injuries','notes'].includes(input.name))f[input.name]=input.value;
     else return;
@@ -521,7 +526,38 @@ $('editor-body').addEventListener('submit',event=>{
   if(form.id==='custom-skill-form'){const entry=Skills.createSimpleSkillEntry(String(values.get('name')).trim());if(f.recruitmentComplete && mutationFor(entry,catalog)){notice('Mutacje można kupować tylko podczas rekrutacji.');return;}f.skills.push(entry);}
   changed();renderEditorEntries();form.reset();
 });
-$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || 'Nowa banda';if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
+// New band: rule set and band type are radio buttons drawn as swooshes.
+const choiceButtons=(name,entries,selected)=>entries.map(([id,text])=>`<label class="choice-button"><input type="radio" name="${name}" value="${esc(id)}" ${id===selected?'checked':''} required><span>${esc(text)}</span></label>`).join('');
+function renderCreateBandChoices(ruleSet){
+  const form=$('create-band-form'),current=form.querySelector('input[name=type]:checked')?.value;
+  const types=RULE_SET_BAND_TYPES[ruleSet] || Object.keys(BAND_TYPES);
+  $('rule-set-choice').innerHTML=choiceButtons('ruleSet',Object.entries(RULE_SETS),ruleSet);
+  $('band-type-choice').innerHTML=choiceButtons('type',types.map(id=>[id,BAND_TYPES[id]]),types.includes(current)?current:types[0]);
+}
+$('rule-set-choice').addEventListener('change',event=>{if(event.target.name==='ruleSet'){renderCreateBandChoices(event.target.value);if(!createNameTyped)rollCreateBandName();}});
+// The name starts rolled; picking another band type rolls again until the player types their own.
+let createNameTyped=false;
+function rollCreateBandName(){
+  const input=$('create-band-name'),type=$('create-band-form').querySelector('input[name=type]:checked')?.value;
+  input.value=rerollBandName(type,input.value);createNameTyped=false;
+}
+$('create-band-name').addEventListener('input',()=>{createNameTyped=true;});
+$('band-type-choice').addEventListener('change',()=>{if(!createNameTyped)rollCreateBandName();});
+// The dice jump, bounce and show random faces while they tumble, then settle.
+const DIE_PIPS={1:[[12,12]],2:[[8,8],[16,16]],3:[[8,8],[12,12],[16,16]],4:[[8,8],[16,8],[8,16],[16,16]],5:[[8,8],[16,8],[12,12],[8,16],[16,16]],6:[[8,7],[16,7],[8,12],[16,12],[8,17],[16,17]]};
+const showDieFace=(die,face)=>{die.querySelector('g').innerHTML=DIE_PIPS[face].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.7"/>`).join('');};
+let diceTimer=0;
+function rollDice(button){
+  const dice=[...button.querySelectorAll('.die')],face=()=>1+Math.floor(Math.random()*6);
+  clearInterval(diceTimer);button.classList.remove('rolling');void button.offsetWidth;button.classList.add('rolling');
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){dice.forEach(die=>showDieFace(die,face()));return;}
+  const started=performance.now();
+  diceTimer=setInterval(()=>{dice.forEach(die=>showDieFace(die,face()));if(performance.now()-started>520)clearInterval(diceTimer);},80);
+}
+$('reroll-band-name').addEventListener('animationend',event=>{if(event.target.classList.contains('die') && !event.target.nextElementSibling)event.currentTarget.classList.remove('rolling');});
+$('reroll-band-name').addEventListener('click',event=>{rollCreateBandName();rollDice(event.currentTarget);$('create-band-name').focus();});
+renderCreateBandChoices(DEFAULT_RULE_SET);
+$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 // Card print: copies of the rows, nine per A4 page, without the band heading, summary or footer.
