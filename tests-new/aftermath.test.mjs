@@ -63,8 +63,8 @@ test('hero injuries walk the nested table',()=>{
   const c=catalog(),f=recruit('Ludzki Najemnik',c);
   assert.equal(A.resolveInjury(f,{1:1},c).needs[0].key,'2');
   assert.deepEqual(A.resolveInjury(f,{1:1,2:2},c).actions,[{kind:'remove',keepEquipment:false}]);
-  assert.deepEqual(A.resolveInjury(f,{1:1,2:3},c).actions,[{kind:'stat',stat:'t',delta:-1}]);
-  assert.deepEqual(A.resolveInjury(f,{1:1,2:4,3:2},c).actions,[{kind:'stat',stat:'m',delta:-1}]);
+  assert.deepEqual(A.resolveInjury(f,{1:1,2:3},c).actions,[{kind:'stat',stat:'t',delta:-1},{kind:'note',text:'Uszkodzone żebra: −1 T'}]);
+  assert.deepEqual(A.resolveInjury(f,{1:1,2:4,3:2},c).actions,[{kind:'stat',stat:'m',delta:-1},{kind:'note',text:'Rana nogi: −1 M'}]);
   assert.match(A.resolveInjury(f,{1:1,2:4,3:5},c).actions[0].text,/nie może biegać/);
   assert.match(A.resolveInjury(f,{1:1,2:6,3:1},c).actions[0].text,/Głupota/);
   for(const roll of [4,5]){const r=A.resolveInjury(f,{1:roll},c);assert.deepEqual(r.actions,[]);assert.deepEqual(r.needs,[]);}
@@ -425,4 +425,23 @@ test('changing a picked skill or spell decision drops what hung on it',()=>{
   A.dropStale(state,'advance:a:8/duplicateSpell');
   assert.equal(state.rolls['advance:a:8/spellReroll'],undefined);
   assert.equal(state.rolls['advance:a:8/2d6'],4);
+});
+
+test('every injury that changes a fighter is also written to his injuries',()=>{
+  for(const set of ['dlugobrody','krotkobrody']){
+    const walk=(step,path)=>step.results.forEach(({node})=>{
+      const where=`${set}: ${[...path,node.text].join(' > ')}`,kinds=(node.actions || []).map(a=>a.kind);
+      if(kinds.includes('stat'))assert.ok(kinds.includes('note'),`${where} changes a stat without a note`);
+      if(node.next)walk(node.next,[...path,node.text]);
+    });
+    walk(read('aftermath.json',set).heroInjury,[]);
+  }
+});
+
+test('a leg wound lowers M and is noted on the fighter',()=>{
+  const c=catalog(),b=newBand();b.fighters=[recruit('Kapitan Najemników',c)];const f=b.fighters[0];f.injuries='Stara blizna';
+  const next=A.applyActions(b,A.resolveInjury(f,{1:1,2:4,3:2},c).actions.map(a=>({...a,fighterId:f.id})),c,{date:new Date(),summary:''});
+  const after=next.fighters[0];
+  assert.equal(after.stats.m,'3');
+  assert.equal(after.injuries,'Stara blizna\nRana nogi: −1 M');
 });
