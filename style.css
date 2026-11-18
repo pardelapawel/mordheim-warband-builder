@@ -3455,3 +3455,20 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
   footer::before { top:auto; bottom:27px; margin-top:0; width:52px; height:20px }
   footer>span:nth-child(2) { display:block; order:-1; flex:1 0 100%; margin-left:-64px; padding:12px 18px; font-size:19px; line-height:1.2; text-align:center }
 }
+
+/* phones: the fighter's move / duplicate / remove buttons sit in a row above the card, not in a column beside it */
+@media screen and (max-width:650px) {
+  .fighter-entry,.pictures-visible .fighter-entry { grid-template-columns:minmax(0,1fr); gap:2px }
+  .fighter-order { position:static; flex-direction:row; justify-content:flex-end; gap:6px; background:transparent }
+  .fighter-order button { width:36px; min-height:30px }
+}
+
+/* One shape for the fighter photo everywhere: 5:9, the box the roster PDF
+   prints (20 x 36 mm). On screen and in the PDF the column width sets the
+   size; on the 9-per-page card sheet the card height does, so cards keep
+   their size. The crop dialog frames the same 5:9 (PORTRAIT_RATIO in app.mjs). */
+:root { --portrait-ratio:5/9 }
+.pictures-visible .fighter-portrait { align-items:flex-start; justify-content:center }
+.portrait-upload { position:relative; inset:auto; flex:none; width:100%; height:auto; aspect-ratio:var(--portrait-ratio) }
+#card-sheet.pictures-visible .fighter-portrait { align-items:stretch }
+#card-sheet .portrait-upload { position:absolute; top:0; bottom:0; left:50%; width:auto; height:100%; max-width:100%; transform:translateX(-50%) }

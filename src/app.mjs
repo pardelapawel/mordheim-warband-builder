@@ -99,6 +99,8 @@ function emptyRosterMarkup(){
   return `<div class="empty-roster" role="button" tabindex="0" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
 }
 let pictureTarget=null,pictureCropId=null,pictureDrag=null,pictureFrame=null;
+// Width / height of every fighter photo: the roster PDF's 20 x 36 mm box (--portrait-ratio in style.css).
+const PORTRAIT_RATIO=5/9;
 let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedStorage=false,undoAction=null;
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
 function notice(message,undo=null){
@@ -212,10 +214,9 @@ function updatePictureCrop(){
 function openPictureCrop(id){
   const fighter=band.fighters.find(f=>f.id===id);if(!fighter?.picture)return;
   pictureCropId=id;$('picture-crop-image').src=fighter.picture;$('picture-crop-image').alt=fighter.customName;
-  const row=[...$('roster').querySelectorAll('.fighter-row')].find(row=>row.dataset.id===id);
-  const bounds=row.querySelector('.portrait-upload').getBoundingClientRect();
-  const scale=Math.min(260/bounds.width,340/bounds.height,innerWidth*0.7/bounds.width,innerHeight*0.4/bounds.height);
-  pictureFrame={width:bounds.width*scale,height:bounds.height*scale};
+  // The frame has the photo box's fixed shape (5:9, as printed), sized to fit the dialog.
+  const width=Math.min(260,340*PORTRAIT_RATIO,innerWidth*0.7,innerHeight*0.4*PORTRAIT_RATIO);
+  pictureFrame={width,height:width/PORTRAIT_RATIO};
   $('picture-crop-preview').style.width=`${pictureFrame.width}px`;$('picture-crop-preview').style.height=`${pictureFrame.height}px`;
   updatePictureCrop();if(!$('picture-crop').open)$('picture-crop').showModal();
 }
