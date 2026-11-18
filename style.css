@@ -3345,3 +3345,17 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
   :root[data-theme=light] .empty-roster::after { background:#0000001f }
   :root[data-theme=light] dialog { background:linear-gradient(#f6f4f08c,#f6f4f08c),var(--mottle),linear-gradient(170deg,#f3f1ec,#e7e4dd) }
 }
+
+/* phones: the masthead buttons break onto two lines instead of pushing the page wider */
+@media screen and (max-width:650px) {
+  .masthead { gap:10px }
+  .brand { flex:none; font-size:17px; gap:7px }
+  .brand-mark { width:36px; height:36px }
+  .header-actions { min-width:0; flex-shrink:1; gap:4px }
+  .header-actions .theme-switch { flex:none }
+  .header-actions button { white-space:normal; line-height:1.15; text-align:center; flex:0 1 auto; min-width:0; max-width:86px; padding:7px 6px }
+}
+@media screen and (max-width:380px) {
+  .brand { flex:0 1 auto; min-width:0 }
+  .brand small { white-space:normal; line-height:1.2 }
+}
