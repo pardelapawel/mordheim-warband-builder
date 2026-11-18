@@ -1,5 +1,5 @@
 import * as Skills from './skills.mjs';
-import {canBuyMutations, mutationPrice, skillCost} from './progression.mjs';
+import {canBuyMutations, mutationFor, mutationPrice, skillCost} from './progression.mjs';
 import {specialSkillNames,skillRestriction,fighterTemplate} from './eligibility.mjs';
 import {recruitmentCost} from './recruitment.mjs';
 import {RULES_REVISION} from './migration.mjs';
@@ -85,10 +85,16 @@ export function skillChoices(fighter,catalog) {
   const direct = catalog.skills.filter(s=>names.has(Skills.normalizeSkillName(s.name)) && !skillRestriction(s.name,fighter,catalog)).map(s=>({name:s.name,kind:'simple'}));
   const groups = Skills.getTemplateAddableSkillGroupNames(template,catalog);
   if (template?.spell_list) groups.push(template.spell_list);
-  const mutations = canBuyMutations(fighter,catalog) && !fighter.recruitmentComplete ? catalog.progression.mutations.map(mutation=>({name:mutation.name,kind:'simple',mutation:true,cost:mutationPrice(fighter,{name:mutation.name},catalog)})) : [];
-  const extra = [...mutations,...specialSkillNames(fighter,catalog).filter(name=>!skillRestriction(name,fighter,catalog)).map(name=>({name,kind:'simple'}))];
+  const extra = [...specialSkillNames(fighter,catalog).filter(name=>!skillRestriction(name,fighter,catalog)).map(name=>({name,kind:'simple'}))];
   const existing=new Set(fighter.skills.filter(s=>s.kind!=='group').map(s=>Skills.formatSkillEntry(s).toLocaleLowerCase('pl')));
-  return [...direct,...extra,...groups.map(name=>({name,kind:'group'}))].filter(s=>s.mutation || s.kind==='group' || !existing.has(s.name.toLocaleLowerCase('pl')));
+  return [...direct,...extra,...groups.map(name=>({name,kind:'group'}))].filter(s=>s.kind==='group' || !existing.has(s.name.toLocaleLowerCase('pl')));
+}
+// Page 31: Mutant and Opętany (not Wulfen) buy mutations only while being
+// recruited; each one once, the first at its list price and later ones double.
+export function mutationChoices(fighter,catalog) {
+  if(!canBuyMutations(fighter,catalog) || fighter.recruitmentComplete) return [];
+  const owned=new Set(fighter.skills.map(s=>mutationFor(s,catalog)?.name).filter(Boolean));
+  return catalog.progression.mutations.filter(m=>!owned.has(m.name)).map(m=>({name:m.name,kind:'simple',mutation:true,cost:mutationPrice(fighter,{name:m.name},catalog)}));
 }
 export function glossaryEntries(band,catalog) {
   const entries = new Map();
@@ -104,7 +110,20 @@ export function glossaryEntries(band,catalog) {
       if(!names.some(key=>[...catalog.skills,...catalog.spells].some(x=>Skills.normalizeSkillName(x.name)===key)) && !s.groupKey) add(label(s),s.description);
     });
   });
+  storedItems(band.storedEquipment,[...catalog.equipment,...(catalog.artifacts || [])]).forEach(item=>add(item.name,item.description));
   return [...entries.values()].sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+}
+// Catalog items named in the free-text band store, as whole words in any letter
+// case. Longer names are matched first so "X Y" is not also counted as "X".
+function storedItems(text,items) {
+  let rest=String(text || '');const found=[];
+  if(!rest.trim())return found;
+  for(const item of [...items].sort((a,b)=>b.name.length-a.name.length)){
+    const name=item.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const pattern=new RegExp(`(?<![\\p{L}\\p{N}])${name}(?![\\p{L}\\p{N}])`,'giu');
+    if(pattern.test(rest)){found.push(item);rest=rest.replace(pattern,' ');}
+  }
+  return found;
 }
 export function textExport(band,catalog) {
   const totals=summary(band,catalog);

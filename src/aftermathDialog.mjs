@@ -86,12 +86,23 @@ function stepExploration(built) {
   ${exploration.cards.map(card => cardMarkup(card, `<p class="editor-hint">${card.group.size > 1 ? `${card.group.size} × ${card.group.value}` : `Pojedyncze ${card.group.value}`}</p>`)).join('')}`;
 }
 
+// Warpstone price list as a table: one column per number of shards sold,
+// with the column for the amount currently being sold highlighted.
+// Clicking anywhere in a column sells that many shards.
+function priceTable(prices, perShard, sold) {
+  const col = (cell, i) => `<${cell} data-am-sell="${i + 1}"${i + 1 === sold ? ' class="current"' : ''}`;
+  return `<table class="am-prices"><caption>Cennik Spaczenia</caption>
+  <tr><th scope="row">Sztuki</th>${prices.map((_, i) => `${col('th', i)} scope="col"><button type="button" class="am-sell" aria-pressed="${i + 1 === sold}" aria-label="Sprzedaj ${i + 1} szt.">${i + 1}</button></th>`).join('')}</tr>
+  <tr><th scope="row">Razem</th>${prices.map((total, i) => `${col('td', i)}>${total} zk</td>`).join('')}</tr>
+  <tr><th scope="row">Za 1 szt.</th>${prices.map((total, i) => `${col('td', i)}>${perShard(total, i + 1)} zk</td>`).join('')}</tr></table>`;
+}
+
 function stepSale(built) {
   const {sale} = built, prices = A.warpstonePriceList(sale.bandSize, sale.available, view.catalog);
   const perShard = (total, count) => (Math.round(total / count * 10) / 10).toLocaleString('pl-PL');
   return `<p>Spaczenie do sprzedania: <strong>${sale.available}</strong> szt. Modele w bandzie: <strong>${sale.bandSize}</strong>.</p>
   <label class="am-number">Sprzedaj <input type="number" inputmode="numeric" min="0" max="${sale.available}" value="${esc(view.state.inputs['sale/sold'] ?? '')}" data-am-input="sale/sold"> szt.</label>
-  ${prices.length ? `<p class="am-prices">Cennik: ${prices.map((total, i) => `${i + 1} szt. = ${total} zk (${perShard(total, i + 1)} zk/szt.)`).join(' · ')}</p>` : ''}
+  ${prices.length ? priceTable(prices, perShard, sale.sold) : ''}
   <p>Dochód: <strong>${sale.price} zk</strong>${sale.sold ? ` (${perShard(sale.price, sale.sold)} zk za 1 szt.)` : ''}. Niesprzedane Spaczenie zostają w skarbcu.</p>`;
 }
 
@@ -169,6 +180,8 @@ function onInput(event) {
 
 function onClick(event) {
   if (!view) return;
+  const sell = event.target.closest('[data-am-sell]');
+  if (sell) { setValue(view.state.inputs, 'sale/sold', Number(sell.dataset.amSell)); changed('sale/sold'); return; }
   const button = event.target.closest('button');
   if (!button) return;
   const {state} = view;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {exportBand,normalizePictureCrop,newBand,createFighter,duplicateFighter,normalizeBand,summary,fighterCost,glossaryEntries,textExport,skillChoices,slug} from '../src/model.mjs';
+import {exportBand,normalizePictureCrop,newBand,createFighter,duplicateFighter,normalizeBand,summary,fighterCost,glossaryEntries,textExport,skillChoices,mutationChoices,slug} from '../src/model.mjs';
 import {validateBand,equipmentIssue} from '../src/rules.mjs';
 import {readLibrary,writeLibrary,STORAGE_KEY,encodeShare,decodeShare} from '../src/storage.mjs';
 import {selectGroupedSkillOption} from '../src/skills.mjs';
@@ -63,7 +63,7 @@ test('spell selection updates its label, cost, and glossary entry',()=>{
 });
 test('text export preserves original roster and includes Polish fields with English stats',()=>{const c=catalog(),b=newBand();b.fighters=[recruit('Kapitan Najemników',c)];const before=JSON.stringify(b),output=textExport(b,c);assert.match(output,/WS: 4/);assert.match(output,/Ekwipunek: Sztylet/);assert.match(output,/Siła bandy: 25/);assert.equal(JSON.stringify(b),before);});
 test('glossary distinguishes rules containing parentheses from grouped skill options',()=>{const c=catalog(),b=newBand();b.fighters=[recruit('Kapitan Najemników',c)];const entries=glossaryEntries(b,c);assert.ok(entries.some(e=>e.name==='Lider (12")' && e.description.includes('12')));assert.ok(!entries.some(e=>e.name==='Lider'));});
-test('mutants can select mutations and are flagged until one is selected',()=>{const c=catalog('sludzy_ciemnosci'),b=newBand('sludzy_ciemnosci'),f=recruit('Mutant',c);b.fighters=[f];assert.ok(skillChoices(f,c).some(s=>s.name==='Macka' && s.cost===35));assert.ok(validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));f.skills.push({label:'Macka',cost:30});assert.ok(!validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));assert.equal(fighterCost(f,c),60);});
+test('mutants can select mutations and are flagged until one is selected',()=>{const c=catalog('sludzy_ciemnosci'),b=newBand('sludzy_ciemnosci'),f=recruit('Mutant',c);b.fighters=[f];assert.ok(mutationChoices(f,c).some(s=>s.name==='Macka' && s.cost===35));assert.ok(validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));f.skills.push({label:'Macka',cost:30});assert.ok(!validateBand(b,c).some(m=>m.message.includes('co najmniej jedną mutacją')));assert.equal(fighterCost(f,c),60);});
 
 test('all twelve racial maxima match the Długobrody page 34 table',()=>{
   const c=catalog(),keys=['m','ws','bs','s','t','w','i','a','ld'];
@@ -164,4 +164,29 @@ test('JSON export restores pictures and cropping while links and text omit them 
   const store=storage();writeLibrary(store,[b],b.id);assert.equal(readLibrary(store).bands[0].fighters[0].picture,b.fighters[0].picture);
   exported.fighters[0].stats.m=99;assert.equal(b.fighters[0].stats.m,original.fighters[0].stats.m);
   exported.fighters[0].pictureCrop.x=99;assert.equal(b.fighters[0].pictureCrop.x,20);
+});
+test('items named in the band store get their descriptions in the glossary',()=>{
+  const c=catalog(),b=newBand();
+  b.storedEquipment='Mapa ruin, 2 × sztylet\nButy złodzieja\nstary kapelusz, Mieczyk';
+  const entries=glossaryEntries(b,c),names=entries.map(e=>e.name);
+  assert.ok(names.includes('Mapa ruin'));
+  assert.equal(entries.find(e=>e.name==='Mapa ruin').description,c.equipment.find(i=>i.name==='Mapa ruin').description);
+  assert.ok(names.includes('Sztylet'),'matching ignores letter case');
+  assert.ok(names.includes('Buty złodzieja'),'found artifacts count too');
+  assert.ok(!names.includes('Miecz'),'only whole words match');
+});
+test('mutations are offered once each, priced for the next purchase, and not in the skill list',()=>{
+  const c=catalog('sludzy_ciemnosci'),b=newBand('sludzy_ciemnosci'),f=recruit('Mutant',c);b.fighters=[f];
+  assert.ok(!skillChoices(f,c).some(s=>s.mutation),'skills dropdown has no mutations');
+  f.skills.push({label:'Różki',cost:0});
+  const offered=mutationChoices(f,c);
+  assert.ok(!offered.some(s=>s.name==='Różki'),'an owned mutation is not offered again');
+  assert.equal(offered.find(s=>s.name==='Wielki Szpon').cost,100,'later mutations cost double');
+  f.recruitmentComplete=true;assert.equal(mutationChoices(f,c).length,0,'none after recruitment');
+  assert.equal(mutationChoices(recruit('Wulfen',c),c).length,0,'Wulfen cannot buy mutations');
+});
+test('the same mutation bought twice is flagged',()=>{
+  const c=catalog('sludzy_ciemnosci'),b=newBand('sludzy_ciemnosci'),f=recruit('Mutant',c);b.fighters=[f];
+  f.skills.push({label:'Różki',cost:0},{label:'Różki',cost:0});
+  assert.ok(validateBand(b,c).some(m=>m.fighterId===f.id && m.message.includes('Różki') && m.message.includes('dwa razy')));
 });

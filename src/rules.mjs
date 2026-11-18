@@ -59,10 +59,12 @@ export function validateBand(band,catalog) {
     const maximum=modifiers[slug(t.name)] ?? t.max_quantity;
     if(maximum!==undefined && templates.filter(x=>x?.name===t.name).length>maximum) add(`Przekroczono limit: ${t.name} (maks. ${maximum}).`,f.id);
     if(t.type==='Zwierzak' && number(f.exp)>0) add('Zwierzaki nie zdobywają doświadczenia.',f.id);
-    if(requiresMutation(f,catalog) && !f.skills.some(s=>mutationFor(s,catalog))) add('Mutant musi rozpocząć grę z co najmniej jedną mutacją. Wybierz ją w edytorze; koszt zostanie obliczony automatycznie.',f.id);
+    if(requiresMutation(f,catalog) && !f.skills.some(s=>mutationFor(s,catalog))) add('Mutant musi rozpocząć grę z co najmniej jedną mutacją. Wybierz ją w edytorze, w sekcji „Rozwój przy werbunku”; koszt zostanie obliczony automatycznie.',f.id);
     f.equipment.forEach(e=>{const issue=equipmentIssue({...catalog.equipment.find(x=>x.name===e.name),...e},f,catalog);if(issue)add(`${e.name}: ${issue}`,f.id);});
     weaponLoadoutIssues(f,catalog).forEach(issue=>add(issue.message,f.id,issue.severity));
     f.equipment.forEach(e=>{const item=catalog.equipment.find(x=>x.name===e.name);if(item?.ineffectiveRaces?.includes(t.race))add(`${e.name}: przedmiot nie działa na tę rasę.`,f.id,'warning');});
+    const mutationNames=f.skills.map(s=>mutationFor(s,catalog)?.name).filter(Boolean);
+    [...new Set(mutationNames.filter((name,i)=>mutationNames.indexOf(name)!==i))].forEach(name=>add(`${name}: tę samą mutację kupiono dwa razy. Usuń jedną z nich.`,f.id));
     const starting=getTemplateStartingSkillEntries(t,catalog).flatMap(getSkillEntryNames);
     f.skills.forEach(s=>{
       const restricted=skillRestriction(s,f,catalog);if(restricted)add(restricted,f.id);
