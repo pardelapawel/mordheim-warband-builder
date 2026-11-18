@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {assembleCatalog} from '../src/catalog.mjs';
-import {createFighter,newBand,templateFor} from '../src/model.mjs';
+import {createFighter,newBand,templateFor,ensureLeader} from '../src/model.mjs';
 import {validateBand,equipmentIssue} from '../src/rules.mjs';
 import {purchaseEquipment} from '../src/equipment.mjs';
 import {reconcileRules,RULES_REVISION} from '../src/migration.mjs';
@@ -14,7 +14,7 @@ function catalog(type='awanturnicy') {
 }
 const recruit=(name,c)=>createFighter(c.fighters.find(t=>t.name===name),c);
 const equipment=(name,c)=>c.equipment.find(e=>e.name===name);
-const bandWith=(fighters,type)=>({...newBand(type),fighters});
+const bandWith=(fighters,type)=>{const band={...newBand(type),fighters};ensureLeader(band,catalog(type));return band;};
 const labels=f=>f.skills.map(s=>s.label || s.name);
 const spell=(c,name)=>Object.values(c.spellsByList).flat().find(s=>s.name===name);
 

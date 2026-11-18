@@ -3359,3 +3359,99 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
   .brand { flex:0 1 auto; min-width:0 }
   .brand small { white-space:normal; line-height:1.2 }
 }
+
+/* new band: rule set and band type as a row of swoosh buttons */
+@media screen {
+  .choice-group { border:0; margin:0 0 14px; padding:0; min-width:0 }
+  .choice-group legend { padding:0; margin-bottom:6px; font-size:13px; color:var(--muted) }
+  .choice-buttons { display:flex; flex-wrap:wrap; gap:6px 10px }
+  .choice-button { position:relative; display:inline-flex; margin:0; cursor:pointer }
+  .choice-button input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer }
+  .choice-button span { display:block; padding:9px 20px; font:600 15px/1.2 var(--book); color:var(--ink); background:transparent; transition:transform .12s ease,filter .12s ease,background .12s ease }
+  .choice-button:hover span { background:var(--swoosh-quiet) center/100% 100% no-repeat; color:#ece7de; filter:brightness(1.2) }
+  .choice-button input:checked+span { background:var(--swoosh) center/100% 100% no-repeat; color:#f2f0ec; filter:none; transform:rotate(-.6deg) }
+  .choice-button input:focus-visible+span { outline:2px solid var(--ink); outline-offset:2px }
+  :where(:root:not([data-theme=light])) .choice-button input:checked+span { background-image:var(--swoosh-light); color:#111 }
+}
+
+/* new band: the name field with its reroll die */
+@media screen {
+  #create-band-form > label[for=create-band-name] { margin-bottom:0 }
+  .name-roll { display:flex; align-items:center; gap:6px; margin:4px 0 14px }
+  .name-roll input { flex:1; min-width:0 }
+  #reroll-band-name { flex:none; display:flex; align-items:flex-end; gap:3px; height:38px; padding:0 4px; color:var(--ink); background:none; border:0; overflow:visible }
+  #reroll-band-name .die { display:block; line-height:0 }
+  #reroll-band-name .die:last-child { transform:rotate(12deg) }
+  #reroll-band-name rect { fill:none; stroke:currentColor; stroke-width:1.8 }
+  #reroll-band-name circle { fill:currentColor }
+  #reroll-band-name:hover .die { filter:brightness(1.4) }
+  /* a toss: up, down, one small bounce, still */
+  #reroll-band-name.rolling .die { animation:die-toss .62s cubic-bezier(.3,.7,.4,1) both }
+  #reroll-band-name.rolling .die:last-child { animation-name:die-toss-2; animation-delay:.05s }
+  @keyframes die-toss {
+    0% { transform:translateY(0) rotate(0) }
+    35% { transform:translateY(-18px) rotate(-160deg) }
+    62% { transform:translateY(0) rotate(-300deg) }
+    78% { transform:translateY(-5px) rotate(-340deg) }
+    100% { transform:translateY(0) rotate(-360deg) }
+  }
+  @keyframes die-toss-2 {
+    0% { transform:translateY(0) rotate(12deg) }
+    35% { transform:translateY(-22px) rotate(190deg) }
+    62% { transform:translateY(0) rotate(330deg) }
+    78% { transform:translateY(-4px) rotate(362deg) }
+    100% { transform:translateY(0) rotate(372deg) }
+  }
+  @media (prefers-reduced-motion: reduce) { #reroll-band-name.rolling .die { animation:none } }
+}
+@media screen {
+  #create-band-form .choice-button { margin:0; font-size:inherit; color:inherit }
+  #create-band-form .choice-button input { position:absolute; inset:0; width:100%; height:100%; margin:0 }
+  #create-band-form .name-roll input { margin-top:0 }
+}
+
+/* every checkbox is the same round switch: gray when off, red when on (the sun/moon icon is its own thing) */
+@media screen {
+  input[type=checkbox]:where(:not(.theme-switch input)) {
+    appearance:none;
+    flex:none;
+    display:inline-block;
+    vertical-align:middle;
+    position:relative;
+    box-sizing:border-box;
+    width:34px;
+    min-width:34px;
+    height:18px;
+    margin:0 .5em 0 0;
+    padding:0;
+    border:0;
+    border-radius:9px;
+    background:#a9a49a;
+    box-shadow:none;
+    cursor:pointer;
+    transition:none
+  }
+  input[type=checkbox]:where(:not(.theme-switch input))::before {
+    content:'';
+    display:block;
+    width:14px;
+    height:14px;
+    margin:2px;
+    border-radius:50%;
+    background:#fff;
+    transition:none
+  }
+  input[type=checkbox]:where(:not(.theme-switch input)):checked { background:var(--brand) }
+  input[type=checkbox]:where(:not(.theme-switch input)):checked::before { transform:translateX(16px) }
+  input[type=checkbox]:where(:not(.theme-switch input)):disabled { opacity:.55; cursor:default }
+  input[type=checkbox]:where(:not(.theme-switch input)):focus-visible { outline:2px solid var(--ink); outline-offset:2px }
+  :where(:root:not([data-theme=light])) input[type=checkbox]:where(:not(.theme-switch input)):not(:checked) { background:#5a5650 }
+  .picture-switch input[type=checkbox] { margin:0 }
+}
+
+/* phones: the motto box gets its own full-width row above the small print */
+@media screen and (max-width:650px) {
+  footer { flex-wrap:wrap; row-gap:14px; padding:24px 0 30px 64px; font-size:10px }
+  footer::before { top:auto; bottom:27px; margin-top:0; width:52px; height:20px }
+  footer>span:nth-child(2) { display:block; order:-1; flex:1 0 100%; margin-left:-64px; padding:12px 18px; font-size:19px; line-height:1.2; text-align:center }
+}

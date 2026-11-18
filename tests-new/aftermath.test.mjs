@@ -220,7 +220,7 @@ test('warpstone sells by pieces and band size',()=>{
 function battle(){
   const c=catalog(),b=newBand();b.name='Test';
   b.fighters=[recruit('Kapitan Najemników',c),recruit('Ludzki Najemnik',c),recruit('Pies bojowy',c)];
-  const [captain,merc,dog]=b.fighters;return {c,b,captain,merc,dog,state:A.newAftermathState(b)};
+  const [captain,merc,dog]=b.fighters;captain.leader=true;return {c,b,captain,merc,dog,state:A.newAftermathState(b)};
 }
 test('a new state has everyone taking part and nobody out of action',()=>{
   const {b,state}=battle();

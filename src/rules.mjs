@@ -1,7 +1,7 @@
 import {summary,templateFor,slug,number,label} from './model.mjs';
 import {getTemplateStartingSkillEntries,getSkillEntryNames,isSkillAllowedForTemplate} from './skills.mjs';
 import {canBuyMutations, requiresMutation, mutationFor} from './progression.mjs';
-import {fighterTemplate,hasSkill,isCaster,isLeader,skillRestriction,specialSkillNames} from './eligibility.mjs';
+import {fighterTemplate,hasSkill,isCaster,isLeader,isLeaderModel,skillRestriction,specialSkillNames} from './eligibility.mjs';
 import {weaponLoadoutIssues} from './equipment.mjs';
 export function equipmentIssue(item,fighter,catalog) {
   item={...item,...[...catalog.equipment,...(catalog.artifacts || [])].find(e=>e.name===item.name)};
@@ -37,8 +37,13 @@ export function equipmentIssue(item,fighter,catalog) {
 export function validateBand(band,catalog) {
   const messages=[], add=(message,fighterId=null,severity='error')=>messages.push({message,fighterId,severity});
   const templates=band.fighters.map(f=>templateFor(f,catalog));
+  // p. 19: at least one Lider model when recruiting, and exactly one of the
+  // fighters commands the band. The leader's limits come only from him.
   const leaders=templates.filter((t,i)=>isLeader(band.fighters[i],catalog));
-  if(leaders.length!==1) add('Banda musi mieć dokładnie jednego lidera.');
+  const leaderModels=band.fighters.filter(f=>isLeaderModel(f,catalog)).length;
+  if(band.phase!=='campaign' && !leaderModels) add('Banda musi zawierać co najmniej jeden model Lidera.');
+  else if(!leaders.length) add('Banda musi mieć lidera. Zaznacz „Lider bandy” w edytorze wybranego wojownika.');
+  if(leaders.length>1) add('Bandą dowodzi tylko jeden lider. Zaznacz „Lider bandy” tylko u jednego wojownika.');
   const modifiers=Object.assign({},...leaders.map(t=>t?.modifies_limits || {}));
   // e.g. Nekromanta: with a Wampir in the roster, Wilkory and Ghoule become 0-3.
   for(const t of templates) {
@@ -59,6 +64,7 @@ export function validateBand(band,catalog) {
     const maximum=modifiers[slug(t.name)] ?? t.max_quantity;
     if(maximum!==undefined && templates.filter(x=>x?.name===t.name).length>maximum) add(`Przekroczono limit: ${t.name} (maks. ${maximum}).`,f.id);
     if(t.type==='Zwierzak' && number(f.exp)>0) add('Zwierzaki nie zdobywają doświadczenia.',f.id);
+    if(f.recruitmentUpgrades?.extraWound && !f.recruitmentComplete && !isLeader(f,catalog)) add('+1 W przy werbunku przysługuje tylko liderowi bandy.',f.id);
     if(requiresMutation(f,catalog) && !f.skills.some(s=>mutationFor(s,catalog))) add('Mutant musi rozpocząć grę z co najmniej jedną mutacją. Wybierz ją w edytorze, w sekcji „Rozwój przy werbunku”; koszt zostanie obliczony automatycznie.',f.id);
     f.equipment.forEach(e=>{const issue=equipmentIssue({...catalog.equipment.find(x=>x.name===e.name),...e},f,catalog);if(issue)add(`${e.name}: ${issue}`,f.id);});
     weaponLoadoutIssues(f,catalog).forEach(issue=>add(issue.message,f.id,issue.severity));

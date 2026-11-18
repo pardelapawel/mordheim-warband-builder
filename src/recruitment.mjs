@@ -1,4 +1,4 @@
-import {fighterTemplate} from './eligibility.mjs';
+import {fighterTemplate,isLeader} from './eligibility.mjs';
 
 const advances={extraWound:{cost:15,exp:4,stat:'w'},weaponSkill:{cost:10,exp:2,stat:'ws'},mercenaryAdvance:{cost:10,exp:2}};
 
@@ -6,7 +6,8 @@ export function recruitmentOptions(fighter,catalog) {
   const template=fighterTemplate(fighter,catalog);
   if(!template || template.type==='Zwierzak')return [];
   const result=[];
-  if(template.type==='Lider' && template.stats.w===1)result.push({key:'extraWound',label:'+1 W przy werbunku — 15 zk i +4 PD'});
+  // Offered to the band's leader; kept visible when already bought so it can be undone.
+  if(template.stats.w===1 && (isLeader(fighter,catalog) || fighter.recruitmentUpgrades?.extraWound))result.push({key:'extraWound',label:'+1 W przy werbunku — 15 zk i +4 PD'});
   if(template.stats.ws===2)result.push({key:'weaponSkill',label:'+1 WS przy werbunku — 10 zk i +2 PD'});
   if(template.name==='Ludzki Najemnik')result.push({key:'mercenaryAdvance',label:'Chcę bohatera — +1 WS lub BS, 10 zk i +2 PD'});
   return result;

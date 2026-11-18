@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {assembleCatalog} from '../src/catalog.mjs';
-import {createFighter,newBand,fighterCost,normalizeBand,skillChoices,glossaryEntries,textExport} from '../src/model.mjs';
+import {createFighter,newBand,fighterCost,normalizeBand,skillChoices,glossaryEntries,textExport,ensureLeader,duplicateFighter} from '../src/model.mjs';
 import {validateBand,equipmentIssue} from '../src/rules.mjs';
 import {purchaseEquipment,purchaseCost} from '../src/equipment.mjs';
 import {setRecruitmentAdvance,recruitmentOptions,recruitmentCost} from '../src/recruitment.mjs';
@@ -17,7 +17,7 @@ function catalog(type='awanturnicy') {
 const recruit=(name,c)=>createFighter(c.fighters.find(t=>t.name===name),c);
 const equipment=(name,c)=>{const result=c.equipment.find(e=>e.name===name);assert.ok(result,name);return result;};
 const choice=(f,name,c)=>skillChoices(f,c).some(s=>s.name===name);
-const bandWith=(fighters,type='awanturnicy')=>({...newBand(type),fighters});
+const bandWith=(fighters,type='awanturnicy')=>{const band={...newBand(type),fighters};ensureLeader(band,catalog(type));return band;};
 
 test('new Awanturnicy receive only starting rules, with eligible advances offered separately',()=>{
   const c=catalog();
@@ -31,7 +31,7 @@ test('new Awanturnicy receive only starting rules, with eligible advances offere
 
 test('Słudzy special skills respect race, class and leader requirements',()=>{
   const c=catalog('sludzy_ciemnosci');
-  const rat=recruit('Zabójca Eshin',c),vampire=recruit('Wampir',c),orc=recruit('Ork',c),goblin=recruit('Goblin',c);
+  const rat=recruit('Zabójca Eshin',c),vampire=recruit('Wampir',c),orc=recruit('Ork',c),goblin=recruit('Goblin',c);vampire.leader=true;
   for(const name of ['Walka ogonem','Ścianobiegacz','Infiltracja']){assert.ok(choice(rat,name,c));assert.ok(!choice(vampire,name,c));}
   assert.ok(choice(vampire,'Poważne groźby',c));assert.ok(!choice(orc,'Poważne groźby',c));
   assert.ok(choice(orc,'Tfardy Łep',c));assert.ok(!choice(goblin,'Tfardy Łep',c));
@@ -84,7 +84,7 @@ test('material variants use source multipliers and armour purchases keep their h
 });
 
 test('recruitment advances update cost, XP, and profile once and can be reversed',()=>{
-  const c=catalog(),captain=recruit('Kapitan Najemników',c);
+  const c=catalog(),captain=recruit('Kapitan Najemników',c);captain.leader=true;
   assert.ok(setRecruitmentAdvance(captain,'extraWound',true,c));assert.equal(captain.stats.w,2);assert.equal(captain.exp,24);assert.equal(fighterCost(captain,c),75);
   assert.equal(setRecruitmentAdvance(captain,'extraWound',true,c),false);assert.equal(captain.stats.w,2);
   assert.ok(setRecruitmentAdvance(captain,'extraWound',false,c));assert.equal(captain.stats.w,1);assert.equal(captain.exp,20);assert.equal(recruitmentCost(captain),0);
@@ -127,4 +127,41 @@ test('consumable side effects, racial ineffectiveness and found artefacts are re
 test('campaign budgets and skill duplication are checked without rejecting different spells',()=>{
   const c=catalog(),f=recruit('Kapitan Najemników',c);f.baseCost=600;const b=bandWith([f]);b.phase='campaign';assert.ok(!validateBand(b,c).some(m=>m.message.includes('500 zk')));
   f.skills.push({label:'Uderzyć by zranić'},{label:'Uderzyć by zranić'});assert.ok(validateBand(b,c).some(m=>m.message.includes('nie wybiera się ponownie')));
+});
+
+test('a band may hire several Lider models, but only the chosen leader commands it',()=>{
+  const c=catalog(),captain=recruit('Kapitan Najemników',c),hunter=recruit('Łowca Czarownic',c);
+  const b=bandWith([captain,hunter]);
+  assert.equal(captain.leader,true,'the first Lider model leads by default');assert.equal(hunter.leader,undefined);
+  assert.ok(!validateBand(b,c).some(m=>/lider/i.test(m.message)),'two Lider models with one leader are fine');
+  b.fighters.push(...Array.from({length:3},()=>recruit('Ludzki Najemnik',c)));
+  assert.ok(!validateBand(b,c).some(m=>m.message.includes('limit: Ludzki Najemnik')),'Kapitan as leader allows 0-5 Najemników');
+  delete captain.leader;hunter.leader=true;
+  assert.ok(validateBand(b,c).some(m=>m.message.includes('limit: Ludzki Najemnik')),'under the Łowca the Kapitan no longer lifts the limit');
+  hunter.leader=captain.leader=true;
+  assert.ok(validateBand(b,c).some(m=>m.message.includes('tylko jeden lider')));
+  delete captain.leader;delete hunter.leader;
+  assert.ok(validateBand(b,c).some(m=>m.message.includes('Banda musi mieć lidera')));
+});
+
+test('+1 W at recruitment is only for the band leader',()=>{
+  const c=catalog(),captain=recruit('Kapitan Najemników',c),hunter=recruit('Łowca Czarownic',c);
+  const b=bandWith([captain,hunter]);
+  assert.ok(recruitmentOptions(captain,c).some(o=>o.key==='extraWound'));
+  assert.ok(!recruitmentOptions(hunter,c).some(o=>o.key==='extraWound'),'a second Lider model cannot buy it');
+  assert.equal(setRecruitmentAdvance(hunter,'extraWound',true,c),false);
+  setRecruitmentAdvance(captain,'extraWound',true,c);delete captain.leader;hunter.leader=true;
+  assert.ok(recruitmentOptions(captain,c).some(o=>o.key==='extraWound'),'still shown so it can be undone');
+  assert.ok(validateBand(b,c).some(m=>m.fighterId===captain.id && m.message.includes('tylko liderowi')));
+});
+
+test('leaders: duplicates do not lead, animals never lead, a campaign picks the highest Ld',()=>{
+  const c=catalog(),captain=recruit('Kapitan Najemników',c);captain.leader=true;
+  assert.equal(duplicateFighter(captain).leader,undefined);
+  const dog=recruit('Pies bojowy',c),youth=recruit('Ludzki Młodzik',c),merc=recruit('Ludzki Najemnik',c);
+  const b=bandWith([dog,youth,merc]);
+  assert.ok(!b.fighters.some(f=>f.leader),'no Lider model while recruiting: nobody is picked');
+  assert.ok(validateBand(b,c).some(m=>m.message.includes('model Lidera')));
+  b.phase='campaign';merc.stats.ld='8';ensureLeader(b,c);
+  assert.equal(merc.leader,true);assert.equal(dog.leader,undefined);
 });
