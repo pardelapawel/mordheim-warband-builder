@@ -1,5 +1,5 @@
-import {exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
-import {panPictureCrop} from './picture.mjs';
+import {RULE_SETS,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,textExport,number,uid,label} from './model.mjs';
+import {panPictureCrop,pictureCropRect} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
 import {validateBand,equipmentIssue} from './rules.mjs';
@@ -25,33 +25,78 @@ const headingPhrases=[
   'ŚLADEM SPACZENIA I ZŁOTA',
   'IMIONA OCALONE OD ZAPOMNIENIA',
   'WYPRAWY, KTÓRYCH NIKT NIE ZLECAŁ',
-  'Z RUIN WRACAJĄ TYLKO OPOWIEŚCI'
+  'Z RUIN WRACAJĄ TYLKO OPOWIEŚCI',
+  'KSIĘGA PISANA KRWIĄ I ATRAMENTEM',
+  'SPIS JESZCZE ŻYWYCH',
+  'LISTA PŁAC I POGRZEBÓW',
+  'KRONIKA MIASTA POTĘPIONYCH',
+  'ZAPISKI Z PIWNIC MORDHEIM',
+  'IMIONA, ZANIM POCHŁONIE JE MROK',
+  'REJESTR ŚMIAŁKÓW I GŁUPCÓW',
+  'GDZIE SPACZEŃ, TAM KŁOPOTY',
+  'TYCH JESZCZE NIE ZJEDZONO',
+  'KSIĘGA BEZ SZCZĘŚLIWYCH ZAKOŃCZEŃ',
+  'ROZKAZY, KTÓRYCH NIKT NIE SŁUCHA',
+  'SPIS INWENTARZA I UTRACONYCH KOŃCZYN',
+  'ZAPISKI NIEUFNEGO KRONIKARZA',
+  'BLIZNY, DŁUGI I OBIETNICE',
+  'ZA TYMI MURAMI BOGOWIE NIE SŁUCHAJĄ',
+  'ROZPISKA PISANA PRZY ŁOJOWEJ ŚWIECY',
+  'KTO PRZEŻYJE, TEN OPOWIE'
 ];
 const footerPhrases=[
   'Nie każdy wraca. Każdy zostawia ślad.',
   'Złoto się kończy. Blizny zostają.',
   'W ruinach nawet szczęście nosi sztylet.',
-  'Dziś łup. Jutro legenda.',
   'Za tę historię zapłacono z góry.',
   'Nie pytaj, skąd mamy ten spaczeń.',
-  'Jeszcze jeden skarb. Jeszcze jedna wyprawa.',
-  'Najpierw policz monety. Potem ocalałych.'
+  'Najpierw policz monety. Potem ocalałych.',
+  'Szczury też mają swoją bandę.',
+  'Kometa spadła. Ceny poszły w górę.',
+  'Najlepszy pancerz to szybkie nogi.',
+  'Tutaj każdy ma dwa imiona: własne i na nagrobku.',
+  'Spaczeń błyszczy. Rozsądek gaśnie.',
+  'Dziś kucharz. Jutro drugie danie.',
+  'Nie ufaj nikomu, kto się uśmiecha.',
+  'Najdłużej żyje ten, kto idzie ostatni.',
+  'Jeśli coś szepcze z piwnicy, nie odpowiadaj.',
+  'Bohaterowie giną pierwsi. Dlatego jest ich tak mało.',
+  'Wszystko ma swoją cenę. Zwykle wyższą, niż nas stać.',
+  'Mapa była dokładna. Tylko potwory się przeprowadziły.',
+  'Kto pyta, nie błądzi. Kto błądzi, nie wraca.',
+  'Cmentarz też ktoś musi zapełnić.'
 ];
 const emptyRosterPhrases=[
   ['Zaraz będzie ciemno','Zbierz bandę i zapal pochodnie. W ruinach lepiej nie sprawdzać samotnie, co porusza się w mroku.'],
-  ['Tu zaczyna się historia twojej bandy.','Zwerbuj lidera, dobierz wojowników i przygotuj ich na wyprawę.'],
   ['Twoja banda jest jeszcze pusta.','Dodaj lidera i wojowników, a następnie wybierz ich wyposażenie.'],
-  ['Zacznij od składu.','Wybierz dowódcę, zwerbuj wojowników i rozdziel ekwipunek.'],
   ['Ktoś musi po ten spaczeń pójść.','Zwerbuj lidera i kilku śmiałków o rozsądnie niskich oczekiwaniach. Broń, pancerz i szanse przeżycia dobierzesz później.'],
   ['Na razie masz tylko dobre chęci.','Przyda się jeszcze lider, kilku wojowników i coś ostrego. Udział w łupach obiecasz im później.'],
   ['Ruiny czekają. Nikt nie powinien iść sam.','Znajdź kogoś, kto poprowadzi bandę, i tych, którzy pójdą za nim. Rozdaj broń. Wkrótce zapadnie zmrok.'],
-  ['Każda banda zaczyna od kilku imion.','Zapisz pierwsze. Zwerbuj lidera, zbierz wojowników i przygotuj ich na wyprawę do Mordheim. Na razie wszyscy są cali.']
+  ['Nikt jeszcze nie podpisał kontraktu.','Zwerbuj lidera. Najlepiej takiego, który przeczyta drobny druk.'],
+  ['Banda bez ludzi to tylko ładna nazwa.','Zwerbuj kogoś, kto będzie ją nosił z dumą. Albo chociaż bez narzekania.'],
+  ['Karczma pełna chętnych. Prawie trzeźwych.','Wybierz najmniej podejrzanych i daj im broń. Co może pójść nie tak?'],
+  ['Tu jeszcze nikt nie zginął.','Na razie. Zwerbuj pierwszych wojowników i ruszajcie do Szczańca.'],
+  ['Lista płac jest pusta. Skarbnik się cieszy.','Popsuj mu humor i zwerbuj pierwszych najemników.'],
+  ['Kometa spadła. Ktoś musi to posprzątać.','Zbierz bandę, która nie boi się brudnej roboty.'],
+  ['Ktoś musi nieść pochodnię.','Zwerbuj wojowników: jednego do walki, drugiego do pochodni, trzeciego na wszelki wypadek.'],
+  ['Pusto jak w skarbcu po wypłacie.','Dodaj pierwszych śmiałków, zanim ktoś inny zgarnie najlepszych.'],
+  ['Szczury już są pod podłogą.','Zbierz wojowników, zanim szczury założą własną bandę.'],
+  ['Wolne miejsca przy ognisku.','Zwerbuj kilku twardzieli, którzy je zajmą i nie ukradną kociołka.'],
+  ['Bez bandy nawet duchy się nudzą.','Dodaj wojowników i daj ruinom coś do roboty.']
 ];
-function emptyRosterMarkup(){
-  const [title,description]=emptyRosterPhrases[Math.floor(Math.random()*emptyRosterPhrases.length)];
-  return `<div class="empty-roster"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
+// Flavour lines start at a random entry; clicking one shows the next from its list.
+function phraseCycle(list){let i=Math.floor(Math.random()*list.length);return {current:()=>list[i],next:()=>list[i=(i+1)%list.length]};}
+const headingCycle=phraseCycle(headingPhrases),footerCycle=phraseCycle(footerPhrases),emptyRosterCycle=phraseCycle(emptyRosterPhrases);
+function cycleOnClick(el,show){
+  Object.assign(el,{tabIndex:0,title:'Kliknij, aby zmienić'});el.setAttribute('role','button');el.classList.add('phrase-cycle');
+  el.addEventListener('click',show);
+  el.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();show();}});
 }
-let pictureTarget=null,pictureCropId=null,pictureDrag=null;
+function emptyRosterMarkup(){
+  const [title,description]=emptyRosterCycle.current();
+  return `<div class="empty-roster" role="button" tabindex="0" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
+}
+let pictureTarget=null,pictureCropId=null,pictureDrag=null,pictureFrame=null;
 let bands=[],band,catalog,selectedId=null,messages=[],loading=false,protectedStorage=false,undoAction=null;
 const selected=()=>band.fighters.find(f=>f.id===selectedId);
 function notice(message,undo=null){
@@ -69,13 +114,23 @@ function shareNotice(url,copied){
   const input=document.createElement('input');input.id='share-link';input.type='text';input.readOnly=true;input.value=url;input.setAttribute('aria-label','Link do bandy');
   input.addEventListener('click',()=>input.select());label.append(input);$('notice').append(label);
 }
+// The library in memory updates at once; writing it to localStorage (all bands,
+// photos included) waits until edits pause, so typing never stalls on it.
+let saveTimer=null;
 function save(){
   band.fighters.forEach(fighter=>synchronizeMutationPrices(fighter,catalog));
   const index=bands.findIndex(b=>b.id===band.id);if(index<0)bands.push(band);else bands[index]=band;
+  $('library-count').textContent=bands.length;
+  clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,300);
+}
+function flushSave(){
+  if(saveTimer===null)return;
+  clearTimeout(saveTimer);saveTimer=null;
   try{if(protectedStorage)throw new Error('Biblioteka jest uszkodzona; wyeksportuj bieżącą bandę do pliku.');writeLibrary(localStorage,bands,band.id);$('save-status').textContent='✓ Zapisano lokalnie';}
   catch(error){$('save-status').textContent='Nie zapisano';notice(`Nie udało się zapisać bandy. ${error.message} Użyj eksportu JSON, aby zachować zmiany.`);}
-  $('library-count').textContent=bands.length;
 }
+addEventListener('pagehide',flushSave);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
 function changed(){save();renderRoster();}
 // One undo restores the whole band as it was before the post-battle results.
 function applyBattle(actions,summary){
@@ -90,7 +145,7 @@ function renderRoster(refreshRows=true){
   const totals=summary(band,catalog);messages=validateBand(band,catalog);
   $('total-count').textContent=totals.count;$('total-cost').innerHTML=`${totals.cost} <small>zk</small>`;$('total-rating').textContent=totals.rating;
   $('roster-count').textContent=totals.count?`/ ${totals.count}`:'';$('band-type-label').textContent=bandTitle(band);
-  if(refreshRows)$('roster').innerHTML=band.fighters.length?band.fighters.map(rowMarkup).join(''):emptyRosterMarkup();
+  if(refreshRows)renderRows();
   else $('roster').querySelectorAll('.fighter-row').forEach(row=>{const count=messages.filter(m=>m.fighterId===row.dataset.id).length;row.querySelector('.row-warning').textContent=count?warningCount(count):'';});
   $('rating-breakdown').innerHTML=`<div class="rating-line"><span>Wojownicy (${totals.count-totals.large} × 5)</span><span>${(totals.count-totals.large)*5}</span></div><div class="rating-line"><span>Duże modele (${totals.large} × 20)</span><span>${totals.large*20}</span></div><div class="rating-line"><span>Doświadczenie łącznie</span><span>${totals.exp}</span></div><div class="rating-line"><span>Siła bandy</span><span>${totals.rating}</span></div>`;
   const errors=messages.filter(m=>m.severity==='error').length;
@@ -98,16 +153,38 @@ function renderRoster(refreshRows=true){
   $('validation-list').innerHTML=messages.length?messages.map(m=>`<div class="validation-item ${m.severity}"><span>${m.severity==='error'?'!':m.severity==='warning'?'△':'○'}</span><span>${esc(m.message)}</span>${m.fighterId?`<button data-edit="${esc(m.fighterId)}">Przejdź do wojownika</button>`:''}</div>`).join(''):'<div class="validation-item tip">✓ Rozpiska spełnia sprawdzane zasady.</div>';
   renderGlossary();
 }
+// Rebuild only the fighter cards whose markup changed, then fix their order.
+// Untouched cards keep their DOM (and their painted tiles), so a click on one
+// experience box no longer redraws the whole roster.
+let rowHtml=new Map();
+function renderRows(){
+  const roster=$('roster');
+  if(!band.fighters.length){roster.innerHTML=emptyRosterMarkup();rowHtml=new Map();return;}
+  if(roster.querySelector('.empty-roster'))roster.innerHTML='';
+  const existing=new Map([...roster.children].map(el=>[el.querySelector('.fighter-row')?.dataset.id,el]));
+  const next=new Map(),template=document.createElement('template');
+  band.fighters.forEach((f,index)=>{
+    const markup=rowMarkup(f,index);next.set(f.id,markup);
+    let el=existing.get(f.id);existing.delete(f.id);
+    if(!el || rowHtml.get(f.id)!==markup){
+      template.innerHTML=markup;const fresh=template.content.firstElementChild;
+      if(el)el.replaceWith(fresh);el=fresh;
+    }
+    if(roster.children[index]!==el)roster.insertBefore(el,roster.children[index] || null);
+  });
+  existing.forEach(el=>el.remove());
+  rowHtml=next;
+}
 function rowMarkup(f,index){
   const t=templateFor(f,catalog),issues=messages.filter(m=>m.fighterId===f.id),cost=fighterCost(f,catalog),maxima=racialMaxima(f,catalog);
   const advances=ADVANCE_THRESHOLDS;
   return `<div class="fighter-entry"><div class="fighter-order no-print" role="group" aria-label="Akcje wojownika: ${esc(f.customName)}"><button type="button" data-move-fighter="${esc(f.id)}" data-direction="-1" ${index===0?'disabled':''} aria-label="Przesuń w górę: ${esc(f.customName)}" title="Przesuń w górę">↑</button><button type="button" data-move-fighter="${esc(f.id)}" data-direction="1" ${index===band.fighters.length-1?'disabled':''} aria-label="Przesuń w dół: ${esc(f.customName)}" title="Przesuń w dół">↓</button><button type="button" data-duplicate-fighter="${esc(f.id)}" aria-label="Duplikuj: ${esc(f.customName)}" title="Duplikuj wojownika">+</button><button type="button" class="danger" data-delete-fighter="${esc(f.id)}" aria-label="Usuń: ${esc(f.customName)}" title="Usuń wojownika">×</button></div><article class="fighter-row" data-id="${esc(f.id)}" aria-label="${esc(f.customName)}">
-    <div class="fighter-portrait"><button type="button" class="portrait-upload" ${f.picture?'data-crop-picture':'data-picture'}="${esc(f.id)}" aria-label="${f.picture?'Kadruj':'Dodaj'} zdjęcie: ${esc(f.customName)}">${f.picture?`<img src="${esc(f.picture)}" style="${pictureStyle(f)}" alt="${esc(f.customName)}"><span class="portrait-caption no-print">Kadruj zdjęcie</span>`:'<span class="portrait-placeholder no-print" aria-hidden="true">+<small>Dodaj zdjęcie</small></span>'}</button>${f.picture?`<button type="button" class="portrait-remove no-print" data-remove-picture="${esc(f.id)}" aria-label="Usuń zdjęcie: ${esc(f.customName)}" title="Usuń zdjęcie">×</button>`:''}</div>
+    <div class="fighter-portrait"><button type="button" class="portrait-upload" data-picture="${esc(f.id)}" aria-label="${f.picture?'Zmień':'Dodaj'} zdjęcie: ${esc(f.customName)}">${f.picture?`<img src="${esc(f.picture)}" style="${pictureStyle(f)}" alt="${esc(f.customName)}"><span class="portrait-caption no-print">Zmień zdjęcie</span>`:'<span class="portrait-placeholder no-print" aria-hidden="true">+<small>Dodaj zdjęcie</small></span>'}</button>${f.picture?`<button type="button" class="portrait-remove no-print" data-remove-picture="${esc(f.id)}" aria-label="Usuń zdjęcie: ${esc(f.customName)}" title="Usuń zdjęcie">×</button>`:''}</div>
     <div class="fighter-profile"><div class="identity-line"><span>Imię:</span><strong class="fighter-name" contenteditable="plaintext-only" data-fighter-name role="textbox" aria-label="Imię wojownika: ${esc(f.customName)}" aria-multiline="false" spellcheck="false">${esc(f.customName)}</strong><button class="row-number" data-edit="${esc(f.id)}" aria-label="Edytuj profil: ${esc(f.customName)}" title="Edytuj wojownika">${String(index+1).padStart(2,'0')}</button></div><div class="identity-line"><span>Typ:</span><strong class="fighter-type">${esc(f.type)}</strong></div>
     <table class="stats" aria-label="Profil wojownika"><thead><tr>${STAT_LABELS.map(k=>`<th scope="col">${k}</th>`).join('')}</tr></thead><tbody><tr>${STAT_KEYS.map((k,i)=>`<td><input class="stat-input no-print" data-stat="${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}: ${esc(f.customName)}" title="Zmień ${STAT_LABELS[i]}" autocomplete="off" spellcheck="false"><span class="stat-print">${esc(f.stats[k])}</span></td>`).join('')}</tr><tr class="maxima" aria-label="Maksimum rasowe">${STAT_KEYS.map(k=>`<td>${esc(maxima[k] ?? '–')}</td>`).join('')}</tr></tbody></table>
     <div class="profile-bottom"><span class="role-stamp">${esc(t?.type || f.race || 'Wojownik')}</span><span class="maxima-label">↑ Maksimum rasowe</span><strong>${cost} zk</strong></div></div>
     <div class="row-section skills-cell"><h3>Umiejętności i czary</h3><div class="paths">${paths.map(([key,name])=>`<span class="path ${(t?.skills || []).includes(key)?'active':''}">${name}</span>`).join('')}</div><div class="row-content">${f.skills.map(s=>`<span class="skill-chip">${esc(skillDisplay(s,catalog))}</span>`).join('') || '—'}</div>${f.notes?`<div class="injury-line"><span>Uwagi:</span>${esc(f.notes)}</div>`:''}</div>
-    <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika ↗</button></div></div>
+    <div class="row-section equipment-cell"><h3>Ekwipunek</h3><div class="row-content">${f.equipment.map(e=>esc(e.name)).join(' · ') || '—'}</div><div class="injury-line"><span>Obrażenia:</span>${esc(f.injuries || '—')}</div><div class="row-actions no-print"><span class="row-warning">${issues.length?warningCount(issues.length):''}</span><button data-edit="${esc(f.id)}" aria-label="Edytuj: ${esc(f.customName)}">Edytuj wojownika</button></div></div>
     <div class="experience-cell"><div class="experience-grid" aria-label="Tor doświadczenia">${experienceMarkup(f,advances)}</div><div class="experience-total">Doświadczenie<strong>${number(f.exp)}</strong></div></div>
   </article></div>`;
 }
@@ -136,18 +213,31 @@ function openPictureCrop(id){
   const row=[...$('roster').querySelectorAll('.fighter-row')].find(row=>row.dataset.id===id);
   const bounds=row.querySelector('.portrait-upload').getBoundingClientRect();
   const scale=Math.min(260/bounds.width,340/bounds.height,innerWidth*0.7/bounds.width,innerHeight*0.4/bounds.height);
-  $('picture-crop-preview').style.width=`${bounds.width*scale}px`;$('picture-crop-preview').style.height=`${bounds.height*scale}px`;
+  pictureFrame={width:bounds.width*scale,height:bounds.height*scale};
+  $('picture-crop-preview').style.width=`${pictureFrame.width}px`;$('picture-crop-preview').style.height=`${pictureFrame.height}px`;
   updatePictureCrop();if(!$('picture-crop').open)$('picture-crop').showModal();
 }
+// The glossary only depends on gear, skills, the band store and edited
+// descriptions, so it is rebuilt only when the resulting entries change.
+let glossaryKey='';
 function renderGlossary(){
-  const entries=glossaryEntries(band,catalog);
+  const entries=glossaryEntries(band,catalog),key=JSON.stringify([band.id,entries]);
+  if(key===glossaryKey)return;glossaryKey=key;
   $('glossary-list').className='glossary-grid';
   $('glossary-list').innerHTML=entries.length?entries.map(e=>`<div class="glossary-entry"><h3>${esc(e.name)}</h3>${e.difficulty!==undefined?`<p class="spell-difficulty">${e.difficulty==='X'?'':'Trudność: '}${esc(difficultyText(e.difficulty))}</p>`:''}<label class="sr-only" for="glossary-${esc(e.name)}">Opis: ${esc(e.name)}</label><textarea id="glossary-${esc(e.name)}" data-description="${esc(e.name)}">${esc(e.description)}</textarea><p class="print-text">${esc(e.description)}</p></div>`).join(''):'<p class="muted">Opisy pojawią się po dodaniu wojowników i ekwipunku.</p>';
+}
+// Labels that name the rule set follow the open band (Długobrody or Krótkobrody).
+const ruleSetName=()=>RULE_SETS[band.ruleSetId] || RULE_SETS.dlugobrody;
+function renderRuleSet(){
+  const name=ruleSetName();
+  document.title=`Mordheim - ${name}`;
+  $('brand-name').textContent=name;
+  $('footer-ruleset').textContent=`${name} w Szczańcu`;
 }
 function renderAll(){
   $('band-name-print').textContent=band.name;
   $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
-  $('band-phase').value=band.phase;renderRoster();$('library-count').textContent=bands.length;document.title='Mordheim - Długobrody';
+  $('band-phase').value=band.phase;renderRuleSet();renderRoster();$('library-count').textContent=bands.length;
 }
 async function activate(raw){
   if(loading)return false;loading=true;document.body.setAttribute('aria-busy','true');
@@ -159,11 +249,12 @@ function openPicker(){if(!catalog)return;$('fighter-search').value='';renderPick
 function renderPicker(){
   const query=$('fighter-search').value.toLocaleLowerCase('pl');
   const matching=catalog.fighters.filter(t=>`${t.name} ${t.race} ${t.type}`.toLocaleLowerCase('pl').includes(query));
-  $('template-list').innerHTML=matching.map(t=>`<button class="template-option" data-template="${esc(t.name)}"><span><strong>${esc(t.name)}</strong><small>${esc(t.type)} · ${esc(t.race)} · ${t.exp_start || 0} PD</small></span><span class="price">${t.cost} zk &nbsp; +</span></button>`).join('') || '<p class="editor-hint">Brak wojowników pasujących do wyszukiwania.</p>';
+  $('template-list').innerHTML=matching.map(t=>`<button class="template-option" data-template="${esc(t.name)}"><span><strong>${esc(t.name)}</strong><small>${esc(t.type)} · ${esc(t.race)} · ${t.exp_start || 0} PD</small></span><span class="price">${t.cost} zk${catalog.progression?.mutationEligibleTemplates.includes(t.name)?' + mutacje':''} &nbsp; +</span></button>`).join('') || '<p class="editor-hint">Brak wojowników pasujących do wyszukiwania.</p>';
 }
 function field(name,title,value,type='text'){return `<label class="editor-field">${title}<input name="${name}" type="${type}" value="${esc(value)}" ${type==='number'?'min="0" max="1000000"':''}></label>`;}
 function openEditor(id){
-  const expanded=selectedId===id && $('editor').open?[...$('editor-body').querySelectorAll('details[open]')].map(details=>details.querySelector('summary')?.textContent):[];
+  const redraw=selectedId===id && $('editor').open;
+  const expanded=redraw?[...$('editor-body').querySelectorAll('details[open]')].map(details=>details.querySelector('summary')?.textContent):[];
   const scroll=selectedId===id?$('editor').scrollTop:0;
   selectedId=id;const f=selected();if(!f)return;const t=templateFor(f,catalog),maxima=racialMaxima(f,catalog);
   $('editor-title').textContent=f.customName;
@@ -171,19 +262,19 @@ function openEditor(id){
     <details class="editor-details"><summary>Zmień szablon wojownika</summary><p class="editor-hint">Szablon określa profil i zasady początkowe. Zmiana szablonu utworzy nowy profil; poprzednią wersję możesz przywrócić przyciskiem „Cofnij”.</p><select id="replace-template"><option value="">Wybierz nowy szablon…</option>${catalog.fighters.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select><button id="apply-template" type="button">Zastosuj szablon</button></details>
     <h3>Profil wojownika</h3><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="stat.${k}" value="${esc(f.stats[k])}" aria-label="${STAT_LABELS[i]}"></label>`).join('')}</div>
     <details class="editor-details"><summary>Maksimum rasowe</summary><p id="maxima-source" class="editor-hint"></p><div class="editor-stats">${STAT_KEYS.map((k,i)=>`<label>${STAT_LABELS[i]}<input name="max.${k}" value="${esc(maxima[k] ?? '')}" aria-label="Maksimum ${STAT_LABELS[i]}"></label>`).join('')}</div><p class="editor-hint">Możesz wpisać wyjątek wynikający z zasad wojownika. Wyczyszczenie pola przywraca wartość z tabeli.</p><button id="reset-maxima" type="button">Przywróć maksimum rasowe</button></details>
-    <div class="editor-pair">${field('baseCost','Koszt podstawowy (zk)',f.baseCost,'number')}${field('exp','Doświadczenie (PD)',f.exp,'number')}</div><label><input name="is_large" type="checkbox" ${f.is_large?'checked':''}> Duży model (20 pkt do siły bandy)</label><p class="editor-hint">Profil obsługuje też wartości takie jak 2k6.</p>
-    ${recruitmentOptions(f,catalog).length || canBuyMutations(f,catalog)?`<details class="editor-details"><summary>Rozwój przy werbunku</summary><p class="editor-hint">Opcjonalne zakupy przy rekrutacji. Koszt, PD i profil aktualizują się razem. Koszt ulepszeń: ${recruitmentCost(f)} zk.</p>${recruitmentOptions(f,catalog).map(option=>option.key==='mercenaryAdvance'?`<label>${esc(option.label)}<select data-recruitment="mercenaryAdvance" ${f.recruitmentComplete?'disabled':''}><option value="">Bez rozwinięcia</option><option value="ws" ${f.recruitmentUpgrades?.mercenaryAdvance==='ws'?'selected':''}>+1 WS</option><option value="bs" ${f.recruitmentUpgrades?.mercenaryAdvance==='bs'?'selected':''}>+1 BS</option></select></label>`:`<label><input type="checkbox" data-recruitment="${option.key}" ${f.recruitmentUpgrades?.[option.key]?'checked':''} ${f.recruitmentComplete?'disabled':''}> ${esc(option.label)}</label>`).join('')}<label class="editor-field"><input name="recruitmentComplete" type="checkbox" ${f.recruitmentComplete?'checked':''}> Rekrutacja tego wojownika zakończona</label><p class="editor-hint">Zakończenie rekrutacji blokuje nowe mutacje i powyższe zakupy. Nowy wojownik w kampanii zaczyna z otwartą rekrutacją.</p></details>`:''}
+    <div class="editor-pair">${field('baseCost','Koszt podstawowy (zk)',f.baseCost,'number')}${field('exp','Doświadczenie (PD)',f.exp,'number')}</div><label><input name="is_large" type="checkbox" ${f.is_large?'checked':''}> Duży model (20 pkt do siły bandy)</label>
+    ${recruitmentOptions(f,catalog).length || canBuyMutations(f,catalog)?`<details class="editor-details" open><summary>Rozwój przy werbunku</summary><p class="editor-hint">Opcjonalne zakupy przy rekrutacji. Koszt, PD i profil aktualizują się razem. Koszt ulepszeń: ${recruitmentCost(f)} zk.</p>${canBuyMutations(f,catalog)?(f.recruitmentComplete?'<p class="editor-hint">Rekrutacja zakończona: mutacji nie można już dokupić.</p>':'<p class="editor-hint">Mutacje: pierwsza kosztuje cenę z listy, każda kolejna dwukrotność swojej ceny. Każdą mutację można kupić raz. Kupione mutacje są na liście umiejętności poniżej.</p><form id="mutation-form" class="add-entry-form"><label class="sr-only" for="mutation-choice">Dodaj mutację</label><select id="mutation-choice"></select></form>'):''}${recruitmentOptions(f,catalog).map(option=>option.key==='mercenaryAdvance'?`<label>${esc(option.label)}<select data-recruitment="mercenaryAdvance" ${f.recruitmentComplete?'disabled':''}><option value="">Bez rozwinięcia</option><option value="ws" ${f.recruitmentUpgrades?.mercenaryAdvance==='ws'?'selected':''}>+1 WS</option><option value="bs" ${f.recruitmentUpgrades?.mercenaryAdvance==='bs'?'selected':''}>+1 BS</option></select></label>`:`<label><input type="checkbox" data-recruitment="${option.key}" ${f.recruitmentUpgrades?.[option.key]?'checked':''} ${f.recruitmentComplete?'disabled':''}> ${esc(option.label)}</label>`).join('')}<label class="editor-field"><input name="recruitmentComplete" type="checkbox" ${f.recruitmentComplete?'checked':''}> Rekrutacja tego wojownika zakończona</label><p class="editor-hint">Zakończenie rekrutacji blokuje nowe mutacje i powyższe zakupy. Nowy wojownik w kampanii zaczyna z otwartą rekrutacją.</p></details>`:''}
     <h3>Ekwipunek</h3><p class="editor-hint">Ceny nowych zakupów: ${band.phase==='campaign'?'kampania':'tworzenie bandy'}. Zmiana etapu nie zmienia cen już kupionych przedmiotów. Premie z ekwipunku i umiejętności wpisuj do profilu ręcznie.</p><div id="equipment-entries"></div><form id="equipment-form" class="add-entry-form"><label class="sr-only" for="equipment-choice">Dodaj ekwipunek</label><select id="equipment-choice"><option value="">Wybierz ekwipunek…</option>${Object.entries(equipmentChoices(f,catalog).reduce((a,e)=>((a[e.originCategory]??=[]).push(e),a),{})).map(([category,items])=>`<optgroup label="${esc(categories[category] || 'Przedmioty')}">${items.map(e=>`<option value="${esc(e.name)}">${esc(e.name)} (${purchaseCost(e,band.phase)} zk)${equipmentIssue(e,f,catalog)?' · niedozwolony':''}</option>`).join('')}</optgroup>`).join('')}</select></form>
     <details class="editor-details"><summary>Znaleziony artefakt</summary><p class="editor-hint">Artefakty z eksploracji nie mają ceny zakupu. Dodanie zapisuje 0 wydanych zk; premie do profilu wpisz ręcznie.</p><form id="artifact-form" class="add-entry-form"><select name="artifact" aria-label="Znaleziony artefakt"><option value="">Wybierz artefakt…</option>${catalog.artifacts.map(item=>`<option>${esc(item.name)}</option>`).join('')}</select></form></details>
     <details class="editor-details"><summary>Własny przedmiot</summary><form id="custom-equipment-form" class="add-entry-form"><input name="name" aria-label="Nazwa własnego przedmiotu" placeholder="Nazwa przedmiotu" required maxlength="120"><input name="cost" type="number" aria-label="Koszt własnego przedmiotu" min="0" value="0"><select name="category" aria-label="Kategoria własnego przedmiotu"><option value="miscellaneous">Przedmiot</option><option value="melee_weapons">Broń wręcz</option><option value="ranged_weapons">Broń strzelecka</option><option value="armor">Pancerz</option></select><button type="submit">Dodaj własny</button></form></details>
-    <h3>Umiejętności i czary</h3><p class="editor-hint">Ścieżki rozwoju: ${esc((t?.skills || []).join(', ') || 'brak')}. Wybierz konkretny czar lub umiejętność z listy.</p>${canBuyMutations(f,catalog)?'<p class="editor-hint">Mutacje kupuje się wyłącznie podczas rekrutacji. Pierwsza kosztuje cenę z listy; każda kolejna dwukrotność swojej ceny. Koszty są obliczane automatycznie w kolejności dodawania.</p>':''}<div id="skill-entries"></div><form id="skill-form" class="add-entry-form"><label class="sr-only" for="skill-choice">Dodaj umiejętność lub czar</label><select id="skill-choice"></select></form>
+    <h3>Umiejętności i czary</h3><p class="editor-hint">Ścieżki rozwoju: ${esc((t?.skills || []).join(', ') || 'brak')}. Wybierz konkretny czar lub umiejętność z listy.</p><div id="skill-entries"></div><form id="skill-form" class="add-entry-form"><label class="sr-only" for="skill-choice">Dodaj umiejętność lub czar</label><select id="skill-choice"></select></form>
     <details class="editor-details"><summary>Własna zasada</summary><form id="custom-skill-form" class="add-entry-form"><input name="name" aria-label="Nazwa własnej zasady" placeholder="Nazwa zasady" required maxlength="180"><button type="submit">Dodaj zasadę</button></form></details>
     <label class="editor-field">Obrażenia i trwałe urazy<textarea name="injuries" rows="3">${esc(f.injuries)}</textarea></label><label class="editor-field">Uwagi<textarea name="notes" rows="3">${esc(f.notes)}</textarea></label><div id="editor-validation"></div>`;
-  updateMaximaEditor(f);renderEditorEntries();$('editor-body').querySelectorAll('details').forEach(details=>{if(expanded.includes(details.querySelector('summary')?.textContent))details.open=true;});if(!$('editor').open)$('editor').showModal();$('editor').scrollTop=scroll;
+  updateMaximaEditor(f);renderEditorEntries();$('editor-body').querySelectorAll('details').forEach(details=>{const was=expanded.includes(details.querySelector('summary')?.textContent);if(was || redraw)details.open=was;});if(!$('editor').open)$('editor').showModal();$('editor').scrollTop=scroll;
 }
 function updateMaximaEditor(f){
   const profile=racialMaximumProfile(f,catalog),maxima=racialMaxima(f,catalog);
-  $('maxima-source').textContent=Object.keys(profile.stats).length?`Wartości automatyczne: ${profile.name}. Źródło: Długobrody, str. 34.`:'Długobrody nie podaje maksimum rasowego dla tego modelu. Pola pozostają puste; możesz wpisać uzgodnione wartości.';
+  $('maxima-source').textContent=Object.keys(profile.stats).length?`Wartości automatyczne: ${profile.name}. Źródło: ${ruleSetName()}, str. 34.`:`${ruleSetName()} nie podaje maksimum rasowego dla tego modelu. Pola pozostają puste; możesz wpisać uzgodnione wartości.`;
   STAT_KEYS.forEach(key=>{const input=document.querySelector(`[name="max.${key}"]`);input.value=maxima[key] ?? '';});
 }
 function renderEditorEntries(){
@@ -191,6 +282,7 @@ function renderEditorEntries(){
   $('equipment-entries').innerHTML=f.equipment.map((e,i)=>`<div class="editor-item"><span class="entry-name">${esc(e.name)}</span><input type="number" min="0" value="${number(e.cost)}" data-eq-cost="${i}" aria-label="Koszt: ${esc(e.name)}"><small>zk</small><button class="remove-entry" data-remove-eq="${i}" aria-label="Usuń przedmiot: ${esc(e.name)}">×</button></div>`).join('') || '<p class="editor-hint">Brak ekwipunku.</p>';
   $('skill-entries').innerHTML=f.skills.map((s,i)=>`<div class="editor-item"><span class="entry-name">${esc(s.label || s.name)}${mutationFor(s,catalog)?' <small>· mutacja</small>':''}</span><input type="number" min="0" value="${skillCost(f,i,catalog)}" ${mutationFor(s,catalog)?'readonly title="Koszt obliczany automatycznie według kolejności mutacji"':''} data-skill-cost="${i}" aria-label="Koszt zasady: ${esc(s.label || s.name)}"><small>zk</small><button class="remove-entry" data-remove-skill="${i}" aria-label="Usuń zasadę: ${esc(s.label || s.name)}">×</button>${s.kind==='group'?`<select data-skill-option="${i}" aria-label="Opcja: ${esc(s.groupKey)}"><option value="">Wybierz opcję…</option>${Skills.getGroupedSkillOptions(s,catalog).map(o=>`<option value="${esc(o.name)}" ${o.name===s.selectedKey?'selected':''}>${esc(o.name)}${o.difficulty!==undefined?` · ${difficultyText(o.difficulty)}`:''}${o.cost?` (${o.cost} zk)`:''}</option>`).join('')}</select>`:''}${typeof spellInfo(s,catalog)?.difficulty==='number'?`<label>Trudność <input type="number" min="1" value="${spellInfo(s,catalog).difficulty}" data-spell-difficulty="${i}" aria-label="Trudność: ${esc(spellInfo(s,catalog).name)}"></label>`:''}</div>`).join('') || '<p class="editor-hint">Brak umiejętności.</p>';
   $('skill-choice').innerHTML='<option value="">Wybierz umiejętność lub grupę…</option>'+skillChoices(f,catalog).map(s=>`<option value="${esc(s.name)}">${esc(s.name)}${s.mutation?` (${s.cost} zk)`:''}${s.kind==='group'?' · wybór opcji':''}</option>`).join('');
+  if($('mutation-choice'))$('mutation-choice').innerHTML='<option value="">Dodaj mutację…</option>'+mutationChoices(f,catalog).map(m=>`<option value="${esc(m.name)}">${esc(m.name)} (${m.cost} zk)</option>`).join('');
   renderEditorValidation();
 }
 function renderEditorValidation(){const box=$('editor-validation');if(box)box.innerHTML=messages.filter(m=>m.fighterId===selectedId).map(m=>`<p class="editor-hint">△ ${esc(m.message)}</p>`).join('');}
@@ -211,7 +303,6 @@ document.addEventListener('click',async event=>{
     focus?.focus({preventScroll:true});focus?.scrollIntoView({block:'nearest',inline:'nearest'});
     return;
   }
-  if(button.dataset.cropPicture){openPictureCrop(button.dataset.cropPicture);return;}
   if(button.id==='replace-picture'){pictureTarget={bandId:band.id,fighterId:pictureCropId};$('fighter-picture-file').click();return;}
   if(button.id==='reset-picture-crop'){
     const fighter=band.fighters.find(f=>f.id===pictureCropId);if(fighter){fighter.pictureCrop=normalizePictureCrop();updatePictureCrop();save();}return;
@@ -286,7 +377,7 @@ function updateInlineName(input,commit=false){
   fighter.customName=name;row.setAttribute('aria-label',name);
   const entry=row.closest('.fighter-entry');
   entry.querySelector('.fighter-order').setAttribute('aria-label',`Akcje wojownika: ${name}`);
-  const controls=entry.querySelectorAll('[data-fighter-name],[data-edit],[data-stat],[data-move-fighter],[data-duplicate-fighter],[data-delete-fighter],[data-picture],[data-crop-picture],[data-remove-picture]');
+  const controls=entry.querySelectorAll('[data-fighter-name],[data-edit],[data-stat],[data-move-fighter],[data-duplicate-fighter],[data-delete-fighter],[data-picture],[data-remove-picture]');
   controls.forEach(control=>{const label=control.getAttribute('aria-label');if(label?.includes(':'))control.setAttribute('aria-label',`${label.slice(0,label.indexOf(':')+1)} ${name}`);});
   const image=row.querySelector('.fighter-portrait img');if(image)image.alt=name;
   save();renderRoster(false);
@@ -332,7 +423,19 @@ function finishPictureDrag(event){
   save();
 }
 for(const type of ['pointerup','pointercancel','lostpointercapture'])cropPreview.addEventListener(type,finishPictureDrag);
-$('picture-crop').addEventListener('close',()=>{if(pictureDrag)finishPictureDrag({pointerId:pictureDrag.pointerId});});
+// Closing the crop dialog (Gotowe, × or Esc) keeps only the framed part of the
+// photo; the crop cannot be changed afterwards, only a new photo chosen.
+$('picture-crop').addEventListener('close',()=>{if(pictureDrag)finishPictureDrag({pointerId:pictureDrag.pointerId});bakePictureCrop();});
+function bakePictureCrop(){
+  const fighter=band.fighters.find(f=>f.id===pictureCropId),image=$('picture-crop-image');
+  pictureCropId=null;
+  if(!fighter?.picture || !pictureFrame || !image.naturalWidth)return;
+  const {sx,sy,sw,sh}=pictureCropRect(fighter.pictureCrop,pictureFrame.width,pictureFrame.height,image.naturalWidth,image.naturalHeight);
+  const scale=Math.min(1,900/Math.max(sw,sh)),canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
+  canvas.getContext('2d').drawImage(image,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  fighter.picture=encodeCanvas(canvas);fighter.pictureCrop=normalizePictureCrop();changed();
+}
 cropPreview.addEventListener('wheel',event=>{
   event.preventDefault();if(pictureDrag)return;
   const fighter=band.fighters.find(f=>f.id===pictureCropId);if(!fighter)return;
@@ -340,7 +443,16 @@ cropPreview.addEventListener('wheel',event=>{
   fighter.pictureCrop=normalizePictureCrop({...crop,zoom:Math.round((crop.zoom+(event.deltaY<0?0.1:event.deltaY>0?-0.1:0))*100)/100});
   updatePictureCrop();save();
 },{passive:false});
-$('show-pictures').addEventListener('change',()=>{band.showPictures=$('show-pictures').checked;save();renderRoster();});
+// Light or dark look: a per-browser preference, applied before first paint by
+// a small script in index.html; dark (the rulebook look) is the default.
+$('light-mode').checked=document.documentElement.dataset.theme==='light';
+$('light-mode').addEventListener('change',()=>{
+  const light=$('light-mode').checked;
+  if(light)document.documentElement.dataset.theme='light';else delete document.documentElement.dataset.theme;
+  try{localStorage.setItem('mordheim_theme',light?'light':'dark');}catch{}
+});
+// Photos are always in the markup; the toggle only shows or hides their column.
+$('show-pictures').addEventListener('change',()=>{band.showPictures=$('show-pictures').checked;$('roster').classList.toggle('pictures-visible',band.showPictures);save();});
 $('fighter-picture-file').addEventListener('change',async event=>{
   const file=event.target.files[0],target=pictureTarget;event.target.value='';pictureTarget=null;if(!file || !target)return;
   try{
@@ -365,19 +477,22 @@ function shrinkPicture(image,original,maxSide=1200,maxLength=400000){
   const canvas=document.createElement('canvas');
   canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
   canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+  return encodeCanvas(canvas);
+}
+function encodeCanvas(canvas){
   const webp=canvas.toDataURL('image/webp',0.85);
   return webp.startsWith('data:image/webp')?webp:canvas.toDataURL('image/jpeg',0.85);
 }
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
-$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();document.title='Mordheim - Długobrody';});
+$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-fragments','armourFragments'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
-$('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();});
+$('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();renderGlossary();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
 $('editor-body').addEventListener('change',event=>{
   const input=event.target,f=selected();if(!f)return;
   // Picking from these lists adds the item at once; there is no separate add button.
-  if(input.tagName==='SELECT' && input.closest('#equipment-form,#artifact-form,#skill-form')){if(input.value)input.form.requestSubmit();return;}
+  if(input.tagName==='SELECT' && input.closest('#equipment-form,#artifact-form,#skill-form,#mutation-form')){if(input.value)input.form.requestSubmit();return;}
   if(input.dataset.recruitment){setRecruitmentAdvance(f,input.dataset.recruitment,input.type==='checkbox'?input.checked:input.value,catalog);changed();openEditor(f.id);return;}
   if(input.dataset.spellDifficulty!==undefined)f.skills[number(input.dataset.spellDifficulty)].difficulty=Math.max(1,number(input.value));
   else if(input.dataset.eqCost!==undefined)f.equipment[number(input.dataset.eqCost)].cost=number(input.value);
@@ -402,6 +517,7 @@ $('editor-body').addEventListener('submit',event=>{
   if(form.id==='artifact-form'){const item=catalog.artifacts.find(e=>e.name===values.get('artifact'));if(!item)return;f.equipment.push({...item,acquired:'exploration'});}
   if(form.id==='custom-equipment-form')f.equipment.push({name:String(values.get('name')).trim(),cost:number(values.get('cost')),originCategory:values.get('category')});
   if(form.id==='skill-form'){const name=$('skill-choice').value;if(!name)return;f.skills.push(Skills.createAddableSkillEntry(name,templateFor(f,catalog),catalog));}
+  if(form.id==='mutation-form'){const name=$('mutation-choice').value;if(!mutationChoices(f,catalog).some(m=>m.name===name))return;f.skills.push(Skills.createAddableSkillEntry(name,templateFor(f,catalog),catalog));}
   if(form.id==='custom-skill-form'){const entry=Skills.createSimpleSkillEntry(String(values.get('name')).trim());if(f.recruitmentComplete && mutationFor(entry,catalog)){notice('Mutacje można kupować tylko podczas rekrutacji.');return;}f.skills.push(entry);}
   changed();renderEditorEntries();form.reset();
 });
@@ -427,9 +543,24 @@ function printCards(){
 }
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-cards');$('card-sheet')?.remove();});
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
+// The empty roster is one big "add a fighter" button.
+$('roster').addEventListener('click',event=>{if(event.target.closest('.empty-roster'))openPicker();});
+$('roster').addEventListener('keydown',event=>{if(event.target.closest('.empty-roster') && (event.key==='Enter' || event.key===' ')){event.preventDefault();openPicker();}});
+// Browsers without CSS field-sizing (Firefox, older Safari): size every
+// visible text field to its content after edits and re-renders.
+if(!CSS.supports('field-sizing','content')){
+  const fit=el=>{if(!el.offsetParent)return;el.style.height='auto';el.style.height=`${el.scrollHeight+2}px`;};
+  let queued=false;
+  const fitAll=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;document.querySelectorAll('textarea').forEach(fit);});};
+  document.addEventListener('input',event=>{if(event.target.tagName==='TEXTAREA')fit(event.target);});
+  new MutationObserver(fitAll).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+  addEventListener('resize',fitAll);fitAll();
+}
 async function init(){
-  $('band-eyebrow').textContent=headingPhrases[Math.floor(Math.random()*headingPhrases.length)];
-  $('footer-motto').textContent=footerPhrases[Math.floor(Math.random()*footerPhrases.length)];
+  $('band-eyebrow').textContent=headingCycle.current();
+  $('footer-motto').textContent=footerCycle.current();
+  cycleOnClick($('band-eyebrow'),()=>{$('band-eyebrow').textContent=headingCycle.next();});
+  cycleOnClick($('footer-motto'),()=>{$('footer-motto').textContent=footerCycle.next();});
   let raw=null,notices=[];
   try{const library=readLibrary(localStorage);notices=library.notices || [];for(const entry of library.bands){try{bands.push(normalizeBand(entry));}catch(error){protectedStorage=true;notices.push(error.message);}}raw=bands.find(b=>b.id===library.activeId) || bands[0];}catch(error){protectedStorage=true;notices.push(error.message);}
   const shared=new URLSearchParams(location.search).get('band');
