@@ -41,3 +41,20 @@ test('a band with fighters cannot change type',()=>{
   const b=newBand();b.fighters=[{id:'x'}];
   assert.throws(()=>retypeEmptyBand(b,'sludzy_ciemnosci','dlugobrody'));
 });
+
+test('a silently created band still has its type open; it survives saving and retyping',()=>{
+  const b=newBand();
+  assert.equal(b.typeOpen,true);
+  assert.equal(normalizeBand(JSON.parse(JSON.stringify(b))).typeOpen,true);
+  assert.equal(retypeEmptyBand(b,'sludzy_ciemnosci','dlugobrody').typeOpen,true);
+});
+
+test('a band whose type was picked in the new-band dialog stays closed',()=>{
+  const b=newBand('sludzy_ciemnosci');b.typeOpen=false;
+  assert.equal(normalizeBand(JSON.parse(JSON.stringify(b))).typeOpen,false);
+});
+
+test('older saves count as open only while they have no fighters',()=>{
+  const empty=JSON.parse(JSON.stringify(newBand()));delete empty.typeOpen;
+  assert.equal(normalizeBand(empty).typeOpen,true);
+});

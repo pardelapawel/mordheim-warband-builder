@@ -43,7 +43,7 @@ export function normalizePictureCrop(crop) {
 }
 export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy', ruleSet = DEFAULT_RULE_SET) {
-  return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:rollBandName(type),nameRolled:true,showPictures:true,phase:'recruitment',ruleSetId:RULE_SETS[ruleSet]?ruleSet:DEFAULT_RULE_SET,warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,armourFragments:0,notes:''},storedEquipment:''};
+  return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:rollBandName(type),nameRolled:true,typeOpen:true,showPictures:true,phase:'recruitment',ruleSetId:RULE_SETS[ruleSet]?ruleSet:DEFAULT_RULE_SET,warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,armourFragments:0,notes:''},storedEquipment:''};
 }
 // An empty band may still pick its type and rules; the id stays, so no second library entry appears.
 // A name the app rolled (and nobody edited) is rolled again for the new type.
@@ -101,7 +101,7 @@ export function normalizeBand(raw) {
     cleaned.recruitmentUpgrades={extraWound:f.recruitmentUpgrades?.extraWound===true,weaponSkill:f.recruitmentUpgrades?.weaponSkill===true,mercenaryAdvance:['ws','bs'].includes(f.recruitmentUpgrades?.mercenaryAdvance)?f.recruitmentUpgrades.mercenaryAdvance:''};
     return {...cleaned,id,customName:String(f.customName || f.type || 'Wojownik'),type:String(f.type || f.templateName || ''),templateName:String(f.templateName || f.typeId || f.type || ''),baseCost:number(f.baseCost),exp:number(f.exp),stats:Object.fromEntries(STAT_KEYS.map(k=>[k,String(f.stats[k] ?? 0)])),maxStats:f.maxStats && typeof f.maxStats === 'object'?f.maxStats:{},equipment:f.equipment.map(e=>{if(!e || typeof e !== 'object') throw new Error('Nieprawidłowy ekwipunek.'); return {...e,name:String(e.name || ''),cost:number(e.cost)};}),skills:(f.skills || []).map(s=>typeof s==='string'?{name:s}:s).filter(s=>s && typeof s==='object'),injuries:String(f.injuries || ''),notes:String(f.notes || '')};
   });
-  return {...base,...raw,schemaVersion:2,showPictures:raw.showPictures!==false,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId,name:String(raw.name || 'Nowa banda'),nameRolled:raw.nameRolled===true,fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury,armourFragments:number(raw.treasury?.armourFragments)},storedEquipment:String(raw.storedEquipment || '')};
+  return {...base,...raw,schemaVersion:2,showPictures:raw.showPictures!==false,rulesRevision:raw.rulesRevision || 0,phase:raw.phase==='campaign'?'campaign':'recruitment',id:typeof raw.id==='string'&&raw.id?raw.id:base.id,ruleSetId,name:String(raw.name || 'Nowa banda'),nameRolled:raw.nameRolled===true,typeOpen:typeof raw.typeOpen==='boolean'?raw.typeOpen:raw.fighters.length===0,fighters,glossary:{descriptions:{...(raw.glossary?.descriptions || {})},deletedTerms:Array.isArray(raw.glossary?.deletedTerms)?raw.glossary.deletedTerms:[]},treasury:{...base.treasury,...raw.treasury,armourFragments:number(raw.treasury?.armourFragments)},storedEquipment:String(raw.storedEquipment || '')};
 }
 export function exportBand(band,{includePictures=true}={}) {
   const exported=structuredClone(band);

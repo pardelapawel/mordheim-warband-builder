@@ -95,8 +95,10 @@ function cycleOnClick(el,show){
   el.addEventListener('click',show);
   el.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();show();}});
 }
-// While the band is empty its type and rules can still be picked inside the empty card.
+// A band the app created silently (first visit, last band deleted) can still pick its type and rules
+// inside the empty card; a band made in the "Nowa banda" dialog already chose them.
 function typeChooserMarkup(){
+  if(!band.typeOpen)return '';
   const types=RULE_SET_BAND_TYPES[band.ruleSetId] || Object.keys(BAND_TYPES);
   return `<div class="type-chooser no-print"><div class="choice-buttons type-choice">${choiceButtons('emptyType',types.map(id=>[id,BAND_TYPES[id]]),band.warbandTypeId)}</div><div class="choice-buttons rules-choice">${choiceButtons('emptyRuleSet',Object.entries(RULE_SETS),band.ruleSetId)}</div></div>`;
 }
@@ -567,7 +569,7 @@ function rollDice(button){
 $('reroll-band-name').addEventListener('animationend',event=>{if(event.target.classList.contains('die') && !event.target.nextElementSibling)event.currentTarget.classList.remove('rolling');});
 $('reroll-band-name').addEventListener('click',event=>{rollCreateBandName();rollDice(event.currentTarget);$('create-band-name').focus();});
 renderCreateBandChoices(DEFAULT_RULE_SET);
-$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;next.nameRolled=!createNameTyped;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
+$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;next.nameRolled=!createNameTyped;next.typeOpen=false;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 // Card print: copies of the rows, nine per A4 page, without the band heading, summary or footer.
