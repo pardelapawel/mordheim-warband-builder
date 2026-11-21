@@ -8,6 +8,8 @@
   <title>Mordheim - Długobrody</title>
   <link rel="stylesheet" href="style.css">
   <script>try{if(localStorage.getItem('mordheim_theme')==='light')document.documentElement.dataset.theme='light'}catch{}</script>
+  <script>window.goatcounter={path:location.pathname,no_onload:/^\/pr-\d+\//.test(location.pathname)}</script>
+  <script data-goatcounter="https://wiedzmin.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
   <header class="masthead no-print">
@@ -19,6 +21,7 @@
     <nav class="resource-links no-print" aria-label="Zasady i turniej">
       <a href="https://drive.google.com/drive/folders/1AbBa3mBZhBvgUtrftFabuNaY6rLsWA6S" target="_blank" rel="noopener noreferrer">Zasady Starego Najmity</a>
       <a href="https://www.facebook.com/groups/1050020882827977/" target="_blank" rel="noopener noreferrer">Strona turnieju</a>
+      <a href="https://tally.so/r/ArBL1D" target="_blank" rel="noopener noreferrer">Zgłoś błąd lub pomysł</a>
     </nav>
     <section class="band-heading">
       <div class="band-identity"><label class="sr-only" for="band-name">Nazwa bandy</label><input id="band-name" class="band-name" value="Nowa banda" maxlength="120"><p id="band-name-print" class="band-name-print"></p><div class="band-type-line"><span id="band-type-label">Długobrody · Awanturnicy</span><label class="sr-only" for="band-phase">Etap bandy</label><select id="band-phase" class="no-print"><option value="recruitment">Tworzenie bandy</option><option value="campaign">Kampania</option></select></div></div>
@@ -36,7 +39,7 @@
     </section>
     <details id="validation" class="validation no-print" open><summary id="validation-title">Sprawdzenie rozpiski</summary><div id="validation-list"></div></details>
     <details id="glossary" class="glossary" open><summary><span class="section-number">02</span> Zasady i opisy</summary><label class="print-option no-print"><input id="print-glossary" type="checkbox" checked> Dołącz opisy do wydruku</label><div id="glossary-list"></div></details>
-    <footer><span id="footer-ruleset">Długobrody w Szczańcu</span><span id="footer-motto">Złoto się kończy. Blizny zostają.</span><span class="no-print">Zapis lokalny w tej przeglądarce</span></footer>
+    <footer><span id="footer-ruleset">Długobrody w Szczańcu</span><span id="footer-motto">Złoto się kończy. Blizny zostają.</span><span><a id="footer-author" href="https://tally.so/r/ArBL1D" target="_blank" rel="noopener noreferrer"></a></span></footer>
   </main>
   <dialog id="picker"><div class="dialog-heading"><div><p class="eyebrow">REKRUTACJA</p><h2>Dodaj wojownika</h2></div><button data-close="picker" class="icon-button" aria-label="Zamknij rekrutację">×</button></div><label class="sr-only" for="fighter-search">Szukaj wojownika</label><input id="fighter-search" type="search" placeholder="Szukaj typu lub rasy…"><div id="template-list"></div></dialog>
   <dialog id="editor" class="editor"><div class="dialog-heading"><div><p class="eyebrow">KARTA WOJOWNIKA</p><h2 id="editor-title">Edycja wojownika</h2></div><button data-close="editor" class="icon-button" aria-label="Zamknij edycję">×</button></div><div id="editor-body"></div><div class="editor-footer"><button id="duplicate-fighter">Powiel</button><button id="delete-fighter" class="danger">Usuń wojownika</button><button data-close="editor" class="primary">Gotowe</button></div></dialog>
