@@ -14,6 +14,7 @@ import {spellInfo,difficultyText,skillDisplay} from './spells.mjs';
 import {applyActions} from './aftermath.mjs';
 import {openAftermath} from './aftermathDialog.mjs';
 import {rerollBandName} from './bandNames.mjs';
+import {authorLines} from './authorLines.mjs';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -88,7 +89,7 @@ const emptyRosterPhrases=[
 ];
 // Flavour lines start at a random entry; clicking one shows the next from its list.
 function phraseCycle(list){let i=Math.floor(Math.random()*list.length);return {current:()=>list[i],next:()=>list[i=(i+1)%list.length]};}
-const headingCycle=phraseCycle(headingPhrases),footerCycle=phraseCycle(footerPhrases),emptyRosterCycle=phraseCycle(emptyRosterPhrases);
+const headingCycle=phraseCycle(headingPhrases),footerCycle=phraseCycle(footerPhrases),authorCycle=phraseCycle(authorLines),emptyRosterCycle=phraseCycle(emptyRosterPhrases);
 function cycleOnClick(el,show){
   Object.assign(el,{tabIndex:0,title:'Kliknij, aby zmienić'});el.setAttribute('role','button');el.classList.add('phrase-cycle');
   el.addEventListener('click',show);
@@ -598,6 +599,8 @@ async function init(){
   $('footer-motto').textContent=footerCycle.current();
   cycleOnClick($('band-eyebrow'),()=>{$('band-eyebrow').textContent=headingCycle.next();});
   cycleOnClick($('footer-motto'),()=>{$('footer-motto').textContent=footerCycle.next();});
+  $('footer-author').textContent=authorCycle.current();
+  cycleOnClick($('footer-author'),()=>{$('footer-author').textContent=authorCycle.next();});
   let raw=null,notices=[];
   try{const library=readLibrary(localStorage);notices=library.notices || [];for(const entry of library.bands){try{bands.push(normalizeBand(entry));}catch(error){protectedStorage=true;notices.push(error.message);}}raw=bands.find(b=>b.id===library.activeId) || bands[0];}catch(error){protectedStorage=true;notices.push(error.message);}
   const shared=new URLSearchParams(location.search).get('band');

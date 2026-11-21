@@ -1931,7 +1931,8 @@ dialog.aftermath[open] {
 
 @page {
   size:A4 portrait;
-  margin:10mm
+  margin:10mm;
+  @bottom-center{ content:"dlugobrody.eu";font:9px Georgia,'Times New Roman',serif;color:#777}
 }
 
 @media print {
@@ -2254,7 +2255,8 @@ dialog.aftermath[open] {
 
 @page cards {
   size:A4 portrait;
-  margin:0
+  margin:0 0 6mm;
+  @bottom-center{ content:"dlugobrody.eu";font:9px Georgia,'Times New Roman',serif;color:#777}
 }
 
 @media print {
@@ -2270,8 +2272,8 @@ dialog.aftermath[open] {
     page:cards;
     box-sizing:border-box;
     width:210mm;
-    height:297mm;
-    padding:6mm;
+    height:291mm;
+    padding:6mm 6mm 0;
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
     grid-template-rows:repeat(3,minmax(0,1fr));
@@ -3288,6 +3290,11 @@ dialog.aftermath[open] {
 }
 /* on paper the chronicle line is the page header, mirroring the footer */
 @media print {
+  .running-head::before {
+    content:"dlugobrody.eu";
+    float:left
+  }
+
   .running-head {
     display:block;
     position:static;

@@ -38,6 +38,7 @@ Opcjonalne testy przeglądarkowe: przy uruchomionym serwerze wykonaj `node scrip
 - Biblioteka jest przechowywana pod kluczem `mordheim_rosters_v2`. Zmiany zapisane w innej karcie są wczytywane automatycznie, więc karty nie nadpisują sobie band. Stare zapisy Długobrody (`mordheim_current`, `mordheim_saves`) są migrowane przy pierwszym uruchomieniu; stare klucze pozostają bez zmian. Zapisy innych zestawów zasad są pomijane z komunikatem. Migracja wymaga tego samego adresu strony i przeglądarki, w których zapisano poprzednią wersję.
 - Strona liczy odwiedziny anonimowo przez GoatCounter, bez ciasteczek. Podglądy PR (`/pr-N/`) nie są liczone.
 - „Zgłoś błąd lub pomysł” otwiera formularz Tally. Nie wymaga konta ani imienia; zgłoszenia trafiają tylko do autora.
+- Każda drukowana strona ma na dole adres dlugobrody.eu; wydruk „Drukuj / PDF” ma go też w nagłówku pierwszej strony. Stopka strony pokazuje losowy podpis autora (kliknięcie zmienia go na następny).
 - Link udostępnienia zawiera migawkę bandy bez zdjęć i ustawień kadrowania. Odbiorca otrzymuje niezależną kopię.
 
 ## Struktura
