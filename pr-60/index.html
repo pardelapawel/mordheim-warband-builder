@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#901c1e">
+  <link rel="icon" type="image/svg+xml" sizes="any" href="logo.svg">
+  <title>Mordheim - Długobrody</title>
+  <link rel="stylesheet" href="style.css">
+  <script>try{if(localStorage.getItem('mordheim_theme')==='light')document.documentElement.dataset.theme='light'}catch{}</script>
+  <script>window.goatcounter={path:location.pathname,no_onload:/^\/pr-\d+\//.test(location.pathname)}</script>
+  <script data-goatcounter="https://wiedzmin.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+  <header class="masthead no-print">
+    <a class="brand" href="./"><img class="brand-mark" src="logo.svg" alt="" width="56" height="56"><span><span id="brand-name">Długobrody</span><small>Mordheim w Szczańcu</small></span></a>
+    <div class="header-actions"><span id="save-status" role="status">Wczytywanie…</span><label class="theme-switch" title="Przełącz jasny / ciemny motyw"><input id="light-mode" type="checkbox" role="switch" aria-label="Jasny motyw"><span class="theme-icon" aria-hidden="true"></span></label><button id="library-button" class="quiet">Zapisane bandy <span id="library-count">0</span></button><button id="new-band">+ Nowa banda</button></div>
+  </header>
+  <main>
+    <p id="band-eyebrow" class="running-head">KRONIKA TYCH, KTÓRZY WRÓCILI</p>
+    <nav class="resource-links no-print" aria-label="Zasady i turniej">
+      <a href="https://drive.google.com/drive/folders/1AbBa3mBZhBvgUtrftFabuNaY6rLsWA6S" target="_blank" rel="noopener noreferrer">Zasady Starego Najmity</a>
+      <a href="https://www.facebook.com/groups/1050020882827977/" target="_blank" rel="noopener noreferrer">Strona turnieju</a>
+      <a href="https://tally.so/r/ArBL1D" target="_blank" rel="noopener noreferrer">Zgłoś błąd lub pomysł</a>
+    </nav>
+    <section class="band-heading">
+      <div class="band-identity"><label class="sr-only" for="band-name">Nazwa bandy</label><input id="band-name" class="band-name" value="Nowa banda" maxlength="120"><p id="band-name-print" class="band-name-print"></p><div class="band-type-line"><span id="band-type-label">Długobrody · Awanturnicy</span><label class="sr-only" for="band-phase">Etap bandy</label><select id="band-phase" class="no-print"><option value="recruitment">Tworzenie bandy</option><option value="campaign">Kampania</option></select></div></div>
+      <div class="totals"><div><span>Wojownicy</span><strong id="total-count">0</strong></div><div><span>Wartość bandy</span><strong id="total-cost">0 <small>zk</small></strong></div><div><span>Siła bandy</span><strong id="total-rating">0</strong></div></div>
+    </section>
+    <div class="toolbar no-print"><div class="toolbar-title sr-only"><span class="section-number">01</span><h1>Rozpiska bandy</h1><span id="roster-count" class="muted"></span></div><div class="toolbar-actions"><label class="picture-switch"><input id="show-pictures" type="checkbox" role="switch" checked> Zdjęcia wojowników</label><button id="share-button" class="quiet">Udostępnij</button><details class="export-menu"><summary>Eksportuj ▾</summary><div><button id="export-json">Plik JSON</button><button id="export-text">Plik tekstowy</button><button id="import-button">Importuj JSON</button></div></details><button id="print-button" class="quiet">Drukuj / PDF</button><button id="print-cards-button" class="quiet">Drukuj / Karty</button><button id="after-battle" class="quiet">Po bitwie</button><button id="add-fighter" class="primary">+ Dodaj wojownika</button></div></div>
+    <div id="notice" class="notice no-print" role="status" hidden></div>
+    <div class="roster-scroll"><section id="roster" aria-label="Lista wojowników"></section></div>
+    <button id="add-another" class="add-row no-print">+ Dodaj wojownika do rozpiski</button>
+    <section class="ledger" aria-label="Podsumowanie bandy">
+      <div><h2>Siła bandy</h2><div id="rating-breakdown"></div></div>
+      <div><h2>Skarbiec</h2><div class="treasury-inputs"><label>Złote korony <input id="treasury-gold" type="number" min="0" value="0"> zk</label><label>Spaczeń <input id="treasury-shards" type="number" min="0" value="0"> szt.</label><label>Fragmenty pancerza <input id="treasury-fragments" type="number" min="0" value="0"> szt.</label></div></div>
+      <div><h2>Magazyn bandy</h2><label class="sr-only" for="stored-equipment">Ekwipunek w magazynie</label><textarea id="stored-equipment" placeholder="Ekwipunek przechowywany w obozie…" rows="5"></textarea></div>
+      <div class="ledger-notes"><h2>Notatki</h2><label class="sr-only" for="treasury-notes">Notatki bandy</label><textarea id="treasury-notes" placeholder="Skarby, długi, plotki z karczmy…" rows="3"></textarea></div>
+    </section>
+    <details id="validation" class="validation no-print" open><summary id="validation-title">Sprawdzenie rozpiski</summary><div id="validation-list"></div></details>
+    <details id="glossary" class="glossary" open><summary><span class="section-number">02</span> Zasady i opisy</summary><label class="print-option no-print"><input id="print-glossary" type="checkbox" checked> Dołącz opisy do wydruku</label><div id="glossary-list"></div></details>
+    <footer><span id="footer-ruleset">Długobrody w Szczańcu</span><span id="footer-motto">Złoto się kończy. Blizny zostają.</span><span><a id="footer-author" href="https://tally.so/r/ArBL1D" target="_blank" rel="noopener noreferrer"></a></span></footer>
+  </main>
+  <dialog id="picker"><div class="dialog-heading"><div><p class="eyebrow">REKRUTACJA</p><h2>Dodaj wojownika</h2></div><button data-close="picker" class="icon-button" aria-label="Zamknij rekrutację">×</button></div><label class="sr-only" for="fighter-search">Szukaj wojownika</label><input id="fighter-search" type="search" placeholder="Szukaj typu lub rasy…"><div id="template-list"></div></dialog>
+  <dialog id="editor" class="editor"><div class="dialog-heading"><div><p class="eyebrow">KARTA WOJOWNIKA</p><h2 id="editor-title">Edycja wojownika</h2></div><button data-close="editor" class="icon-button" aria-label="Zamknij edycję">×</button></div><div id="editor-body"></div><div class="editor-footer"><button id="duplicate-fighter">Powiel</button><button id="delete-fighter" class="danger">Usuń wojownika</button><button data-close="editor" class="primary">Gotowe</button></div></dialog>
+  <dialog id="aftermath" class="aftermath" aria-labelledby="aftermath-title"><div class="dialog-heading"><div><p class="eyebrow">PO BITWIE</p><h2 id="aftermath-title">Bitwa</h2></div><button id="am-close" type="button" class="icon-button" aria-label="Zamknij sekwencję po bitwie">×</button></div><ol id="aftermath-steps" class="am-steps"></ol><div id="aftermath-body" class="am-body"></div><div class="am-footer"><button id="am-back" type="button">Wstecz</button><button id="am-next" type="button" class="primary">Dalej</button><button id="am-apply" type="button" class="primary" hidden>Zastosuj</button></div></dialog>
+  <dialog id="library"><div class="dialog-heading"><div><p class="eyebrow">LOKALNE ARCHIWUM</p><h2>Zapisane bandy</h2></div><button data-close="library" class="icon-button" aria-label="Zamknij zapisane bandy">×</button></div><div id="library-list"></div><button id="library-import">Importuj bandę z pliku</button></dialog>
+  <dialog id="create-band"><div class="dialog-heading"><h2>Nowa banda</h2><button data-close="create-band" class="icon-button" aria-label="Zamknij nową bandę">×</button></div><form id="create-band-form"><label for="create-band-name">Nazwa bandy</label><div class="name-roll"><input id="create-band-name" name="name" required maxlength="120"><button id="reroll-band-name" type="button" class="icon-button dice" aria-label="Wylosuj inną nazwę" title="Wylosuj inną nazwę"><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="8" cy="8" r="1.7"/><circle cx="16" cy="8" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="8" cy="16" r="1.7"/><circle cx="16" cy="16" r="1.7"/></g></svg></span><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="8" cy="8" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="16" cy="16" r="1.7"/></g></svg></span></button></div><fieldset class="choice-group"><legend>Zasady</legend><div id="rule-set-choice" class="choice-buttons"></div></fieldset><fieldset class="choice-group"><legend>Typ bandy</legend><div id="band-type-choice" class="choice-buttons"></div></fieldset><button class="primary" type="submit">Utwórz bandę</button></form></dialog>
+  <dialog id="picture-crop" class="picture-crop"><div class="dialog-heading"><h2>Kadruj zdjęcie</h2><button data-close="picture-crop" class="icon-button" aria-label="Zamknij kadrowanie">×</button></div><div class="crop-preview-area"><div id="picture-crop-preview" class="crop-preview"><img id="picture-crop-image" draggable="false" alt="Podgląd kadru"></div></div><p class="editor-hint">Przeciągnij zdjęcie, aby dopasować kadr. Powiększaj kółkiem myszy lub suwakami. Po zamknięciu zapisze się tylko wykadrowany fragment; aby zmienić kadr, wybierz zdjęcie ponownie. Zdjęcia zapisują się tylko w tej przeglądarce i nie są dołączane do linków; eksport JSON je zachowuje.</p><label class="crop-control" for="picture-zoom">Powiększenie <output id="picture-zoom-value"></output><input id="picture-zoom" data-crop-field="zoom" type="range" min="1" max="3" step="0.05"></label><label class="crop-control" for="picture-x">Poziomo <output id="picture-x-value"></output><input id="picture-x" data-crop-field="x" type="range" min="0" max="100" step="1"></label><label class="crop-control" for="picture-y">Pionowo <output id="picture-y-value"></output><input id="picture-y" data-crop-field="y" type="range" min="0" max="100" step="1"></label><div class="crop-actions"><button id="reset-picture-crop">Wyśrodkuj / resetuj</button><button id="replace-picture">Zmień zdjęcie</button><button data-close="picture-crop" class="primary">Gotowe</button></div></dialog>
+  <input id="fighter-picture-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <script src="lz-string.min.js"></script>
+  <script type="module" src="src/app.mjs"></script>
+</body>
+</html>
