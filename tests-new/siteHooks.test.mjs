@@ -26,6 +26,12 @@ test('app code does not depend on the counter',()=>{
   for(const f of files)assert.ok(!fs.readFileSync(path.join(srcDir,f),'utf8').includes('goatcounter'),f);
 });
 
+test('feedback link opens the form',()=>{
+  const nav=html.match(/<nav class="resource-links no-print"[\s\S]*?<\/nav>/);
+  assert.ok(nav,'resource-links nav present');
+  assert.ok(nav[0].includes('<a href="https://tally.so/r/ArBL1D" target="_blank" rel="noopener noreferrer">Zgłoś błąd lub pomysł</a>'));
+});
+
 test('published page keeps the counter',()=>{
   const {preparePages}=require('../scripts/preparePages.cjs');
   const rootDir=fileURLToPath(new URL('..',import.meta.url)),outDir=fileURLToPath(new URL('../tmp/test-pages-hooks',import.meta.url));
