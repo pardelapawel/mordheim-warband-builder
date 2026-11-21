@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url);
@@ -12,12 +13,26 @@ test('counter script points at GoatCounter',()=>{
   assert.match(html,/<script data-goatcounter="https:\/\/wiedzmin\.goatcounter\.com\/count" async src="\/\/gc\.zgo\.at\/count\.js"><\/script>/);
 });
 
+function counterSettings(pathname,search=''){
+  const m=html.match(/<script>([^<]*window\.goatcounter[^<]*)<\/script>/);
+  assert.ok(m,'counter settings script present');
+  const window={};vm.runInNewContext(m[1],{window,location:{pathname,search}});
+  return window.goatcounter;
+}
+
+test('counter settings run before the counter script',()=>{
+  assert.ok(html.indexOf('window.goatcounter')<html.indexOf(COUNTER_SRC));
+});
+
 test('preview pages are not counted',()=>{
-  const guard='<script>if(/^\\/pr-\\d+\\//.test(location.pathname))window.goatcounter={no_onload:true}</script>';
-  assert.ok(html.includes(guard),'guard script present');
-  assert.ok(html.indexOf(guard)<html.indexOf(COUNTER_SRC),'guard runs before counter');
-  const pattern=/^\/pr-\d+\//;
-  assert.ok(pattern.test('/pr-12/'));assert.ok(!pattern.test('/'));assert.ok(!pattern.test('/pr-notes/'));
+  assert.equal(counterSettings('/pr-12/').no_onload,true);
+  assert.equal(counterSettings('/').no_onload,false);
+  assert.equal(counterSettings('/pr-notes/').no_onload,false);
+});
+
+test('share links do not send band data to the counter',()=>{
+  assert.equal(counterSettings('/','?band=N4IgLgpg').path,'/');
+  assert.equal(counterSettings('/pr-3/','?band=x').path,'/pr-3/');
 });
 
 test('app code does not depend on the counter',()=>{
