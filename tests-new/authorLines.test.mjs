@@ -30,3 +30,8 @@ test('printed pages name the site',()=>{
   assert.equal((css.match(/@bottom-center\s*\{[^}]*content:\s*"dlugobrody\.eu"/g) || []).length,2,'default and cards pages');
   assert.match(css,/\.running-head::before\s*\{[^}]*content:\s*"dlugobrody\.eu"/);
 });
+
+test('footer author link looks like plain footer text on paper too (rule outside @media screen)',()=>{
+  const css=fs.readFileSync(new URL('../style.css',import.meta.url),'utf8');
+  assert.match(css,/\nfooter a \{[^}]*color:inherit[^}]*text-decoration:none/);
+});

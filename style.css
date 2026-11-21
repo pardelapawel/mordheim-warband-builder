@@ -1140,6 +1140,12 @@ footer>span:nth-child(2) {
   letter-spacing:0
 }
 
+/* the author line is a link to the feedback form, but reads as plain footer text (also on paper) */
+footer a {
+  color:inherit;
+  text-decoration:none
+}
+
 dialog {
   border:1px solid var(--line);
   border-radius:9px;
@@ -2922,7 +2928,6 @@ dialog.aftermath[open] {
   }
 
   footer>span:last-child { font-weight:400; font-style:italic }
-  footer a { color:inherit; text-decoration:none }
   footer a:hover,footer a:focus-visible { text-decoration:underline }
 
   /* ---- dialogs: a grey parchment leaf ------------------------------ */
