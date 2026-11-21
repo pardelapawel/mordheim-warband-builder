@@ -53,3 +53,24 @@ test('published page keeps the counter',()=>{
   const out=fs.readFileSync(preparePages({rootDir,outDir})+'/index.html','utf8');
   assert.ok(out.includes(COUNTER_SRC));
 });
+
+const css=fs.readFileSync(new URL('../style.css',import.meta.url),'utf8');
+test('roster box leaves room for the card shadow so no scrollbars appear',()=>{
+  const [,dx,dy]=css.match(/\.empty-roster::after \{[^}]*transform:translate\((\d+)px,(\d+)px\)/);
+  const base=css.match(/\n\.roster-scroll \{[^}]*padding:(\d+)px (\d+)px (\d+)px (\d+)px/);
+  assert.ok(base,'roster-scroll padding written as four values');
+  assert.ok(Number(base[2])>=Number(dx),'right padding covers shadow x offset');
+  assert.ok(Number(base[3])>=Number(dy),'bottom padding covers shadow y offset');
+  for(const m of css.matchAll(/\.roster-scroll \{[^}]*padding-right:(\d+)px/g))assert.ok(Number(m[1])>=Number(dx),'media padding-right '+m[1]);
+});
+
+test('band name wraps instead of being cut off',()=>{
+  assert.match(html,/<textarea id="band-name" class="band-name" rows="1" maxlength="120"/);
+  assert.match(css,/\.band-name\[data-length=long\]/);
+});
+
+test('every browser module parses',async()=>{
+  const {execFileSync}=await import('node:child_process');
+  const srcDir=fileURLToPath(new URL('../src',import.meta.url));
+  for(const f of fs.readdirSync(srcDir).filter(f=>f.endsWith('.mjs')))execFileSync(process.execPath,['--check',path.join(srcDir,f)]);
+});

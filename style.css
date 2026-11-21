@@ -237,7 +237,13 @@ main {
   border-radius:0;
   padding:0;
   width:100%;
-  min-width:0
+  min-width:0;
+  /* a one-row textarea: long names wrap instead of being cut off */
+  display:block;
+  resize:none;
+  overflow:hidden;
+  min-height:0;
+  field-sizing:content
 }
 
 .band-type-line {
@@ -367,7 +373,8 @@ main {
 
 .roster-scroll {
   overflow-x:auto;
-  padding:2px 1px
+  /* room for the cards' offset shadow (translate 2px,3px), or it overflows into scrollbars */
+  padding:2px 3px 4px 1px
 }
 
 .fighter-entry {
@@ -1925,7 +1932,7 @@ dialog.aftermath[open] {
 
   .roster-scroll {
     margin-right:0;
-    padding-right:1px
+    padding-right:3px
   }
 }
 
@@ -2693,6 +2700,8 @@ dialog.aftermath[open] {
   }
 
   .band-name { font-size:66px; line-height:1.05; color:var(--ink) }
+  .band-name[data-length=mid] { font-size:50px }
+  .band-name[data-length=long] { font-size:40px }
   .band-type-line { color:var(--muted); font-size:15px; font-style:italic }
   .seal { color:var(--ink) }
   .edition { font-style:normal; font-weight:700; font-size:11px; letter-spacing:.16em; border-left-color:var(--line) }
@@ -3381,6 +3390,12 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
   .choice-button input:checked+span { background:var(--swoosh) center/100% 100% no-repeat; color:#f2f0ec; filter:none; transform:rotate(-.6deg) }
   .choice-button input:focus-visible+span { outline:2px solid var(--ink); outline-offset:2px }
   :where(:root:not([data-theme=light])) .choice-button input:checked+span { background-image:var(--swoosh-light); color:#111 }
+  /* empty band: pick band type and rules inside the empty card, between title and text */
+  .type-chooser { margin:6px 0 14px; cursor:default }
+  .type-chooser .choice-buttons { justify-content:center }
+  .type-chooser .type-choice .choice-button span { padding:12px 28px; font-size:19px }
+  .type-chooser .rules-choice { margin-top:6px }
+  .type-chooser .rules-choice .choice-button span { padding:6px 16px; font-size:14px }
 }
 
 /* new band: the name field with its reroll die */
@@ -3412,6 +3427,24 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
     100% { transform:translateY(0) rotate(372deg) }
   }
   @media (prefers-reduced-motion: reduce) { #reroll-band-name.rolling .die { animation:none } }
+  /* empty band: re-clicking the picked type rolls a new name; two dice hop above the crest and fall behind it */
+  .empty-crest { position:relative; justify-self:center }
+  .empty-crest .empty-logo { position:relative; z-index:1 }
+  .drop-dice { position:absolute; z-index:0; left:50%; top:22px; display:flex; gap:4px; color:var(--ink); opacity:0; pointer-events:none; transform:translateX(-50%) }
+  .drop-dice .die { display:block; line-height:0 }
+  .drop-dice rect { fill:none; stroke:currentColor; stroke-width:1.8 }
+  .drop-dice circle { fill:currentColor }
+  .empty-crest.rolling .drop-dice { animation:dice-drop .9s cubic-bezier(.3,.6,.5,1) both }
+  .empty-crest.rolling .drop-dice .die { animation:die-toss .9s linear both }
+  .empty-crest.rolling .drop-dice .die:last-child { animation-name:die-toss-2 }
+  @keyframes dice-drop {
+    0% { opacity:0; transform:translate(-50%,0) }
+    12% { opacity:1 }
+    40% { opacity:1; transform:translate(-50%,-50px) }
+    85% { opacity:1; transform:translate(-50%,6px) }
+    100% { opacity:0; transform:translate(-50%,10px) }
+  }
+  @media (prefers-reduced-motion: reduce) { .empty-crest.rolling .drop-dice,.empty-crest.rolling .drop-dice .die { animation:none } }
 }
 @media screen {
   #create-band-form .choice-button { margin:0; font-size:inherit; color:inherit }
@@ -3481,3 +3514,10 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
 .portrait-upload { position:relative; inset:auto; flex:none; width:100%; height:auto; aspect-ratio:var(--portrait-ratio) }
 #card-sheet.pictures-visible .fighter-portrait { align-items:stretch }
 #card-sheet .portrait-upload { position:absolute; top:0; bottom:0; left:50%; width:auto; height:100%; max-width:100%; transform:translateX(-50%) }
+
+/* phones: the desktop name size above overrode the smaller phone size */
+@media screen and (max-width:650px) {
+  .band-name { font-size:44px }
+  .band-name[data-length=mid] { font-size:36px }
+  .band-name[data-length=long] { font-size:30px }
+}
