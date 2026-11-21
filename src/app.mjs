@@ -14,6 +14,7 @@ import {spellInfo,difficultyText,skillDisplay} from './spells.mjs';
 import {applyActions} from './aftermath.mjs';
 import {openAftermath} from './aftermathDialog.mjs';
 import {rerollBandName} from './bandNames.mjs';
+import {authorLines} from './authorLines.mjs';
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -598,6 +599,7 @@ async function init(){
   $('footer-motto').textContent=footerCycle.current();
   cycleOnClick($('band-eyebrow'),()=>{$('band-eyebrow').textContent=headingCycle.next();});
   cycleOnClick($('footer-motto'),()=>{$('footer-motto').textContent=footerCycle.next();});
+  $('footer-author').textContent=authorLines[Math.floor(Math.random()*authorLines.length)];
   let raw=null,notices=[];
   try{const library=readLibrary(localStorage);notices=library.notices || [];for(const entry of library.bands){try{bands.push(normalizeBand(entry));}catch(error){protectedStorage=true;notices.push(error.message);}}raw=bands.find(b=>b.id===library.activeId) || bands[0];}catch(error){protectedStorage=true;notices.push(error.message);}
   const shared=new URLSearchParams(location.search).get('band');
