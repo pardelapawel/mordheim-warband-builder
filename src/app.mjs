@@ -245,7 +245,7 @@ function renderRuleSet(){
 }
 function renderAll(){
   $('band-name-print').textContent=band.name;
-  $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
+  $('band-name').value=band.name;sizeBandName();$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
   $('band-phase').value=band.phase;renderRuleSet();renderRoster();$('library-count').textContent=bands.length;
 }
 async function activate(raw){
@@ -496,7 +496,10 @@ function encodeCanvas(canvas){
 }
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
-$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;band.nameRolled=false;$('band-name-print').textContent=band.name;save();});
+// Long names get a smaller font and wrap; the name stays one line of text (Enter does nothing).
+function sizeBandName(){const n=$('band-name').value.length;$('band-name').dataset.length=n>32?'long':n>18?'mid':'';}
+$('band-name').addEventListener('keydown',event=>{if(event.key==='Enter')event.preventDefault();});
+$('band-name').addEventListener('input',()=>{if(/[\r\n]/.test($('band-name').value))$('band-name').value=$('band-name').value.replace(/[\r\n]+/g,' ');sizeBandName();band.name=$('band-name').value;band.nameRolled=false;$('band-name-print').textContent=band.name;save();});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-fragments','armourFragments'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();renderGlossary();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
