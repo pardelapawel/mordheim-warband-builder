@@ -3381,6 +3381,13 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
   .choice-button input:checked+span { background:var(--swoosh) center/100% 100% no-repeat; color:#f2f0ec; filter:none; transform:rotate(-.6deg) }
   .choice-button input:focus-visible+span { outline:2px solid var(--ink); outline-offset:2px }
   :where(:root:not([data-theme=light])) .choice-button input:checked+span { background-image:var(--swoosh-light); color:#111 }
+  /* empty band: pick band type and rules right above the empty card */
+  .type-chooser { margin:0 0 14px; padding:16px 12px 14px; text-align:center }
+  .type-chooser h2 { margin:0 0 10px; font:600 22px/1.2 var(--book) }
+  .type-chooser .choice-buttons { justify-content:center }
+  .type-chooser .type-choice .choice-button span { padding:12px 28px; font-size:19px }
+  .type-chooser .rules-choice { margin-top:10px; display:flex; flex-wrap:wrap; gap:4px 8px; justify-content:center; align-items:center; font-size:13px; color:var(--muted) }
+  .type-chooser .rules-choice .choice-button span { padding:4px 12px; font-size:13px }
 }
 
 /* new band: the name field with its reroll die */

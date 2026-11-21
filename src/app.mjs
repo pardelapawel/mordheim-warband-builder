@@ -1,4 +1,4 @@
-import {RULE_SETS,RULE_SET_BAND_TYPES,DEFAULT_RULE_SET,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,ensureLeader,textExport,number,uid,label} from './model.mjs';
+import {RULE_SETS,RULE_SET_BAND_TYPES,DEFAULT_RULE_SET,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,retypeEmptyBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,ensureLeader,textExport,number,uid,label} from './model.mjs';
 import {panPictureCrop,pictureCropRect} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
@@ -95,9 +95,14 @@ function cycleOnClick(el,show){
   el.addEventListener('click',show);
   el.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();show();}});
 }
+// While the band is empty its type and rules can still be picked, right above the empty card.
+function typeChooserMarkup(){
+  const types=RULE_SET_BAND_TYPES[band.ruleSetId] || Object.keys(BAND_TYPES);
+  return `<div class="type-chooser no-print"><h2>Jaką bandę prowadzisz?</h2><div class="choice-buttons type-choice">${choiceButtons('emptyType',types.map(id=>[id,BAND_TYPES[id]]),band.warbandTypeId)}</div><div class="rules-choice"><span>Zasady:</span><span class="choice-buttons">${choiceButtons('emptyRuleSet',Object.entries(RULE_SETS),band.ruleSetId)}</span></div></div>`;
+}
 function emptyRosterMarkup(){
   const [title,description]=emptyRosterCycle.current();
-  return `<div class="empty-roster" role="button" tabindex="0" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
+  return typeChooserMarkup()+`<div class="empty-roster" role="button" tabindex="0" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
 }
 let pictureTarget=null,pictureCropId=null,pictureDrag=null,pictureFrame=null;
 // Width / height of every fighter photo: the roster PDF's 20 x 36 mm box (--portrait-ratio in style.css).
@@ -559,7 +564,7 @@ function rollDice(button){
 $('reroll-band-name').addEventListener('animationend',event=>{if(event.target.classList.contains('die') && !event.target.nextElementSibling)event.currentTarget.classList.remove('rolling');});
 $('reroll-band-name').addEventListener('click',event=>{rollCreateBandName();rollDice(event.currentTarget);$('create-band-name').focus();});
 renderCreateBandChoices(DEFAULT_RULE_SET);
-$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
+$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;rolledName=createNameTyped?null:next.name;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 // Card print: copies of the rows, nine per A4 page, without the band heading, summary or footer.
@@ -582,6 +587,14 @@ function printCards(){
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-cards');$('card-sheet')?.remove();});
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
 // The empty roster is one big "add a fighter" button.
+// A band name the app rolled and nobody edited is rolled again when an empty band changes type.
+let rolledName=null;
+$('roster').addEventListener('change',async event=>{
+  const chooser=event.target.closest('.type-chooser');if(!chooser)return;
+  const type=chooser.querySelector('input[name=emptyType]:checked')?.value,ruleSet=chooser.querySelector('input[name=emptyRuleSet]:checked')?.value;
+  const reroll=band.name===rolledName,next=retypeEmptyBand(band,type,ruleSet,{rerollName:reroll});
+  if(await activate(next) && reroll)rolledName=next.name;
+});
 $('roster').addEventListener('click',event=>{if(event.target.closest('.empty-roster'))openPicker();});
 $('roster').addEventListener('keydown',event=>{if(event.target.closest('.empty-roster') && (event.key==='Enter' || event.key===' ')){event.preventDefault();openPicker();}});
 // Browsers without CSS field-sizing (Firefox, older Safari): size every
@@ -604,7 +617,8 @@ async function init(){
   try{const library=readLibrary(localStorage);notices=library.notices || [];for(const entry of library.bands){try{bands.push(normalizeBand(entry));}catch(error){protectedStorage=true;notices.push(error.message);}}raw=bands.find(b=>b.id===library.activeId) || bands[0];}catch(error){protectedStorage=true;notices.push(error.message);}
   const shared=new URLSearchParams(location.search).get('band');
   if(shared){try{raw=decodeShare(shared,globalThis.LZString);raw.id=uid();notices.push('Otwarto kopię bandy z linku. Zmiany zapisują się lokalnie.');}catch(error){notices.push('Nieprawidłowy link. '+error.message);}}
-  const activated=await activate(raw || newBand());
+  const fresh=raw?null:newBand();if(fresh)rolledName=fresh.name;
+  const activated=await activate(raw || fresh);
   if(!activated){$('save-status').textContent='Błąd wczytywania';$('roster').innerHTML='<div class="empty-roster"><h2>Nie udało się wczytać zasad.</h2><p>Odśwież stronę, aby spróbować ponownie.</p></div>';}
   else if(shared)history.replaceState(null,'',location.pathname);
   if(notices.length)notice(notices.join('\n'));

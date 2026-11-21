@@ -45,6 +45,14 @@ export const label = entry => Skills.formatSkillEntry(entry);
 export function newBand(type = 'awanturnicy', ruleSet = DEFAULT_RULE_SET) {
   return {schemaVersion:2,rulesRevision:RULES_REVISION,id:uid(),name:rollBandName(type),showPictures:true,phase:'recruitment',ruleSetId:RULE_SETS[ruleSet]?ruleSet:DEFAULT_RULE_SET,warbandTypeId:type,fighters:[],glossary:{descriptions:{},deletedTerms:[]},treasury:{gold:0,shards:0,armourFragments:0,notes:''},storedEquipment:''};
 }
+// An empty band may still pick its type and rules; the id stays, so no second library entry appears.
+export function retypeEmptyBand(band, type, ruleSet, {rerollName = false} = {}) {
+  if (band.fighters.length) throw new Error('Typ bandy można zmienić tylko przed dodaniem wojowników.');
+  const ruleSetId = RULE_SETS[ruleSet] ? ruleSet : DEFAULT_RULE_SET;
+  const allowed = RULE_SET_BAND_TYPES[ruleSetId] || Object.keys(BAND_TYPES);
+  const warbandTypeId = allowed.includes(type) ? type : allowed[0];
+  return {...band, ruleSetId, warbandTypeId, name: rerollName ? rollBandName(warbandTypeId) : band.name};
+}
 export function createFighter(template, catalog) {
   const fighter = {id:uid(),typeId:template.name,templateName:template.name,type:template.name,customName:template.name,race:template.race,baseCost:template.cost,exp:template.exp_start || 0,exp_start:template.exp_start || 0,is_large:!!template.is_large,stats:{...template.stats},maxStats:{},equipment:[],skills:Skills.getTemplateStartingSkillEntries(template,catalog),injuries:'',notes:'',picture:'',pictureCrop:normalizePictureCrop()};
   if (template.type !== 'Zwierzak' && template.race !== 'Ogr' && !template.requirements?.noEquipment) fighter.equipment.push({name:'Sztylet',cost:0,originCategory:'melee_weapons'});
