@@ -3427,6 +3427,24 @@ textarea { field-sizing:content; min-height:3.2em; overflow:hidden }
     100% { transform:translateY(0) rotate(372deg) }
   }
   @media (prefers-reduced-motion: reduce) { #reroll-band-name.rolling .die { animation:none } }
+  /* empty band: re-clicking the picked type rolls a new name; two dice hop above the crest and fall behind it */
+  .empty-crest { position:relative; justify-self:center }
+  .empty-crest .empty-logo { position:relative; z-index:1 }
+  .drop-dice { position:absolute; z-index:0; left:50%; top:22px; display:flex; gap:4px; color:var(--ink); opacity:0; pointer-events:none; transform:translateX(-50%) }
+  .drop-dice .die { display:block; line-height:0 }
+  .drop-dice rect { fill:none; stroke:currentColor; stroke-width:1.8 }
+  .drop-dice circle { fill:currentColor }
+  .empty-crest.rolling .drop-dice { animation:dice-drop .9s cubic-bezier(.3,.6,.5,1) both }
+  .empty-crest.rolling .drop-dice .die { animation:die-toss .9s linear both }
+  .empty-crest.rolling .drop-dice .die:last-child { animation-name:die-toss-2 }
+  @keyframes dice-drop {
+    0% { opacity:0; transform:translate(-50%,0) }
+    12% { opacity:1 }
+    40% { opacity:1; transform:translate(-50%,-50px) }
+    85% { opacity:1; transform:translate(-50%,6px) }
+    100% { opacity:0; transform:translate(-50%,10px) }
+  }
+  @media (prefers-reduced-motion: reduce) { .empty-crest.rolling .drop-dice,.empty-crest.rolling .drop-dice .die { animation:none } }
 }
 @media screen {
   #create-band-form .choice-button { margin:0; font-size:inherit; color:inherit }
