@@ -1,4 +1,4 @@
-import {RULE_SETS,RULE_SET_BAND_TYPES,DEFAULT_RULE_SET,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,ensureLeader,textExport,number,uid,label} from './model.mjs';
+import {RULE_SETS,RULE_SET_BAND_TYPES,DEFAULT_RULE_SET,mutationChoices,exportBand,normalizePictureCrop,STAT_KEYS,STAT_LABELS,BAND_TYPES,bandTitle,newBand,retypeEmptyBand,createFighter,duplicateFighter,fighterCost,summary,normalizeBand,templateFor,skillChoices,glossaryEntries,ensureLeader,textExport,number,uid,label} from './model.mjs';
 import {panPictureCrop,pictureCropRect} from './picture.mjs';
 import {loadCatalog} from './catalog.mjs';
 import {readLibrary,writeLibrary,encodeShare,decodeShare,STORAGE_KEY} from './storage.mjs';
@@ -95,9 +95,16 @@ function cycleOnClick(el,show){
   el.addEventListener('click',show);
   el.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();show();}});
 }
+// A band the app created silently (first visit, last band deleted) can still pick its type and rules
+// inside the empty card; a band made in the "Nowa banda" dialog already chose them.
+function typeChooserMarkup(){
+  if(!band.typeOpen)return '';
+  const types=RULE_SET_BAND_TYPES[band.ruleSetId] || Object.keys(BAND_TYPES);
+  return `<div class="type-chooser no-print"><div class="choice-buttons type-choice">${choiceButtons('emptyType',types.map(id=>[id,BAND_TYPES[id]]),band.warbandTypeId)}</div><div class="choice-buttons rules-choice">${choiceButtons('emptyRuleSet',Object.entries(RULE_SETS),band.ruleSetId)}</div></div>`;
+}
 function emptyRosterMarkup(){
   const [title,description]=emptyRosterCycle.current();
-  return `<div class="empty-roster" role="button" tabindex="0" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2><p>${esc(description)}</p></div>`;
+  return `<div class="empty-roster" title="Dodaj wojownika"><div class="empty-crest"><span class="drop-dice" aria-hidden="true"><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="12" cy="12" r="1.7"/></g></svg></span><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="12" cy="12" r="1.7"/></g></svg></span></span><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"></div><h2>${esc(title)}</h2>${typeChooserMarkup()}<p>${esc(description)}</p></div>`;
 }
 let pictureTarget=null,pictureCropId=null,pictureDrag=null,pictureFrame=null;
 // Width / height of every fighter photo: the roster PDF's 20 x 36 mm box (--portrait-ratio in style.css).
@@ -240,7 +247,7 @@ function renderRuleSet(){
 }
 function renderAll(){
   $('band-name-print').textContent=band.name;
-  $('band-name').value=band.name;$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
+  $('band-name').value=band.name;sizeBandName();$('treasury-gold').value=number(band.treasury.gold);$('treasury-shards').value=number(band.treasury.shards);$('treasury-fragments').value=number(band.treasury.armourFragments);$('treasury-notes').value=band.treasury.notes || '';$('stored-equipment').value=band.storedEquipment;
   $('band-phase').value=band.phase;renderRuleSet();renderRoster();$('library-count').textContent=bands.length;
 }
 async function activate(raw){
@@ -491,7 +498,10 @@ function encodeCanvas(canvas){
 }
 $('fighter-search').addEventListener('input',renderPicker);
 $('band-phase').addEventListener('change',()=>{band.phase=$('band-phase').value;if(band.phase==='campaign')band.fighters.forEach(f=>f.recruitmentComplete=true);changed();notice(band.phase==='campaign'?'Rozpoczęto kampanię. Nowe zakupy używają cen kampanii; istniejące ceny pozostają bez zmian.':'Włączono ceny tworzenia bandy dla nowych zakupów.');});
-$('band-name').addEventListener('input',()=>{band.name=$('band-name').value;$('band-name-print').textContent=band.name;save();});
+// Long names get a smaller font and wrap; the name stays one line of text (Enter does nothing).
+function sizeBandName(){const n=$('band-name').value.length;$('band-name').dataset.length=n>32?'long':n>18?'mid':'';}
+$('band-name').addEventListener('keydown',event=>{if(event.key==='Enter')event.preventDefault();});
+$('band-name').addEventListener('input',()=>{if(/[\r\n]/.test($('band-name').value))$('band-name').value=$('band-name').value.replace(/[\r\n]+/g,' ');sizeBandName();band.name=$('band-name').value;band.nameRolled=false;$('band-name-print').textContent=band.name;save();});
 for(const [id,key]of [['treasury-gold','gold'],['treasury-shards','shards'],['treasury-fragments','armourFragments'],['treasury-notes','notes']])$(id).addEventListener('input',()=>{band.treasury[key]=key==='notes'?$(id).value:number($(id).value);save();});
 $('stored-equipment').addEventListener('input',()=>{band.storedEquipment=$('stored-equipment').value;save();renderGlossary();});
 $('glossary-list').addEventListener('change',e=>{if(e.target.dataset.description){band.glossary.descriptions[e.target.dataset.description]=e.target.value;save();e.target.nextElementSibling.textContent=e.target.value;}});
@@ -559,7 +569,7 @@ function rollDice(button){
 $('reroll-band-name').addEventListener('animationend',event=>{if(event.target.classList.contains('die') && !event.target.nextElementSibling)event.currentTarget.classList.remove('rolling');});
 $('reroll-band-name').addEventListener('click',event=>{rollCreateBandName();rollDice(event.currentTarget);$('create-band-name').focus();});
 renderCreateBandChoices(DEFAULT_RULE_SET);
-$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
+$('create-band-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.target,values=new FormData(form),next=newBand(values.get('type'),values.get('ruleSet'));next.name=String(values.get('name')).trim() || next.name;next.nameRolled=!createNameTyped;next.typeOpen=false;if(await activate(next)){$('create-band').close();history.replaceState(null,'',location.pathname);notice('Utworzono nową bandę. Poprzednia rozpiska jest w zapisanych bandach.');}});
 $('import-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>50000000)throw new Error('Plik jest zbyt duży (maks. 50 MB).');const next=normalizeBand(JSON.parse(await file.text()));next.id=uid();if(await activate(next)){if($('library').open)$('library').close();history.replaceState(null,'',location.pathname);notice('Zaimportowano bandę jako osobny zapis.');}}catch(error){notice(`Nie udało się zaimportować pliku. ${error.message}`);}finally{event.target.value='';}});
 function syncPrintText(){document.querySelectorAll('.ledger textarea').forEach(input=>{let p=input.nextElementSibling;if(!p?.classList.contains('print-text')){p=document.createElement('p');p.className='print-text';input.after(p);}p.textContent=input.value;});}
 // Card print: copies of the rows, nine per A4 page, without the band heading, summary or footer.
@@ -582,8 +592,23 @@ function printCards(){
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-cards');$('card-sheet')?.remove();});
 window.addEventListener('beforeprint',()=>{document.body.classList.toggle('print-descriptions',$('print-glossary').checked);if($('print-glossary').checked)$('glossary').open=true;syncPrintText();});
 // The empty roster is one big "add a fighter" button.
-$('roster').addEventListener('click',event=>{if(event.target.closest('.empty-roster'))openPicker();});
-$('roster').addEventListener('keydown',event=>{if(event.target.closest('.empty-roster') && (event.key==='Enter' || event.key===' ')){event.preventDefault();openPicker();}});
+$('roster').addEventListener('change',async event=>{
+  const chooser=event.target.closest('.type-chooser');if(!chooser)return;
+  const type=chooser.querySelector('input[name=emptyType]:checked')?.value,ruleSet=chooser.querySelector('input[name=emptyRuleSet]:checked')?.value;
+  await activate(retypeEmptyBand(band,type,ruleSet));
+});
+$('roster').addEventListener('click',event=>{
+  // Clicking the band type that is already picked rolls a new name, with dice dropping behind the crest.
+  const typeInput=event.target.closest('.type-chooser input[name=emptyType]');
+  if(typeInput && typeInput.value===band.warbandTypeId){
+    band.name=rerollBandName(band.warbandTypeId,band.name);band.nameRolled=true;
+    $('band-name').value=band.name;sizeBandName();$('band-name-print').textContent=band.name;save();
+    const crest=$('roster').querySelector('.empty-crest');if(crest)rollDice(crest);
+    return;
+  }
+  if(event.target.closest('.empty-roster') && !event.target.closest('.type-chooser'))openPicker();
+});
+$('roster').addEventListener('animationend',event=>{if(event.target.classList.contains('drop-dice'))event.target.parentElement.classList.remove('rolling');});
 // Browsers without CSS field-sizing (Firefox, older Safari): size every
 // visible text field to its content after edits and re-renders.
 if(!CSS.supports('field-sizing','content')){
