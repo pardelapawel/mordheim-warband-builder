@@ -102,7 +102,7 @@ function typeChooserMarkup(){
 }
 function emptyRosterMarkup(){
   const [title,description]=emptyRosterCycle.current();
-  return `<div class="empty-roster" title="Dodaj wojownika"><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"><h2>${esc(title)}</h2>${typeChooserMarkup()}<p>${esc(description)}</p></div>`;
+  return `<div class="empty-roster" title="Dodaj wojownika"><div class="empty-crest"><span class="drop-dice" aria-hidden="true"><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="12" cy="12" r="1.7"/></g></svg></span><span class="die"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><g><circle cx="12" cy="12" r="1.7"/></g></svg></span></span><img class="empty-logo" src="logo.svg" alt="" width="80" height="80"></div><h2>${esc(title)}</h2>${typeChooserMarkup()}<p>${esc(description)}</p></div>`;
 }
 let pictureTarget=null,pictureCropId=null,pictureDrag=null,pictureFrame=null;
 // Width / height of every fighter photo: the roster PDF's 20 x 36 mm box (--portrait-ratio in style.css).
@@ -595,7 +595,18 @@ $('roster').addEventListener('change',async event=>{
   const type=chooser.querySelector('input[name=emptyType]:checked')?.value,ruleSet=chooser.querySelector('input[name=emptyRuleSet]:checked')?.value;
   await activate(retypeEmptyBand(band,type,ruleSet));
 });
-$('roster').addEventListener('click',event=>{if(event.target.closest('.empty-roster') && !event.target.closest('.type-chooser'))openPicker();});
+$('roster').addEventListener('click',event=>{
+  // Clicking the band type that is already picked rolls a new name, with dice dropping behind the crest.
+  const typeInput=event.target.closest('.type-chooser input[name=emptyType]');
+  if(typeInput && typeInput.value===band.warbandTypeId){
+    band.name=rerollBandName(band.warbandTypeId,band.name);band.nameRolled=true;
+    $('band-name').value=band.name;sizeBandName();$('band-name-print').textContent=band.name;save();
+    const crest=$('roster').querySelector('.empty-crest');if(crest)rollDice(crest);
+    return;
+  }
+  if(event.target.closest('.empty-roster') && !event.target.closest('.type-chooser'))openPicker();
+});
+$('roster').addEventListener('animationend',event=>{if(event.target.classList.contains('drop-dice'))event.target.parentElement.classList.remove('rolling');});
 // Browsers without CSS field-sizing (Firefox, older Safari): size every
 // visible text field to its content after edits and re-renders.
 if(!CSS.supports('field-sizing','content')){
